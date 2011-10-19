@@ -3,7 +3,7 @@
 namespace Cloudy.Protobuf.Enums
 {
     /// <summary>
-    /// Represents the wire type.
+    /// Represents the Protobuf wire type.
     /// </summary>
     public enum WireType
     {

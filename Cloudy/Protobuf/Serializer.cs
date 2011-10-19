@@ -4,95 +4,124 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Cloudy.Protobuf.Attributes;
+using Cloudy.Protobuf.Encoding;
+using Cloudy.Protobuf.Enums;
+using Cloudy.Protobuf.Exceptions;
+using Cloudy.Protobuf.Helpers;
 using Cloudy.Protobuf.Interfaces;
+using Cloudy.Protobuf.Serializers;
+using Cloudy.Protobuf.Structures;
+using Cloudy.Protobuf.ValueBuilders;
 
 namespace Cloudy.Protobuf
 {
     /// <summary>
-    /// Represents a serializer.
+    /// Used to serialize to and deserialize from the Protobuf format.
     /// </summary>
-    public class Serializer
+    public class Serializer : AbstractSerializer
     {
-        private readonly Dictionary<int, PropertyInfo> tagToPropertyCache;
+        private readonly Type expectedType;
 
-        private readonly Type type;
+        private readonly Dictionary<uint, BuildingProperty> properties;
 
-        protected Serializer(Type type, Dictionary<int, PropertyInfo> tagToPropertyCache)
+        private Serializer(Type expectedType, Dictionary<uint, BuildingProperty> properties)
         {
-            this.tagToPropertyCache = tagToPropertyCache;
-            this.type = type;
+            this.expectedType = expectedType;
+            this.properties = properties;
         }
 
-        /// <summary>
-        /// Gets or sets the extensions for this serializer.
-        /// </summary>
-        public Dictionary<Type, IValueSerializer> Extensions { get; set; }
+        private static readonly Dictionary<Type, Serializer> SerializerCache =
+            new Dictionary<Type, Serializer>();
 
         public static Serializer CreateSerializer(Type type)
         {
-            MemberInfo typeInfo = type;
-            if (typeInfo.GetCustomAttributes(typeof(Attributes.SerializableAttribute),
-                false).Length == 0)
+            Serializer serializer;
+            if (SerializerCache.TryGetValue(type, out serializer))
             {
-                throw new ArgumentException("Non-serializable class.");
+                return serializer;
             }
-            return new Serializer(type, CreateTagToPropertyCache(type));
-        }
-
-        private static Dictionary<int, PropertyInfo> CreateTagToPropertyCache(Type type)
-        {
-            Dictionary<int, PropertyInfo> tagToPropertyCache =
-                new Dictionary<int, PropertyInfo>();
+            ProtobufSerializableAttribute serializableAttribute =
+                (ProtobufSerializableAttribute)Attribute.GetCustomAttribute(
+                type, typeof(ProtobufSerializableAttribute));
+            if (serializableAttribute == null)
+            {
+                throw new NotSerializableException(type);
+            }
+            Dictionary<uint, BuildingProperty> properties =
+                new Dictionary<uint, BuildingProperty>();
             foreach (PropertyInfo property in type.GetProperties())
             {
-                foreach (TagAttribute tagAttribute in property.GetCustomAttributes(
-                    typeof(TagAttribute), false).Cast<TagAttribute>())
+                ProtobufFieldAttribute fieldAttribute = 
+                    (ProtobufFieldAttribute)Attribute.GetCustomAttribute(
+                    property, typeof(ProtobufFieldAttribute));
+                if (fieldAttribute == null)
                 {
-                    tagToPropertyCache[tagAttribute.Tag] = property;
+                    continue;
+                }
+                if (properties.ContainsKey(fieldAttribute.FieldNumber))
+                {
+                    throw new DuplicateFieldNumberException(fieldAttribute.FieldNumber);
+                }
+                BuildingProperty buildingProperty = new BuildingProperty(
+                    property, CreateBuildingSerializer(property, fieldAttribute));
+                buildingProperty.BuildingSerializer.Serializer =
+                    new CheckNullSerializer(buildingProperty.BuildingSerializer.Serializer,
+                        !fieldAttribute.Required);
+                if (fieldAttribute.Required)
+                {
+                    buildingProperty.BuildingSerializer.Builder =
+                        new RequiredValueBuilder(buildingProperty.BuildingSerializer.Builder);
+                }
+                properties[fieldAttribute.FieldNumber] = buildingProperty;
+            }
+            return SerializerCache[type] = new Serializer(type, properties);
+        }
+
+        private static BuildingSerializer CreateBuildingSerializer(PropertyInfo property,
+            ProtobufFieldAttribute attribute)
+        {
+            WireTypedSerializer serializer;
+            // Trying to serialize as a single value first.
+            if ((attribute.DataType != DataType.Default &&
+                DataTypeToSerializerCache.TryGetSerializer(attribute.DataType, out serializer))
+                || DefaultSerializersCache.TryGetSerializer(property.PropertyType, out serializer))
+            {
+                return new BuildingSerializer(serializer,
+                    new SingleValueBuilder(property.PropertyType));
+            }
+            // Trying to serialize as a collection.
+            // TODO:
+            // trying to serialize as an embedded message.
+            return new BuildingSerializer(new EmbeddedMessageSerializer(
+                CreateSerializer(property.PropertyType)),
+                new SingleValueBuilder(property.PropertyType));
+        }
+
+        public override void Serialize(Stream stream, object o)
+        {
+            if (o.GetType() != expectedType)
+            {
+                throw new InvalidOperationException(String.Format(
+                    "Expected type: {0}, but was: {1}", expectedType, o.GetType()));
+            }
+            foreach (KeyValuePair<uint, BuildingProperty> entry in properties)
+            {
+                WireTypedSerializer serializer = entry.Value.BuildingSerializer.Serializer;
+                object value = entry.Value.Property.GetValue(o, null);
+                if (!serializer.ShouldBeSkipped(value))
+                {
+                    ProtobufWriter.WriteKey(stream, entry.Key, serializer.WireType);
+                    entry.Value.BuildingSerializer.Serializer.Serialize(stream, value);
                 }
             }
-            return tagToPropertyCache;
         }
 
-        /// <summary>
-        /// Serializes the value into the stream.
-        /// </summary>
-        public void Serialize(object value, Stream stream)
+        public override object Deserialize(Stream stream)
         {
-            if (value.GetType() == type)
-            {
-                throw new ArgumentException(String.Format(
-                    "{0} type expected, but was {1}", type, value.GetType()));
-            }
-            // TODO
-        }
-
-        /// <summary>
-        /// Serializes the value into an array of bytes.
-        /// </summary>
-        public byte[] Serialize(object value)
-        {
-            MemoryStream stream = new MemoryStream();
-            Serialize(value, stream);
-            return stream.ToArray();
-        }
-
-        /// <summary>
-        /// Deserializes a value from the stream.
-        /// </summary>
-        /// <returns>Whether the deserialization has succeeded.</returns>
-        public bool Deserialize(Stream stream, out object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Deserializes a value from the array of bytes.
-        /// </summary>
-        /// <returns>Whether the deserialization has succeeded.</returns>
-        public bool Deserialize(byte[] bytes, out object value)
-        {
-            return Deserialize(new MemoryStream(bytes), out value);
+            //Dictionary<int, IValueBuilder> buildingProperties = properties.ToDictionary(
+            //    entry => entry.Key,
+            //    entry => entry.Value.BuildingSerializer.Builder.CreateInstance());
+            return null;
         }
     }
 }

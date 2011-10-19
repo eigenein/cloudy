@@ -40,8 +40,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssertExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Protobuf\ValueSerializers\StringValueSerializerTest.cs" />
+    <Compile Include="Protobuf\Serializers\BoolSerializerTest.cs" />
+    <Compile Include="Protobuf\Serializers\SignedVarintSerializerTest.cs" />
+    <Compile Include="Protobuf\Serializers\StringSerializerTest.cs" />
+    <Compile Include="Protobuf\Serializers\UnsignedVarintSerializerTest.cs" />
+    <Compile Include="Protobuf\SerializerTest.cs" />
+    <Compile Include="Protobuf\TestClasses\A.cs" />
+    <Compile Include="Protobuf\TestClasses\B.cs" />
+    <Compile Include="Protobuf\TestClasses\C.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
