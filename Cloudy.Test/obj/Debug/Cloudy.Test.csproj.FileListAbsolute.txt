@@ -1,0 +1,9 @@
+C:\Users\eigenein\My Projects\Personal\Cloudy\Cloudy.Test\bin\Debug\Cloudy.Test.dll
+C:\Users\eigenein\My Projects\Personal\Cloudy\Cloudy.Test\bin\Debug\Cloudy.Test.pdb
+C:\Users\eigenein\My Projects\Personal\Cloudy\Cloudy.Test\bin\Debug\Cloudy.dll
+C:\Users\eigenein\My Projects\Personal\Cloudy\Cloudy.Test\bin\Debug\nunit.framework.dll
+C:\Users\eigenein\My Projects\Personal\Cloudy\Cloudy.Test\bin\Debug\Cloudy.pdb
+C:\Users\eigenein\My Projects\Personal\Cloudy\Cloudy.Test\bin\Debug\nunit.framework.xml
+C:\Users\eigenein\My Projects\Personal\Cloudy\Cloudy.Test\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\eigenein\My Projects\Personal\Cloudy\Cloudy.Test\obj\Debug\Cloudy.Test.dll
+C:\Users\eigenein\My Projects\Personal\Cloudy\Cloudy.Test\obj\Debug\Cloudy.Test.pdb

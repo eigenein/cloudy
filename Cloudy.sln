@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy", "Cloudy\Cloudy.csproj", "{670CB013-9734-4D71-BE05-070FED4C0EF2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Test", "Cloudy.Test\Cloudy.Test.csproj", "{585C6335-6955-4556-8884-E2DF7987E870}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,10 @@ Global
 		{670CB013-9734-4D71-BE05-070FED4C0EF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{670CB013-9734-4D71-BE05-070FED4C0EF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{670CB013-9734-4D71-BE05-070FED4C0EF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{585C6335-6955-4556-8884-E2DF7987E870}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{585C6335-6955-4556-8884-E2DF7987E870}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{585C6335-6955-4556-8884-E2DF7987E870}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{585C6335-6955-4556-8884-E2DF7987E870}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

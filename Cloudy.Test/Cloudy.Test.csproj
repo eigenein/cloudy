@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{670CB013-9734-4D71-BE05-070FED4C0EF2}</ProjectGuid>
+    <ProjectGuid>{585C6335-6955-4556-8884-E2DF7987E870}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Cloudy</RootNamespace>
-    <AssemblyName>Cloudy</AssemblyName>
+    <RootNamespace>Cloudy.Test</RootNamespace>
+    <AssemblyName>Cloudy.Test</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -21,8 +21,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,16 +29,9 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
-  </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>Cloudy.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="nunit.framework, Version=2.5.9.10348, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -50,20 +41,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Protobuf\Attributes\SerializableAttribute.cs" />
-    <Compile Include="Protobuf\Attributes\TagAttribute.cs" />
-    <Compile Include="Protobuf\Caches\TypeToSerializerCache.cs" />
-    <Compile Include="Protobuf\Enums\WireType.cs" />
-    <Compile Include="Protobuf\Helpers\ProtobufReader.cs" />
-    <Compile Include="Protobuf\Helpers\ProtobufWriter.cs" />
-    <Compile Include="Protobuf\Interfaces\IValueSerializer.cs" />
-    <Compile Include="Protobuf\Serializer.cs" />
-    <Compile Include="Protobuf\ValueSerializers\StringValueSerializer.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Cloudy.snk" />
+    <Compile Include="Protobuf\ValueSerializers\StringValueSerializerTest.cs" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Cloudy\Cloudy.csproj">
+      <Project>{670CB013-9734-4D71-BE05-070FED4C0EF2}</Project>
+      <Name>Cloudy</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
