@@ -2,3 +2,5 @@ _ReSharper*
 *.suo
 Cloudy/bin
 Cloudy/obj
+Cloudy.Test/bin
+Cloudy.Test/obj
