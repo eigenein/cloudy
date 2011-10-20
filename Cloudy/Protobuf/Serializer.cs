@@ -63,7 +63,7 @@ namespace Cloudy.Protobuf
                     throw new DuplicateFieldNumberException(fieldAttribute.FieldNumber);
                 }
                 BuildingProperty buildingProperty = new BuildingProperty(
-                    property, CreateBuildingSerializer(property, fieldAttribute));
+                    property, CreateBuildingSerializer(property.PropertyType, fieldAttribute, true));
                 buildingProperty.BuildingSerializer.Serializer =
                     new CheckNullSerializer(buildingProperty.BuildingSerializer.Serializer,
                         !fieldAttribute.Required);
@@ -77,24 +77,34 @@ namespace Cloudy.Protobuf
             return SerializerCache[type] = new Serializer(type, properties);
         }
 
-        private static BuildingSerializer CreateBuildingSerializer(PropertyInfo property,
-            ProtobufFieldAttribute attribute)
+        private static BuildingSerializer CreateBuildingSerializer(Type propertyType,
+            ProtobufFieldAttribute attribute, bool examineForCollection)
         {
             WireTypedSerializer serializer;
             // Trying to serialize as a single value first.
             if ((attribute.DataType != DataType.Default &&
                 DataTypeToSerializerCache.TryGetSerializer(attribute.DataType, out serializer))
-                || DefaultSerializersCache.TryGetSerializer(property.PropertyType, out serializer))
+                || DefaultSerializersCache.TryGetSerializer(propertyType, out serializer))
             {
                 return new BuildingSerializer(serializer,
-                    new SingleValueBuilder(property.PropertyType));
+                    new SingleValueBuilder(propertyType));
             }
             // Trying to serialize as a collection.
-            // TODO:
-            // trying to serialize as an embedded message.
+            if (examineForCollection &&
+                propertyType.IsGenericType &&
+                propertyType.GetGenericTypeDefinition() == typeof(ICollection<>))
+            {
+                WireTypedSerializer underlyingSerializer = CreateBuildingSerializer(
+                    propertyType.GetGenericArguments()[0], attribute, false).Serializer;
+                return new BuildingSerializer(attribute.Packed ?
+                    (WireTypedSerializer)new PackedRepeatedSerializer(underlyingSerializer) 
+                        : new RepeatedSerializer(attribute.FieldNumber, underlyingSerializer),
+                    new RepeatedValueBuilder(!attribute.Packed));
+            }
+            // Trying to serialize as an embedded message.
             return new BuildingSerializer(new EmbeddedMessageSerializer(
-                CreateSerializer(property.PropertyType)),
-                new SingleValueBuilder(property.PropertyType));
+                CreateSerializer(propertyType)),
+                new SingleValueBuilder(propertyType));
         }
 
         public override void Serialize(Stream stream, object o)
@@ -116,12 +126,55 @@ namespace Cloudy.Protobuf
             }
         }
 
+        public void Serialize(Stream stream, object o, bool streamingMode)
+        {
+            if (!streamingMode)
+            {
+                Serialize(stream, o);
+            }
+            else
+            {
+                new EmbeddedMessageSerializer(this).Serialize(stream, o);
+            }
+        }
+
         public override object Deserialize(Stream stream)
         {
-            //Dictionary<int, IValueBuilder> buildingProperties = properties.ToDictionary(
-            //    entry => entry.Key,
-            //    entry => entry.Value.BuildingSerializer.Builder.CreateInstance());
-            return null;
+            Dictionary<uint, IValueBuilder> buildingProperties = properties.ToDictionary(
+                entry => entry.Key,
+                entry => entry.Value.BuildingSerializer.Builder.CreateInstance());
+            while (true)
+            {
+                try
+                {
+                    WireType wireType;
+                    uint fieldNumber;
+                    ProtobufReader.ReadKey(stream, out fieldNumber, out wireType);
+                    IValueBuilder valueBuilder;
+                    if (buildingProperties.TryGetValue(fieldNumber, out valueBuilder))
+                    {
+                        valueBuilder.UpdateValue(properties[fieldNumber]
+                            .BuildingSerializer.Serializer.Deserialize(stream));
+                    }
+                }
+                catch (EndOfStreamException)
+                {
+                    break;
+                }
+            }
+            object o = Activator.CreateInstance(expectedType);
+            foreach (KeyValuePair<uint, IValueBuilder> property in buildingProperties)
+            {
+                properties[property.Key].Property.SetValue(o,
+                    property.Value.BuildObject(), null);
+            }
+            return o;
+        }
+
+        public object Deserialize(Stream stream, bool streamingMode)
+        {
+            return streamingMode ? new EmbeddedMessageSerializer(this).Deserialize(stream)
+                : Deserialize(stream);
         }
     }
 }

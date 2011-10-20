@@ -34,5 +34,14 @@ namespace Cloudy.Test.Protobuf
             object o = new C();
             Assert.Throws<MissingValueException>(() => serializer.Serialize(o));
         }
+
+        [TestCase]
+        public void TestRepeatedValue()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(D));
+            object o = new D { List = new uint[] { 1, 2, 3 } };
+            AssertExtensions.AreEqual(new byte[] { 0x08, 0x01, 0x08, 0x02, 0x08, 0x03 },
+                serializer.Serialize(o));
+        }
     }
 }

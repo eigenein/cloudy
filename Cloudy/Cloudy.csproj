@@ -61,7 +61,6 @@
     <Compile Include="Protobuf\Exceptions\NotSerializableException.cs" />
     <Compile Include="Protobuf\Helpers\DataTypeToSerializerCache.cs" />
     <Compile Include="Protobuf\Helpers\DefaultSerializersCache.cs" />
-    <Compile Include="Protobuf\Helpers\StreamSegment.cs" />
     <Compile Include="Protobuf\Interfaces\AbstractSerializer.cs" />
     <Compile Include="Protobuf\Interfaces\IValueBuilder.cs" />
     <Compile Include="Protobuf\Interfaces\WireTypedSerializer.cs" />
@@ -74,11 +73,14 @@
     <Compile Include="Protobuf\Serializers\FixedInt32Serializer.cs" />
     <Compile Include="Protobuf\Serializers\FixedInt64Serializer.cs" />
     <Compile Include="Protobuf\Serializers\FixedUInt64Serializer.cs" />
+    <Compile Include="Protobuf\Serializers\PackedRepeatedSerializer.cs" />
+    <Compile Include="Protobuf\Serializers\RepeatedSerializer.cs" />
     <Compile Include="Protobuf\Serializers\SignedVarintSerializer.cs" />
     <Compile Include="Protobuf\Serializers\StringSerializer.cs" />
     <Compile Include="Protobuf\Serializers\UnsignedVarintSerializer.cs" />
     <Compile Include="Protobuf\Structures\BuildingProperty.cs" />
     <Compile Include="Protobuf\Structures\BuildingSerializer.cs" />
+    <Compile Include="Protobuf\ValueBuilders\RepeatedValueBuilder.cs" />
     <Compile Include="Protobuf\ValueBuilders\RequiredValueBuilder.cs" />
     <Compile Include="Protobuf\ValueBuilders\SingleValueBuilder.cs" />
   </ItemGroup>

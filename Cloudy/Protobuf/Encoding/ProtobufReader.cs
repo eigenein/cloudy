@@ -31,7 +31,7 @@ namespace Cloudy.Protobuf.Encoding
                 quantum = stream.ReadByte();
                 if (quantum == -1)
                 {
-                    throw new InvalidDataException("Unexpected end of stream.");
+                    throw new EndOfStreamException("End of stream while reading a Varint value.");
                 }
                 value += ((ulong)quantum & 0x7Ful) << shift;
                 shift += 7;

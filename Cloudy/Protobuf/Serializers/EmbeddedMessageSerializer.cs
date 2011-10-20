@@ -25,8 +25,7 @@ namespace Cloudy.Protobuf.Serializers
 
         public override object Deserialize(Stream stream)
         {
-            ulong length = ProtobufReader.ReadUnsignedVarint(stream);
-            return serializer.Deserialize(new StreamSegment(stream, (long)length));
+            return serializer.Deserialize(ProtobufReader.ReadBytes(stream));
         }
 
         #endregion

@@ -30,6 +30,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.framework, Version=2.5.9.10348, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL" />
     <Reference Include="System" />
@@ -50,6 +53,7 @@
     <Compile Include="Protobuf\TestClasses\A.cs" />
     <Compile Include="Protobuf\TestClasses\B.cs" />
     <Compile Include="Protobuf\TestClasses\C.cs" />
+    <Compile Include="Protobuf\TestClasses\D.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
