@@ -53,6 +53,7 @@
     <Compile Include="Protobuf\TestClasses\A.cs" />
     <Compile Include="Protobuf\TestClasses\B.cs" />
     <Compile Include="Protobuf\TestClasses\C.cs" />
+    <Compile Include="Protobuf\TestClasses\E.cs" />
     <Compile Include="Protobuf\TestClasses\D.cs" />
   </ItemGroup>
   <ItemGroup />

@@ -9,7 +9,11 @@ namespace Cloudy.Test
         public static void AreEqual<T>(ICollection<T> expected,
             ICollection<T> actual)
         {
-            Assert.AreEqual(expected.Count, actual.Count);
+            if (expected.Count != actual.Count)
+            {
+                Assert.Fail("Length mismatch: expected: {0}, but was: {1}",
+                    expected.Count, actual.Count);
+            }
             IEnumerator<T> expectedEnumerator = expected.GetEnumerator();
             IEnumerator<T> actualEnumerator = actual.GetEnumerator();
             for (int i = 0; i < expected.Count; i++)

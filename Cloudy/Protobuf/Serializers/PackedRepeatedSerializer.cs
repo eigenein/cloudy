@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using Cloudy.Protobuf.Encoding;
 using Cloudy.Protobuf.Enums;
-using Cloudy.Protobuf.Helpers;
 using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers

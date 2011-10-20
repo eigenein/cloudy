@@ -43,5 +43,15 @@ namespace Cloudy.Test.Protobuf
             AssertExtensions.AreEqual(new byte[] { 0x08, 0x01, 0x08, 0x02, 0x08, 0x03 },
                 serializer.Serialize(o));
         }
+
+        [TestCase]
+        public void TestPackedRepeatedValue()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(E));
+            object o = new E { List = new uint[] { 3, 270, 86942 } };
+            AssertExtensions.AreEqual(new byte[] {
+                0x22, 0x06, 0x03, 0x8E, 0x02, 0x9E, 0xA7, 0x05 },
+                serializer.Serialize(o));
+        }
     }
 }
