@@ -94,12 +94,13 @@ namespace Cloudy.Protobuf
                 propertyType.IsGenericType &&
                 propertyType.GetGenericTypeDefinition() == typeof(ICollection<>))
             {
+                Type underlyingType = propertyType.GetGenericArguments()[0];
                 WireTypedSerializer underlyingSerializer = CreateBuildingSerializer(
-                    propertyType.GetGenericArguments()[0], attribute, false).Serializer;
+                    underlyingType, attribute, false).Serializer;
                 return new BuildingSerializer(attribute.Packed ?
                     (WireTypedSerializer)new PackedRepeatedSerializer(underlyingSerializer) 
                         : new RepeatedSerializer(attribute.FieldNumber, underlyingSerializer),
-                    new RepeatedValueBuilder(!attribute.Packed));
+                    new RepeatedValueBuilder(underlyingType, !attribute.Packed));
             }
             // Trying to serialize as an embedded message.
             return new BuildingSerializer(new EmbeddedMessageSerializer(
@@ -165,8 +166,12 @@ namespace Cloudy.Protobuf
             object o = Activator.CreateInstance(expectedType);
             foreach (KeyValuePair<uint, IValueBuilder> property in buildingProperties)
             {
-                properties[property.Key].Property.SetValue(o,
-                    property.Value.BuildObject(), null);
+                object value = property.Value.BuildObject();
+                if (value != null)
+                {
+                    properties[property.Key].Property.SetValue(o,
+                        value, null);
+                }
             }
             return o;
         }

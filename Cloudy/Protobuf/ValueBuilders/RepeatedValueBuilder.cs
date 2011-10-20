@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.ValueBuilders
@@ -10,16 +13,22 @@ namespace Cloudy.Protobuf.ValueBuilders
 
         private readonly bool instantiateEmptyList;
 
-        public RepeatedValueBuilder(bool instantiateEmptyList)
+        private readonly Type underlyingType;
+
+        private static readonly Dictionary<Type, MethodInfo> CastMethodsCache =
+            new Dictionary<Type, MethodInfo>();
+
+        public RepeatedValueBuilder(Type underlyingType, bool instantiateEmptyList)
         {
             this.instantiateEmptyList = instantiateEmptyList;
+            this.underlyingType = underlyingType;
         }
 
         #region Implementation of IValueBuilder
 
         public IValueBuilder CreateInstance()
         {
-            return new RepeatedValueBuilder(instantiateEmptyList);
+            return new RepeatedValueBuilder(underlyingType, instantiateEmptyList);
         }
 
         public void UpdateValue(object o)
@@ -33,9 +42,25 @@ namespace Cloudy.Protobuf.ValueBuilders
 
         public object BuildObject()
         {
-            return objects ?? (instantiateEmptyList ? new List<object>() : null);
+            List<object> list = objects ?? (instantiateEmptyList ? new List<object>() : null);
+            if (list == null)
+            {
+                return null;
+            }
+            MethodInfo castMethod;
+            if (!CastMethodsCache.TryGetValue(underlyingType, out castMethod))
+            {
+                CastMethodsCache[underlyingType] = castMethod =
+                    GetType().GetMethod("Cast").MakeGenericMethod(underlyingType);
+            }
+            return castMethod.Invoke(null, new object[] { list });
         }
 
         #endregion
+
+        public static ICollection<T> Cast<T>(ICollection<object> objects)
+        {
+            return objects.Select(o => (T)o).ToList();
+        }
     }
 }

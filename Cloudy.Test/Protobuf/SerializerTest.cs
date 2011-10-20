@@ -9,8 +9,8 @@ namespace Cloudy.Test.Protobuf
     [TestFixture]
     public class SerializerTest
     {
-        [TestCase]
-        public void TestBasic()
+        [Test]
+        public void TestSerializeBasic()
         {
             Serializer serializer = Serializer.CreateSerializer(typeof(A));
             object o = new A { B = 150 };
@@ -18,8 +18,8 @@ namespace Cloudy.Test.Protobuf
                 serializer.Serialize(o));
         }
 
-        [TestCase]
-        public void TestMissingOptionalValue()
+        [Test]
+        public void TestSerializeMissingOptionalValue()
         {
             Serializer serializer = Serializer.CreateSerializer(typeof(B));
             object o = new B();
@@ -27,16 +27,16 @@ namespace Cloudy.Test.Protobuf
                 serializer.Serialize(o));
         }
 
-        [TestCase]
-        public void TestMissingRequiredValue()
+        [Test]
+        public void TestSerializeMissingRequiredValue()
         {
             Serializer serializer = Serializer.CreateSerializer(typeof(C));
             object o = new C();
             Assert.Throws<MissingValueException>(() => serializer.Serialize(o));
         }
 
-        [TestCase]
-        public void TestRepeatedValue()
+        [Test]
+        public void TestSerializeRepeatedValue()
         {
             Serializer serializer = Serializer.CreateSerializer(typeof(D));
             object o = new D { List = new uint[] { 1, 2, 3 } };
@@ -44,14 +44,55 @@ namespace Cloudy.Test.Protobuf
                 serializer.Serialize(o));
         }
 
-        [TestCase]
-        public void TestPackedRepeatedValue()
+        [Test]
+        public void TestSerializePackedRepeatedValue()
         {
             Serializer serializer = Serializer.CreateSerializer(typeof(E));
             object o = new E { List = new uint[] { 3, 270, 86942 } };
             AssertExtensions.AreEqual(new byte[] {
                 0x22, 0x06, 0x03, 0x8E, 0x02, 0x9E, 0xA7, 0x05 },
                 serializer.Serialize(o));
+        }
+
+        [Test]
+        public void TestDeserializeMissingOptionalValue()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(A));
+            A a = (A)serializer.Deserialize(new byte[] { });
+            Assert.AreEqual(666, a.B);
+        }
+
+        [Test]
+        public void TestDeserializeMissingRequiredValue()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(C));
+            Assert.Throws<MissingValueException>(() => serializer.Deserialize(
+                new byte[] { }));
+        }
+
+        [Test]
+        public void TestDeserializeRepeatedNonRepeatedField()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(A));
+            A a = (A)serializer.Deserialize(new byte[] { 0x08, 0x01, 0x08, 0x02, 0x08, 0x03 });
+            Assert.AreEqual(a.B, 3u);
+        }
+
+        [Test]
+        public void TestDeserializeRepeatedField()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(D));
+            D d = (D)serializer.Deserialize(new byte[] { 0x08, 0x01, 0x08, 0x02, 0x08, 0x03 });
+            AssertExtensions.AreEqual(d.List, new uint[] { 1, 2, 3});
+        }
+
+        [Test]
+        public void TestDeserializePackedRepeatedField()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(E));
+            E d = (E)serializer.Deserialize(new byte[] { 0x22, 0x06, 0x03, 
+                0x8E, 0x02, 0x9E, 0xA7, 0x05 });
+            AssertExtensions.AreEqual(d.List, new uint[] { 3, 270, 86942 });
         }
     }
 }
