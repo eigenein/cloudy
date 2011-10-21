@@ -8,18 +8,24 @@
         <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.SignedVarintSerializerTest" type="NUnitTestFixtureElement" Project="585C6335-6955-4556-8884-E2DF7987E870" />
         <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.StringSerializerTest" type="NUnitTestFixtureElement" Project="585C6335-6955-4556-8884-E2DF7987E870" />
         <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.UnsignedVarintSerializerTest" type="NUnitTestFixtureElement" Project="585C6335-6955-4556-8884-E2DF7987E870" />
-        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.SerializerTest.TestBasic" ParentId="Cloudy.Test.Protobuf.SerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.SerializerTest" MethodName="TestBasic" Project="585C6335-6955-4556-8884-E2DF7987E870" />
-        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.BoolSerializerTest.TestDeserialize" ParentId="Cloudy.Test.Protobuf.Serializers.BoolSerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.Serializers.BoolSerializerTest" MethodName="TestDeserialize" Project="585C6335-6955-4556-8884-E2DF7987E870" />
-        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.StringSerializerTest.TestDeserialize" ParentId="Cloudy.Test.Protobuf.Serializers.StringSerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.Serializers.StringSerializerTest" MethodName="TestDeserialize" Project="585C6335-6955-4556-8884-E2DF7987E870" />
         <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.UnsignedVarintSerializerTest.TestDeserialize" ParentId="Cloudy.Test.Protobuf.Serializers.UnsignedVarintSerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.Serializers.UnsignedVarintSerializerTest" MethodName="TestDeserialize" Project="585C6335-6955-4556-8884-E2DF7987E870" />
         <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.SignedVarintSerializerTest.TestDeserialize" ParentId="Cloudy.Test.Protobuf.Serializers.SignedVarintSerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.Serializers.SignedVarintSerializerTest" MethodName="TestDeserialize" Project="585C6335-6955-4556-8884-E2DF7987E870" />
-        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.SerializerTest.TestMissingOptionalValue" ParentId="Cloudy.Test.Protobuf.SerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.SerializerTest" MethodName="TestMissingOptionalValue" Project="585C6335-6955-4556-8884-E2DF7987E870" />
-        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.SerializerTest.TestMissingRequiredValue" ParentId="Cloudy.Test.Protobuf.SerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.SerializerTest" MethodName="TestMissingRequiredValue" Project="585C6335-6955-4556-8884-E2DF7987E870" />
-        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.SerializerTest.TestRepeatedValue" ParentId="Cloudy.Test.Protobuf.SerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.SerializerTest" MethodName="TestRepeatedValue" Project="585C6335-6955-4556-8884-E2DF7987E870" />
+        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.StringSerializerTest.TestDeserialize" ParentId="Cloudy.Test.Protobuf.Serializers.StringSerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.Serializers.StringSerializerTest" MethodName="TestDeserialize" Project="585C6335-6955-4556-8884-E2DF7987E870" />
+        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.BoolSerializerTest.TestDeserialize" ParentId="Cloudy.Test.Protobuf.Serializers.BoolSerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.Serializers.BoolSerializerTest" MethodName="TestDeserialize" Project="585C6335-6955-4556-8884-E2DF7987E870" />
+        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.SerializerTest.TestDeserializeMissingOptionalValue" ParentId="Cloudy.Test.Protobuf.SerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.SerializerTest" MethodName="TestDeserializeMissingOptionalValue" Project="585C6335-6955-4556-8884-E2DF7987E870" />
+        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.SerializerTest.TestDeserializeMissingRequiredValue" ParentId="Cloudy.Test.Protobuf.SerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.SerializerTest" MethodName="TestDeserializeMissingRequiredValue" Project="585C6335-6955-4556-8884-E2DF7987E870" />
+        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.SerializerTest.TestDeserializePackedRepeatedField" ParentId="Cloudy.Test.Protobuf.SerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.SerializerTest" MethodName="TestDeserializePackedRepeatedField" Project="585C6335-6955-4556-8884-E2DF7987E870" />
+        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.SerializerTest.TestDeserializeRepeatedField" ParentId="Cloudy.Test.Protobuf.SerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.SerializerTest" MethodName="TestDeserializeRepeatedField" Project="585C6335-6955-4556-8884-E2DF7987E870" />
+        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.SerializerTest.TestDeserializeRepeatedNonRepeatedField" ParentId="Cloudy.Test.Protobuf.SerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.SerializerTest" MethodName="TestDeserializeRepeatedNonRepeatedField" Project="585C6335-6955-4556-8884-E2DF7987E870" />
+        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.SignedVarintSerializerTest.TestSerialize" ParentId="Cloudy.Test.Protobuf.Serializers.SignedVarintSerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.Serializers.SignedVarintSerializerTest" MethodName="TestSerialize" Project="585C6335-6955-4556-8884-E2DF7987E870" />
         <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.StringSerializerTest.TestSerialize" ParentId="Cloudy.Test.Protobuf.Serializers.StringSerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.Serializers.StringSerializerTest" MethodName="TestSerialize" Project="585C6335-6955-4556-8884-E2DF7987E870" />
         <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.BoolSerializerTest.TestSerialize" ParentId="Cloudy.Test.Protobuf.Serializers.BoolSerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.Serializers.BoolSerializerTest" MethodName="TestSerialize" Project="585C6335-6955-4556-8884-E2DF7987E870" />
         <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.UnsignedVarintSerializerTest.TestSerialize" ParentId="Cloudy.Test.Protobuf.Serializers.UnsignedVarintSerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.Serializers.UnsignedVarintSerializerTest" MethodName="TestSerialize" Project="585C6335-6955-4556-8884-E2DF7987E870" />
-        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.SignedVarintSerializerTest.TestSerialize" ParentId="Cloudy.Test.Protobuf.Serializers.SignedVarintSerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.Serializers.SignedVarintSerializerTest" MethodName="TestSerialize" Project="585C6335-6955-4556-8884-E2DF7987E870" />
+        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.SerializerTest.TestSerializeBasic" ParentId="Cloudy.Test.Protobuf.SerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.SerializerTest" MethodName="TestSerializeBasic" Project="585C6335-6955-4556-8884-E2DF7987E870" />
+        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.SerializerTest.TestSerializeMissingOptionalValue" ParentId="Cloudy.Test.Protobuf.SerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.SerializerTest" MethodName="TestSerializeMissingOptionalValue" Project="585C6335-6955-4556-8884-E2DF7987E870" />
+        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.SerializerTest.TestSerializeMissingRequiredValue" ParentId="Cloudy.Test.Protobuf.SerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.SerializerTest" MethodName="TestSerializeMissingRequiredValue" Project="585C6335-6955-4556-8884-E2DF7987E870" />
+        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.SerializerTest.TestSerializePackedRepeatedValue" ParentId="Cloudy.Test.Protobuf.SerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.SerializerTest" MethodName="TestSerializePackedRepeatedValue" Project="585C6335-6955-4556-8884-E2DF7987E870" />
+        <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.SerializerTest.TestSerializeRepeatedValue" ParentId="Cloudy.Test.Protobuf.SerializerTest" type="NUnitTestElement" TypeName="Cloudy.Test.Protobuf.SerializerTest" MethodName="TestSerializeRepeatedValue" Project="585C6335-6955-4556-8884-E2DF7987E870" />
         <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.StringSerializerTest.TestDeserialize(&quot;\x041F\x0440\x0438\x0432\x0435\x0442&quot;,System.Byte[])" ParentId="Cloudy.Test.Protobuf.Serializers.StringSerializerTest.TestDeserialize" type="NUnitRowTestElement" />
         <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.SignedVarintSerializerTest.TestDeserialize(0L,System.Byte[])" ParentId="Cloudy.Test.Protobuf.Serializers.SignedVarintSerializerTest.TestDeserialize" type="NUnitRowTestElement" />
         <UnitTestElement Provider="nUnit" Id="Cloudy.Test.Protobuf.Serializers.SignedVarintSerializerTest.TestDeserialize(1L,System.Byte[])" ParentId="Cloudy.Test.Protobuf.Serializers.SignedVarintSerializerTest.TestDeserialize" type="NUnitRowTestElement" />
@@ -47,68 +53,68 @@
   </UnitTestSessions>
   <RecentFiles>
     <RecentFiles>
-      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/d:Serializers/f:StringSerializerTest.cs" caret="424" fromTop="13" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Structures/f:BuildingProperty.cs" caret="259" fromTop="11" />
       <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/d:Serializers/f:UnsignedVarintSerializerTest.cs" caret="989" fromTop="21" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Helpers/f:DataTypeToSerializerCache.cs" caret="859" fromTop="18" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Encoding/f:ProtobufWriter.cs" caret="1670" fromTop="18" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Enums/f:DataType.cs" caret="240" fromTop="13" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:FixedInt32Serializer.cs" caret="624" fromTop="19" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:SignedVarintSerializer.cs" caret="905" fromTop="31" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:UnsignedVarintSerializer.cs" caret="481" fromTop="17" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Helpers/f:DefaultSerializersCache.cs" caret="661" fromTop="12" />
-      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/d:TestClasses/f:B.cs" caret="180" fromTop="8" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:SingleValueBuilder.cs" caret="673" fromTop="25" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Interfaces/f:AbstractSerializer.cs" caret="742" fromTop="28" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Attributes/f:ProtobufFieldAttribute.cs" caret="191" fromTop="0" />
-      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/d:TestClasses/f:C.cs" caret="167" fromTop="8" />
-      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/d:TestClasses/f:A.cs" caret="201" fromTop="9" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:RequiredValueBuilder.cs" caret="946" fromTop="32" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Exceptions/f:DuplicateFieldNumberException.cs" caret="62" fromTop="4" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Exceptions/f:MissingValueException.cs" caret="76" fromTop="4" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Exceptions/f:NotSerializableException.cs" caret="76" fromTop="4" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:RepeatedValueBuilder.cs" caret="902" fromTop="19" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:EmbeddedMessageSerializer.cs" caret="812" fromTop="17" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Interfaces/f:WireTypedSerializer.cs" caret="0" fromTop="0" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Encoding/f:ProtobufReader.cs" caret="1073" fromTop="18" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:CheckNullSerializer.cs" caret="739" fromTop="18" />
-      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/f:SerializerTest.cs" caret="913" fromTop="12" />
-      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/d:TestClasses/f:D.cs" caret="215" fromTop="9" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/f:Serializer.cs" caret="5636" fromTop="6" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:RepeatedSerializer.cs" caret="860" fromTop="13" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:PackedRepeatedSerializer.cs" caret="738" fromTop="9" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/f:AssertExtensions.cs" caret="454" fromTop="14" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:PackedRepeatedSerializer.cs" caret="668" fromTop="12" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Helpers/f:DataTypeToSerializerCache.cs" caret="0" fromTop="0" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Helpers/f:DefaultSerializersCache.cs" caret="0" fromTop="0" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:SingleValueBuilder.cs" caret="0" fromTop="0" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:RequiredValueBuilder.cs" caret="0" fromTop="0" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/d:TestClasses/f:B.cs" caret="0" fromTop="0" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/d:TestClasses/f:C.cs" caret="0" fromTop="0" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/f:Serializer.cs" caret="4669" fromTop="19" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:RepeatedValueBuilder.cs" caret="1845" fromTop="29" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/d:TestClasses/f:A.cs" caret="205" fromTop="10" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/d:TestClasses/f:D.cs" caret="0" fromTop="0" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/d:TestClasses/f:E.cs" caret="0" fromTop="0" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/f:SerializerTest.cs" caret="2800" fromTop="13" />
     </RecentFiles>
     <RecentEdits>
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:RepeatedValueBuilder.cs" caret="425" fromTop="16" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:RepeatedValueBuilder.cs" caret="613" fromTop="24" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:RepeatedValueBuilder.cs" caret="425" fromTop="14" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:RepeatedValueBuilder.cs" caret="976" fromTop="23" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:RepeatedSerializer.cs" caret="1641" fromTop="27" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:RepeatedSerializer.cs" caret="409" fromTop="6" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:RepeatedSerializer.cs" caret="1146" fromTop="29" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:RepeatedSerializer.cs" caret="1050" fromTop="24" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:RepeatedSerializer.cs" caret="1453" fromTop="26" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/f:Serializer.cs" caret="4295" fromTop="21" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/f:Serializer.cs" caret="3290" fromTop="3" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/f:Serializer.cs" caret="3851" fromTop="13" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:PackedRepeatedSerializer.cs" caret="546" fromTop="13" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:PackedRepeatedSerializer.cs" caret="1086" fromTop="26" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/f:Serializer.cs" caret="2539" fromTop="27" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/f:Serializer.cs" caret="4651" fromTop="29" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Encoding/f:ProtobufReader.cs" caret="372" fromTop="10" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Encoding/f:ProtobufReader.cs" caret="1073" fromTop="15" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:EmbeddedMessageSerializer.cs" caret="812" fromTop="17" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:PackedRepeatedSerializer.cs" caret="1325" fromTop="18" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:PackedRepeatedSerializer.cs" caret="1539" fromTop="22" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/f:Serializer.cs" caret="6917" fromTop="28" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/f:Serializer.cs" caret="7374" fromTop="28" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:PackedRepeatedSerializer.cs" caret="1293" fromTop="18" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:PackedRepeatedSerializer.cs" caret="1507" fromTop="22" />
       <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/d:TestClasses/f:D.cs" caret="13" fromTop="0" />
       <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/d:TestClasses/f:D.cs" caret="215" fromTop="9" />
-      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/f:SerializerTest.cs" caret="938" fromTop="14" />
-      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/f:SerializerTest.cs" caret="1430" fromTop="24" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/f:Serializer.cs" caret="4264" fromTop="14" />
       <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:RepeatedSerializer.cs" caret="793" fromTop="12" />
-      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:PackedRepeatedSerializer.cs" caret="738" fromTop="9" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:PackedRepeatedSerializer.cs" caret="706" fromTop="9" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:Serializers/f:PackedRepeatedSerializer.cs" caret="176" fromTop="6" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/f:AssertExtensions.cs" caret="454" fromTop="14" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/d:TestClasses/f:E.cs" caret="213" fromTop="9" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/f:SerializerTest.cs" caret="1524" fromTop="10" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/f:SerializerTest.cs" caret="1159" fromTop="4" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/f:SerializerTest.cs" caret="248" fromTop="8" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/f:SerializerTest.cs" caret="565" fromTop="17" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/f:SerializerTest.cs" caret="870" fromTop="26" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/d:TestClasses/f:A.cs" caret="205" fromTop="10" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/f:Serializer.cs" caret="6832" fromTop="19" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/f:Serializer.cs" caret="7566" fromTop="19" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/f:SerializerTest.cs" caret="2494" fromTop="15" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/f:SerializerTest.cs" caret="3135" fromTop="29" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:RepeatedValueBuilder.cs" caret="751" fromTop="14" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:RepeatedValueBuilder.cs" caret="935" fromTop="21" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:RepeatedValueBuilder.cs" caret="1725" fromTop="25" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:RepeatedValueBuilder.cs" caret="1431" fromTop="12" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:RepeatedValueBuilder.cs" caret="483" fromTop="8" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:RepeatedValueBuilder.cs" caret="1695" fromTop="26" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/f:Serializer.cs" caret="4197" fromTop="13" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/f:Serializer.cs" caret="4669" fromTop="19" />
+      <File id="670CB013-9734-4D71-BE05-070FED4C0EF2/d:Protobuf/d:ValueBuilders/f:RepeatedValueBuilder.cs" caret="1845" fromTop="29" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/f:SerializerTest.cs" caret="3515" fromTop="28" />
+      <File id="585C6335-6955-4556-8884-E2DF7987E870/d:Protobuf/f:SerializerTest.cs" caret="3419" fromTop="27" />
     </RecentEdits>
   </RecentFiles>
   <NAntValidationSettings>

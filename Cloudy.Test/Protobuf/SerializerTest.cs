@@ -94,5 +94,35 @@ namespace Cloudy.Test.Protobuf
                 0x8E, 0x02, 0x9E, 0xA7, 0x05 });
             AssertExtensions.AreEqual(d.List, new uint[] { 3, 270, 86942 });
         }
+
+        [Test]
+        public void TestSerializeEmbeddedMessage()
+        {
+            F f = new F() { Message = new A() { B = 150 } };
+            Serializer serializer = Serializer.CreateSerializer(typeof(F));
+            AssertExtensions.AreEqual(new byte[] { 0x1a, 0x03, 0x08, 0x96, 0x01 },
+                serializer.Serialize(f));
+        }
+
+        [Test]
+        public void TestEmbeddedMessageBoundaries()
+        {
+            G g = new G() { A1 = 1, A2 = new A() { B = 2 }, A3 = 3 };
+            Serializer serializer = Serializer.CreateSerializer(typeof(G));
+            g = (G)serializer.Deserialize(serializer.Serialize(g));
+            Assert.AreEqual(g.A1, 1);
+            Assert.AreEqual(g.A3, 3);
+            Assert.NotNull(g.A2);
+            Assert.AreEqual(g.A2.B, 2);
+        }
+
+        [Test]
+        public void TestDeserializeEmbeddedMessage()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(F));
+            F f = (F)serializer.Deserialize(new byte[] { 0x1a, 0x03, 0x08, 0x96, 0x01 });
+            Assert.IsNotNull(f.Message);
+            Assert.AreEqual(f.Message.B, 150);
+        }
     }
 }
