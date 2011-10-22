@@ -6,18 +6,18 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
-    public class FixedUInt32Serializer : WireTypedSerializer
+    public class GuidSerializer : WireTypedSerializer
     {
-        #region Overrides of AbstractSerializer<object>
+        #region Overrides of AbstractSerializer
 
         public override void Serialize(Stream stream, object o)
         {
-            ProtobufWriter.WriteRawBytes(stream, BitConverter.GetBytes((uint)o));
+            ProtobufWriter.WriteBytes(stream, ((Guid)o).ToByteArray());
         }
 
         public override object Deserialize(Stream stream)
         {
-            return BitConverter.ToUInt32(ProtobufReader.ReadRawBytes(stream, 4), 0);
+            return new Guid(ProtobufReader.ReadBytes(stream));
         }
 
         #endregion
@@ -26,7 +26,7 @@ namespace Cloudy.Protobuf.Serializers
 
         public override WireType WireType
         {
-            get { return WireType.Fixed32; }
+            get { return WireType.LengthDelimited; }
         }
 
         #endregion

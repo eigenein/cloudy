@@ -124,5 +124,32 @@ namespace Cloudy.Test.Protobuf
             Assert.IsNotNull(f.Message);
             Assert.AreEqual(f.Message.B, 150);
         }
+
+        [Test]
+        public void TestSerializeDataType()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(H));
+            H h = new H() { Fixed32 = 1 };
+            AssertExtensions.AreEqual(new byte[] { 0x15, 0x01, 0x00, 0x00, 0x00 },
+                serializer.Serialize(h));
+        }
+
+        [Test]
+        public void TestDeserializeMissingTag()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(H));
+            H h = (H)serializer.Deserialize(
+                new byte[] { 0x25, 0x15, 0x00, 0x00, 0x00, 0x15, 0x02, 0x00, 0x00, 0x00 });
+            Assert.AreEqual(h.Fixed32, 2);
+        }
+
+        [Test]
+        public void TestDeserializeDataType()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(H));
+            H h = (H)serializer.Deserialize(
+                new byte[] { 0x15, 0x02, 0x00, 0x00, 0x00 });
+            Assert.AreEqual(h.Fixed32, 2);
+        }
     }
 }

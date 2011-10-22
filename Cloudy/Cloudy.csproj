@@ -73,6 +73,7 @@
     <Compile Include="Protobuf\Serializers\FixedInt32Serializer.cs" />
     <Compile Include="Protobuf\Serializers\FixedInt64Serializer.cs" />
     <Compile Include="Protobuf\Serializers\FixedUInt64Serializer.cs" />
+    <Compile Include="Protobuf\Serializers\GuidSerializer.cs" />
     <Compile Include="Protobuf\Serializers\PackedRepeatedSerializer.cs" />
     <Compile Include="Protobuf\Serializers\RepeatedSerializer.cs" />
     <Compile Include="Protobuf\Serializers\SignedVarintSerializer.cs" />

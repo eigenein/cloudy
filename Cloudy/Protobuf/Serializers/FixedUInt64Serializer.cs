@@ -17,7 +17,7 @@ namespace Cloudy.Protobuf.Serializers
 
         public override object Deserialize(Stream stream)
         {
-            return BitConverter.ToUInt64(ProtobufReader.ReadRawBytes(stream, 8), 8);
+            return BitConverter.ToUInt64(ProtobufReader.ReadRawBytes(stream, 8), 0);
         }
 
         #endregion

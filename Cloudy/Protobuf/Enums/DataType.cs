@@ -13,6 +13,7 @@ namespace Cloudy.Protobuf.Enums
         FixedUInt64,
         SignedVarint,
         UnsignedVarint,
-        String
+        String,
+        Guid
     }
 }

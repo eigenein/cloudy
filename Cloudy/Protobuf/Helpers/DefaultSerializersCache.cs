@@ -16,7 +16,8 @@ namespace Cloudy.Protobuf.Helpers
                 {typeof(uint), new UnsignedVarintSerializer(value => Convert.ToUInt32(value))},
                 {typeof(ulong), new UnsignedVarintSerializer()},
                 {typeof(string), new StringSerializer()},
-                {typeof(byte[]), new BytesSerializer()}
+                {typeof(byte[]), new BytesSerializer()},
+                {typeof(Guid), new GuidSerializer()}
             };
 
         public static bool TryGetSerializer(Type type,
