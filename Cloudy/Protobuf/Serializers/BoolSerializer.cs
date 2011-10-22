@@ -5,7 +5,7 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
-    public class BoolSerializer : WireTypedSerializer
+    public class BoolSerializer : SerializerWithWireType
     {
         #region Implementation of ISerializer<object>
 

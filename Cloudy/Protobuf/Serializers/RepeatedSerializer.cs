@@ -9,13 +9,13 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
-    public class RepeatedSerializer : WireTypedSerializer
+    public class RepeatedSerializer : SerializerWithWireType
     {
-        private readonly WireTypedSerializer serializer;
+        private readonly SerializerWithWireType serializer;
 
         private readonly uint fieldNumber;
 
-        public RepeatedSerializer(uint fieldNumber, WireTypedSerializer serializer)
+        public RepeatedSerializer(uint fieldNumber, SerializerWithWireType serializer)
         {
             this.fieldNumber = fieldNumber;
             this.serializer = serializer;

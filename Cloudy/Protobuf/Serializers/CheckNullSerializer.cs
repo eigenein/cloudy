@@ -6,13 +6,13 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
-    public class CheckNullSerializer : WireTypedSerializer
+    public class CheckNullSerializer : SerializerWithWireType
     {
-        private readonly WireTypedSerializer serializer;
+        private readonly SerializerWithWireType serializer;
 
         private readonly bool allowNull;
 
-        public CheckNullSerializer(WireTypedSerializer serializer,
+        public CheckNullSerializer(SerializerWithWireType serializer,
             bool allowNull)
         {
             this.serializer = serializer;

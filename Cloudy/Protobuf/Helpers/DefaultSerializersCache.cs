@@ -7,8 +7,8 @@ namespace Cloudy.Protobuf.Helpers
 {
     internal static class DefaultSerializersCache
     {
-        private static readonly Dictionary<Type, WireTypedSerializer> Cache =
-            new Dictionary<Type, WireTypedSerializer>()
+        private static readonly Dictionary<Type, SerializerWithWireType> Cache =
+            new Dictionary<Type, SerializerWithWireType>()
             {
                 {typeof(bool), new BoolSerializer()},
                 {typeof(int), new SignedVarintSerializer(value => Convert.ToInt32(value))},
@@ -21,7 +21,7 @@ namespace Cloudy.Protobuf.Helpers
             };
 
         public static bool TryGetSerializer(Type type,
-            out WireTypedSerializer serializer)
+            out SerializerWithWireType serializer)
         {
             return Cache.TryGetValue(type, out serializer);
         }

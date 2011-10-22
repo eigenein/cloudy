@@ -3,7 +3,7 @@ using Cloudy.Protobuf.Enums;
 
 namespace Cloudy.Protobuf.Interfaces
 {
-    public abstract class WireTypedSerializer : AbstractSerializer
+    public abstract class SerializerWithWireType : AbstractSerializer
     {
         public abstract WireType WireType { get; }
     }

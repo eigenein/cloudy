@@ -7,7 +7,7 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
-    public class EmbeddedMessageSerializer : WireTypedSerializer
+    public class EmbeddedMessageSerializer : SerializerWithWireType
     {
         private readonly Serializer serializer;
 

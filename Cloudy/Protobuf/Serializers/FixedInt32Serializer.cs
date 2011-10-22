@@ -6,7 +6,7 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
-    public class FixedInt32Serializer : WireTypedSerializer
+    public class FixedInt32Serializer : SerializerWithWireType
     {
         #region Overrides of AbstractSerializer<object>
 

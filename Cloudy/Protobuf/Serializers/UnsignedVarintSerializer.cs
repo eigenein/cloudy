@@ -6,7 +6,7 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
-    public class UnsignedVarintSerializer : WireTypedSerializer
+    public class UnsignedVarintSerializer : SerializerWithWireType
     {
         private readonly Func<ulong, object> convertFunction;
 

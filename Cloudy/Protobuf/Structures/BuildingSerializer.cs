@@ -5,18 +5,18 @@ namespace Cloudy.Protobuf.Structures
 {
     public class BuildingSerializer
     {
-        private WireTypedSerializer serializer;
+        private SerializerWithWireType serializer;
 
         private IValueBuilder builder;
 
-        public BuildingSerializer(WireTypedSerializer serializer,
+        public BuildingSerializer(SerializerWithWireType serializer,
             IValueBuilder builder)
         {
             this.serializer = serializer;
             this.builder = builder;
         }
 
-        public WireTypedSerializer Serializer
+        public SerializerWithWireType Serializer
         {
             get { return serializer; }
             set { serializer = value; }

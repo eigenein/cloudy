@@ -9,11 +9,11 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
-    public class PackedRepeatedSerializer : WireTypedSerializer
+    public class PackedRepeatedSerializer : SerializerWithWireType
     {
-        private readonly WireTypedSerializer serializer;
+        private readonly SerializerWithWireType serializer;
 
-        public PackedRepeatedSerializer(WireTypedSerializer serializer)
+        public PackedRepeatedSerializer(SerializerWithWireType serializer)
         {
             this.serializer = serializer;
         }

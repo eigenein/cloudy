@@ -61,9 +61,10 @@
     <Compile Include="Protobuf\Exceptions\NotSerializableException.cs" />
     <Compile Include="Protobuf\Helpers\DataTypeToSerializerCache.cs" />
     <Compile Include="Protobuf\Helpers\DefaultSerializersCache.cs" />
+    <Compile Include="Protobuf\Helpers\UnknownFieldSkipHelper.cs" />
     <Compile Include="Protobuf\Interfaces\AbstractSerializer.cs" />
     <Compile Include="Protobuf\Interfaces\IValueBuilder.cs" />
-    <Compile Include="Protobuf\Interfaces\WireTypedSerializer.cs" />
+    <Compile Include="Protobuf\Interfaces\SerializerWithWireType.cs" />
     <Compile Include="Protobuf\Serializer.cs" />
     <Compile Include="Protobuf\Serializers\CheckNullSerializer.cs" />
     <Compile Include="Protobuf\Serializers\BoolSerializer.cs" />

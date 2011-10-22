@@ -6,7 +6,7 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
-    public class SignedVarintSerializer : WireTypedSerializer
+    public class SignedVarintSerializer : SerializerWithWireType
     {
         private readonly Func<long, object> convertFunction;
 
