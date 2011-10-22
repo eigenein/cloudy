@@ -151,5 +151,14 @@ namespace Cloudy.Test.Protobuf
                 new byte[] { 0x15, 0x02, 0x00, 0x00, 0x00 });
             Assert.AreEqual(h.Fixed32, 2);
         }
+
+        [Test]
+        public void TestSerializeDeserializeEnum()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(J));
+            J j = (J)serializer.Deserialize(serializer.Serialize(
+                new J() { Enum = TestEnum.Member2 }));
+            Assert.AreEqual(TestEnum.Member2, j.Enum);
+        }
     }
 }

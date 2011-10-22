@@ -85,6 +85,10 @@ namespace Cloudy.Protobuf
             {
                 return buildingSerializer;
             }
+            if (TrySerializeAsEnum(propertyType, out buildingSerializer))
+            {
+                return buildingSerializer;
+            }
             if (TrySerializeAsCollection(propertyType, attribute, examineForCollection,
                 out buildingSerializer))
             {
@@ -93,6 +97,20 @@ namespace Cloudy.Protobuf
             return new BuildingSerializer(new EmbeddedMessageSerializer(
                 CreateSerializer(propertyType)),
                 new SingleValueBuilder(propertyType));
+        }
+
+        private static bool TrySerializeAsEnum(Type propertyType,
+            out BuildingSerializer buildingSerializer)
+        {
+            buildingSerializer = null;
+            if (propertyType.IsSubclassOf(typeof(Enum)))
+            {
+                buildingSerializer = new BuildingSerializer(
+                    new EnumSerializer(propertyType),
+                    new SingleValueBuilder(propertyType));
+                return true;
+            }
+            return false;
         }
 
         private static bool TrySerializeAsCollection(Type propertyType, 

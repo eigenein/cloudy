@@ -70,6 +70,7 @@
     <Compile Include="Protobuf\Serializers\BoolSerializer.cs" />
     <Compile Include="Protobuf\Serializers\BytesSerializer.cs" />
     <Compile Include="Protobuf\Serializers\EmbeddedMessageSerializer.cs" />
+    <Compile Include="Protobuf\Serializers\EnumSerializer.cs" />
     <Compile Include="Protobuf\Serializers\FixedUInt32Serializer.cs" />
     <Compile Include="Protobuf\Serializers\FixedInt32Serializer.cs" />
     <Compile Include="Protobuf\Serializers\FixedInt64Serializer.cs" />
