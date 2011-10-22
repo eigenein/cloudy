@@ -3,6 +3,11 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.ValueBuilders
 {
+    /// <summary>
+    /// The simplest value builder - remembers the last value set as this
+    /// is required by the Protocol Buffers specification for 
+    /// primitive types.
+    /// </summary>
     public class SingleValueBuilder : IValueBuilder
     {
         private readonly Type expectedType;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -7,6 +6,9 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.ValueBuilders
 {
+    /// <summary>
+    /// Used to construct a collection of values from repeated single values.
+    /// </summary>
     public class RepeatedValueBuilder : IValueBuilder
     {
         private List<object> objects;

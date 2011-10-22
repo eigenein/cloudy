@@ -3,6 +3,9 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Structures
 {
+    /// <summary>
+    /// Combines the serializer with the related value builder.
+    /// </summary>
     public class BuildingSerializer
     {
         private SerializerWithWireType serializer;

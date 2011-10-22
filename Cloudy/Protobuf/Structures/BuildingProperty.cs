@@ -3,6 +3,9 @@ using System.Reflection;
 
 namespace Cloudy.Protobuf.Structures
 {
+    /// <summary>
+    /// Combines the property and the related building serializer.
+    /// </summary>
     public class BuildingProperty
     {
         private readonly PropertyInfo property;
