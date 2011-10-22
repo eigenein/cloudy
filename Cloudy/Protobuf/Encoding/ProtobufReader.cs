@@ -4,8 +4,14 @@ using Cloudy.Protobuf.Enums;
 
 namespace Cloudy.Protobuf.Encoding
 {
+    /// <summary>
+    /// The helper class - used to decode Protobuf encoding.
+    /// </summary>
     public static class ProtobufReader
     {
+        /// <summary>
+        /// Reads the specified count of bytes from the stream "as is".
+        /// </summary>
         public static byte[] ReadRawBytes(Stream stream, int count)
         {
             byte[] bytes = new byte[count];
@@ -16,12 +22,18 @@ namespace Cloudy.Protobuf.Encoding
             return bytes;
         }
 
+        /// <summary>
+        /// Reads and decodes the byte array from the Protobuf input stream.
+        /// </summary>
         public static byte[] ReadBytes(Stream stream)
         {
             ulong length = ReadUnsignedVarint(stream);
             return ReadRawBytes(stream, (int)length);
         }
 
+        /// <summary>
+        /// Reads and decodes an unsigned Varint from the Protobuf stream.
+        /// </summary>
         public static ulong ReadUnsignedVarint(Stream stream)
         {
             ulong value = 0;
@@ -39,6 +51,9 @@ namespace Cloudy.Protobuf.Encoding
             return value;
         }
 
+        /// <summary>
+        /// Reads and decodes a signed Varint from the Protobuf stream.
+        /// </summary>
         public static long ReadSignedVarint(Stream stream)
         {
             ulong value = ReadUnsignedVarint(stream);
@@ -46,6 +61,12 @@ namespace Cloudy.Protobuf.Encoding
             return (long)(value >> 1 ^ mask);
         }
 
+        /// <summary>
+        /// Reads and decodes a key from the Protobuf stream.
+        /// </summary>
+        /// <param name="stream">The input stream.</param>
+        /// <param name="fieldNumber">Decoded field number.</param>
+        /// <param name="wireType">Decoded wire type.</param>
         public static void ReadKey(Stream stream, out uint fieldNumber,
             out WireType wireType)
         {
