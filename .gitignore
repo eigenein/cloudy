@@ -6,3 +6,4 @@ Cloudy.Test/bin
 Cloudy.Test/obj
 ~$*.docx
 *.user
+*.tmp
