@@ -5,6 +5,9 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
+    /// <summary>
+    /// Serializes and deserializes boolean values.
+    /// </summary>
     public class BoolSerializer : SerializerWithWireType
     {
         #region Implementation of ISerializer<object>

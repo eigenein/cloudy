@@ -2,6 +2,10 @@
 
 namespace Cloudy.Protobuf.Exceptions
 {
+    /// <summary>
+    /// Raised when the same field number is used for two different
+    /// properties.
+    /// </summary>
     [Serializable]
     public class DuplicateFieldNumberException : Exception
     {

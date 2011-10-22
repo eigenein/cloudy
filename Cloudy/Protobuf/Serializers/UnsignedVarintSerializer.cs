@@ -6,15 +6,29 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
+    /// <summary>
+    /// Used to serialize and deserialize integer values into and from
+    /// unsigned Varint's.
+    /// </summary>
     public class UnsignedVarintSerializer : SerializerWithWireType
     {
         private readonly Func<ulong, object> convertFunction;
 
+        /// <summary>
+        /// Initializes a new instance.
+        /// </summary>
         public UnsignedVarintSerializer()
         {
             this.convertFunction = value => value;
         }
 
+        /// <summary>
+        /// Initalizes a new instance.
+        /// </summary>
+        /// <param name="convertFunction">
+        /// The function that converts a deserializes <c>ulong</c> value
+        /// to a value of the target type.
+        /// </param>
         public UnsignedVarintSerializer(Func<ulong, object> convertFunction)
         {
             this.convertFunction = convertFunction;
@@ -34,7 +48,7 @@ namespace Cloudy.Protobuf.Serializers
 
         #endregion
 
-        #region Overrides of WireTypedSerializer
+        #region Overrides of SerializerWithWireType
 
         public override WireType WireType
         {

@@ -6,6 +6,9 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
+    /// <summary>
+    /// Serializes and deserializes <c>ulong</c> values.
+    /// </summary>
     public class FixedUInt64Serializer : SerializerWithWireType
     {
         #region Overrides of AbstractSerializer<object>
@@ -22,7 +25,7 @@ namespace Cloudy.Protobuf.Serializers
 
         #endregion
 
-        #region Overrides of WireTypedSerializer
+        #region Overrides of SerializerWithWireType
 
         public override WireType WireType
         {

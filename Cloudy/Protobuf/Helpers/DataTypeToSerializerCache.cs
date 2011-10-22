@@ -6,6 +6,9 @@ using Cloudy.Protobuf.Serializers;
 
 namespace Cloudy.Protobuf.Helpers
 {
+    /// <summary>
+    /// Contains default serializers for the specific serialization ways.
+    /// </summary>
     internal static class DataTypeToSerializerCache
     {
         private static readonly Dictionary<DataType, SerializerWithWireType> Cache =

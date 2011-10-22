@@ -6,6 +6,9 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
+    /// <summary>
+    /// Serializes and deserializes enums.
+    /// </summary>
     public class EnumSerializer : SerializerWithWireType
     {
         private readonly Type expectedType;

@@ -9,12 +9,21 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
+    /// <summary>
+    /// The proxy serializer - serializes and deserializes packed repeated 
+    /// fields.
+    /// </summary>
     public class RepeatedSerializer : SerializerWithWireType
     {
         private readonly SerializerWithWireType serializer;
 
         private readonly uint fieldNumber;
 
+        /// <summary>
+        /// Initializes a new instance.
+        /// </summary>
+        /// <param name="fieldNumber">The field number the serializer is used for.</param>
+        /// <param name="serializer">The underlying serializer.</param>
         public RepeatedSerializer(uint fieldNumber, SerializerWithWireType serializer)
         {
             this.fieldNumber = fieldNumber;
@@ -50,7 +59,7 @@ namespace Cloudy.Protobuf.Serializers
 
         #endregion
 
-        #region Overrides of WireTypedSerializer
+        #region Overrides of SerializerWithWireType
 
         public override WireType WireType
         {

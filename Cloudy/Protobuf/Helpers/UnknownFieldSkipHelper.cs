@@ -6,6 +6,9 @@ using Cloudy.Protobuf.Enums;
 
 namespace Cloudy.Protobuf.Helpers
 {
+    /// <summary>
+    /// The helper class - used to skip fields with unexpected field numbers.
+    /// </summary>
     internal static class UnknownFieldSkipHelper
     {
         private static readonly Dictionary<WireType, Action<Stream>> Cache =
@@ -17,6 +20,9 @@ namespace Cloudy.Protobuf.Helpers
                 {WireType.Fixed64, SkipFixed64}
             };
 
+        /// <summary>
+        /// Skips the field with the specified wire type.
+        /// </summary>
         public static void Skip(Stream stream, WireType wireType)
         {
             Cache[wireType](stream);

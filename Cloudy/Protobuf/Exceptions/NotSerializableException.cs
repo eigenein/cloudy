@@ -2,6 +2,9 @@
 
 namespace Cloudy.Protobuf.Exceptions
 {
+    /// <summary>
+    /// Raised when a class is not marked for serialization.
+    /// </summary>
     [Serializable]
     public class NotSerializableException : Exception
     {

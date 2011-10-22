@@ -6,6 +6,9 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
+    /// <summary>
+    /// Serializes and deserializes strings.
+    /// </summary>
     public class StringSerializer : SerializerWithWireType
     {
         #region Overrides of AbstractSerializer<object>
@@ -24,7 +27,7 @@ namespace Cloudy.Protobuf.Serializers
 
         #endregion
 
-        #region Overrides of WireTypedSerializer
+        #region Overrides of SerializerWithWireType
 
         public override WireType WireType
         {

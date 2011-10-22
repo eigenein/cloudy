@@ -6,12 +6,24 @@ using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
+    /// <summary>
+    /// The proxy serializer - used to check a value for the <c>null</c>
+    /// value.
+    /// </summary>
     public class CheckNullSerializer : SerializerWithWireType
     {
         private readonly SerializerWithWireType serializer;
 
         private readonly bool allowNull;
 
+        /// <summary>
+        /// Initializes a new instance.
+        /// </summary>
+        /// <param name="serializer">The underlying serializer.</param>
+        /// <param name="allowNull">
+        /// Defines whether <c>null</c> is allowed
+        /// as a field value.
+        /// </param>
         public CheckNullSerializer(SerializerWithWireType serializer,
             bool allowNull)
         {
@@ -45,7 +57,7 @@ namespace Cloudy.Protobuf.Serializers
 
         #endregion
 
-        #region Overrides of WireTypedSerializer
+        #region Overrides of SerializerWithWireType
 
         public override WireType WireType
         {

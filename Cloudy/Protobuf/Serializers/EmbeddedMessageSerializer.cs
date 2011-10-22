@@ -2,15 +2,21 @@
 using System.IO;
 using Cloudy.Protobuf.Encoding;
 using Cloudy.Protobuf.Enums;
-using Cloudy.Protobuf.Helpers;
 using Cloudy.Protobuf.Interfaces;
 
 namespace Cloudy.Protobuf.Serializers
 {
+    /// <summary>
+    /// Serializes and deserializes embedded messages.
+    /// </summary>
     public class EmbeddedMessageSerializer : SerializerWithWireType
     {
         private readonly Serializer serializer;
 
+        /// <summary>
+        /// Initializes a new instance.
+        /// </summary>
+        /// <param name="serializer">The underlying message serializer.</param>
         public EmbeddedMessageSerializer(Serializer serializer)
         {
             this.serializer = serializer;
@@ -30,7 +36,7 @@ namespace Cloudy.Protobuf.Serializers
 
         #endregion
 
-        #region Overrides of WireTypedSerializer
+        #region Overrides of SerializerWithWireType
 
         public override WireType WireType
         {
