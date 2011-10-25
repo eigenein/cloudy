@@ -33,7 +33,18 @@ namespace Cloudy.Protobuf
         private static readonly Dictionary<Type, Serializer> SerializerCache =
             new Dictionary<Type, Serializer>();
 
+        /// <summary>
+        /// Creates a serializer of objects of the specified type.
+        /// </summary>
         public static Serializer CreateSerializer(Type type)
+        {
+            lock (SerializerCache)
+            {
+                return CreateSerializerThreadUnsafe(type);
+            }
+        }
+
+        private static Serializer CreateSerializerThreadUnsafe(Type type)
         {
             Serializer serializer;
             if (SerializerCache.TryGetValue(type, out serializer))
@@ -193,25 +204,25 @@ namespace Cloudy.Protobuf
                 entry => entry.Value.BuildingSerializer.Builder.CreateInstance());
             while (true)
             {
+                WireType wireType;
+                uint fieldNumber;
                 try
                 {
-                    WireType wireType;
-                    uint fieldNumber;
                     ProtobufReader.ReadKey(stream, out fieldNumber, out wireType);
-                    IValueBuilder valueBuilder;
-                    if (buildingProperties.TryGetValue(fieldNumber, out valueBuilder))
-                    {
-                        valueBuilder.UpdateValue(properties[fieldNumber]
-                            .BuildingSerializer.Serializer.Deserialize(stream));
-                    }
-                    else
-                    {
-                        UnknownFieldSkipHelper.Skip(stream, wireType);
-                    }
                 }
                 catch (EndOfStreamException)
                 {
                     break;
+                }
+                IValueBuilder valueBuilder;
+                if (buildingProperties.TryGetValue(fieldNumber, out valueBuilder))
+                {
+                    valueBuilder.UpdateValue(properties[fieldNumber]
+                        .BuildingSerializer.Serializer.Deserialize(stream));
+                }
+                else
+                {
+                    UnknownFieldSkipHelper.Skip(stream, wireType);
                 }
             }
             object o = Activator.CreateInstance(expectedType);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Cloudy.Protobuf.Enums;
+using Cloudy.Protobuf.Exceptions;
 
 namespace Cloudy.Protobuf.Encoding
 {
@@ -17,7 +18,7 @@ namespace Cloudy.Protobuf.Encoding
             byte[] bytes = new byte[count];
             if (stream.Read(bytes, 0, count) < count)
             {
-                throw new InvalidDataException("Unexpected end of stream.");
+                throw new UnexpectedEndOfStreamException("Unexpected end of stream.");
             }
             return bytes;
         }
@@ -37,15 +38,23 @@ namespace Cloudy.Protobuf.Encoding
         public static ulong ReadUnsignedVarint(Stream stream)
         {
             ulong value = 0;
-            int shift = 0, quantum = 0x80;
-            while ((quantum & 0x80) == 0x80)
+            int shift = 0;
+            bool continuationExpected = false;
+            while (true)
             {
-                quantum = stream.ReadByte();
+                int quantum = stream.ReadByte();
                 if (quantum == -1)
                 {
-                    throw new EndOfStreamException("End of stream while reading a Varint value.");
+                    throw continuationExpected ?
+                        new UnexpectedEndOfStreamException(
+                            "Unexpected end of stream while reading a Varint value.") :
+                        (Exception)new EndOfStreamException();
                 }
                 value += ((ulong)quantum & 0x7Ful) << shift;
+                if (!(continuationExpected = (quantum & 0x80) == 0x80))
+                {
+                    break;
+                }
                 shift += 7;
             }
             return value;
