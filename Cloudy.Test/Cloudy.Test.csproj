@@ -60,6 +60,7 @@
     <Compile Include="Protobuf\TestClasses\F.cs" />
     <Compile Include="Protobuf\TestClasses\G.cs" />
     <Compile Include="Protobuf\TestClasses\H.cs" />
+    <Compile Include="Protobuf\TestClasses\I.cs" />
     <Compile Include="Protobuf\TestClasses\J.cs" />
     <Compile Include="Protobuf\TestClasses\TestEnum.cs" />
   </ItemGroup>

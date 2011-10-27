@@ -160,5 +160,37 @@ namespace Cloudy.Test.Protobuf
                 new J() { Enum = TestEnum.Member2 }));
             Assert.AreEqual(TestEnum.Member2, j.Enum);
         }
+
+        [Test]
+        public void TestSerializeNullableNull()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(I));
+            I i = new I();
+            AssertExtensions.AreEqual(new byte[0], serializer.Serialize(i));
+        }
+
+        [Test]
+        public void TestSerializeNullableNotNull()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(I));
+            I i = new I { NullableProperty = 150 };
+            AssertExtensions.AreEqual(new byte[] { 0x08, 0x96, 0x01 }, serializer.Serialize(i));
+        }
+
+        [Test]
+        public void TestDeserializeNullableNull()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(I));
+            I i = (I)serializer.Deserialize(new byte[0]);
+            Assert.IsNull(i.NullableProperty);
+        }
+
+        [Test]
+        public void TestDeserializeNullableNotNull()
+        {
+            Serializer serializer = Serializer.CreateSerializer(typeof(I));
+            I i = (I)serializer.Deserialize(new byte[] { 0x08, 0x96, 0x01 });
+            Assert.AreEqual(150, i.NullableProperty);
+        }
     }
 }

@@ -76,7 +76,7 @@ namespace Cloudy.Protobuf
                 BuildingProperty buildingProperty = new BuildingProperty(
                     property, CreateBuildingSerializer(property.PropertyType, fieldAttribute, true));
                 buildingProperty.BuildingSerializer.Serializer =
-                    new CheckNullSerializer(buildingProperty.BuildingSerializer.Serializer,
+                    new NullProxySerializer(buildingProperty.BuildingSerializer.Serializer,
                         !fieldAttribute.Required);
                 if (fieldAttribute.Required)
                 {
@@ -100,6 +100,10 @@ namespace Cloudy.Protobuf
             {
                 return buildingSerializer;
             }
+            if (TrySerializeAsNullable(propertyType, attribute, out buildingSerializer))
+            {
+                return buildingSerializer;
+            }
             if (TrySerializeAsCollection(propertyType, attribute, examineForCollection,
                 out buildingSerializer))
             {
@@ -108,6 +112,23 @@ namespace Cloudy.Protobuf
             return new BuildingSerializer(new EmbeddedMessageSerializer(
                 CreateSerializer(propertyType)),
                 new SingleValueBuilder(propertyType));
+        }
+
+        private static bool TrySerializeAsNullable(Type propertyType,
+            ProtobufFieldAttribute attribute, out BuildingSerializer buildingSerializer)
+        {
+            buildingSerializer = null;
+            if (propertyType.IsGenericType &&
+                propertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                Type underlyingType = propertyType.GetGenericArguments()[0];
+                SerializerWithWireType underlyingSerializer = CreateBuildingSerializer(
+                    underlyingType, attribute, false).Serializer;
+                buildingSerializer = new BuildingSerializer(
+                    underlyingSerializer, new NullableValueBuilder(underlyingType));
+                return true;
+            }
+            return false;
         }
 
         private static bool TrySerializeAsEnum(Type propertyType,
