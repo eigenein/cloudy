@@ -105,5 +105,17 @@ namespace Cloudy.Messaging
         {
             outputStream.Flush();
         }
+
+        /// <summary>
+        /// Closes the stream.
+        /// </summary>
+        public void Close()
+        {
+            inputStream.Close();
+            if (!ReferenceEquals(inputStream, outputStream))
+            {
+                outputStream.Close();
+            }
+        }
     }
 }
