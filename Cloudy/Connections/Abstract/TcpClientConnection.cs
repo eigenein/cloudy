@@ -4,7 +4,7 @@ using Cloudy.Messaging;
 
 namespace Cloudy.Connections.Abstract
 {
-    public abstract class TcpClientConnection
+    public abstract class TcpClientConnection : IDisposable
     {
         #region Private Fields
 
@@ -32,6 +32,19 @@ namespace Cloudy.Connections.Abstract
         public virtual void Close()
         {
             tcpMessageDispatcher.MessageStream.Close();
+        }
+
+        #endregion
+
+        #region Implementation of IDisposable
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        /// <filterpriority>2</filterpriority>
+        public void Dispose()
+        {
+            Close();
         }
 
         #endregion

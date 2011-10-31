@@ -185,6 +185,13 @@ namespace Cloudy.Protobuf
             }
         }
 
+        /// <summary>
+        /// Serializes the object.
+        /// </summary>
+        /// <param name="stream">The target stream.</param>
+        /// <param name="o">The object to serialize.</param>
+        /// <param name="streamingMode">Tells whether the object should be
+        /// serialized as an embedded message.</param>
         public void Serialize(Stream stream, object o, bool streamingMode)
         {
             if (!streamingMode)

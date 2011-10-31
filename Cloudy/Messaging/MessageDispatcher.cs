@@ -2,6 +2,9 @@
 
 namespace Cloudy.Messaging
 {
+    /// <summary>
+    /// Sends, receives and tracks messages.
+    /// </summary>
     public class MessageDispatcher
     {
         #region Private Fields
@@ -10,22 +13,29 @@ namespace Cloudy.Messaging
 
         #endregion
 
+        /// <summary>
+        /// Initializes a new instance.
+        /// </summary>
+        /// <param name="messageStream">The underlying message stream.</param>
         public MessageDispatcher(MessageStream messageStream)
         {
             this.messageStream = messageStream;
         }
 
-        #region Tagging
+        #region ID creating
 
-        private ulong tag;
+        private ulong id;
 
-        private readonly object taggingLock = new object();
+        private readonly object idLock = new object();
 
-        protected ulong CreateTag()
+        /// <summary>
+        /// Creates the new unique ID.
+        /// </summary>
+        protected ulong CreateId()
         {
-            lock (taggingLock)
+            lock (idLock)
             {
-                return tag++;
+                return id++;
             }
         }
 
@@ -33,6 +43,9 @@ namespace Cloudy.Messaging
 
         #region Properties
 
+        /// <summary>
+        /// Gets the underlying message stream.
+        /// </summary>
         public MessageStream MessageStream
         {
             get { return messageStream; }
@@ -42,7 +55,14 @@ namespace Cloudy.Messaging
 
         #region Public Methods
 
-        
+        /// <summary>
+        /// Processes incoming messages.
+        /// </summary>
+        /// <param name="count">The count of messages to be processed.</param>
+        public void ProcessMessages(int count)
+        {
+            // TODO
+        }
 
         #endregion
     }

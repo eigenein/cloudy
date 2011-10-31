@@ -1,46 +1,76 @@
 ﻿using System;
+using Cloudy.Protobuf;
 using Cloudy.Protobuf.Attributes;
-using Cloudy.Protobuf.Enums;
 
 namespace Cloudy.Connections.Dto
 {
+    /// <summary>
+    /// A generic Data Transfer Object.
+    /// </summary>
     [ProtobufSerializable]
     public class Dto<T>
     {
-        private readonly uint? tag;
+        protected readonly uint? uniqueId;
 
-        private readonly T value;
+        protected readonly T value;
 
-        private readonly uint type;
+        protected readonly uint? tag;
 
-        protected Dto(uint? tag, uint type, T value)
+        internal Dto(uint? uniqueId, uint? tag, T value)
         {
-            this.tag = tag;
+            this.uniqueId = uniqueId;
             this.value = value;
-            this.type = type;
+            this.tag = tag;
         }
 
+        /// <summary>
+        /// An ID that should be unique within the set of currently
+        /// active operations. Used to track messages.
+        /// </summary>
         [ProtobufField(1)]
-        public uint? Tag
+        public uint? UniqueId
         {
+            get { return uniqueId; }
+        }
+
+        /// <summary>
+        /// An user-specific tag. Can indicate a type of the message.
+        /// </summary>
+        [ProtobufField(2)]
+        public uint? Tag
+        { 
             get { return tag; }
         }
 
-        [ProtobufField(2)]
-        public uint Type
-        { 
-            get { return type; }
-        }
-
+        /// <summary>
+        /// Gets an underlying value.
+        /// </summary>
         [ProtobufField(3)]
         public T Value
         { 
             get { return value; }
         }
+    }
 
-        public bool IsResponse
+    /// <summary>
+    /// An untyped Data Transfer Object.
+    /// </summary>
+    public class Dto : Dto<byte[]>
+    {
+        protected Dto(uint? uniqueId, uint? tag, byte[] value)
+            : base(uniqueId, tag, value)
         {
-            get { return tag != null; }
+            // Do nothing.
+        }
+
+        /// <summary>
+        /// Deserializes the underlying byte-array value into
+        /// a value of the specified type.
+        /// </summary>
+        public Dto<T> ConvertTo<T>()
+        {
+            T deserializedValue = (T)Serializer.CreateSerializer(typeof(T)).Deserialize(value);
+            return new Dto<T>(uniqueId, tag, deserializedValue);
         }
     }
 }
