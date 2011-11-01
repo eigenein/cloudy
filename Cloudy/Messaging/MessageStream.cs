@@ -7,7 +7,7 @@ namespace Cloudy.Messaging
     /// <summary>
     /// The utility class for streaming of messages.
     /// </summary>
-    public class MessageStream
+    public class MessageStream : IDisposable
     {
         private readonly Stream inputStream;
 
@@ -43,7 +43,7 @@ namespace Cloudy.Messaging
         }
 
         /// <summary>
-        /// Reads a message from the input stream.
+        /// Reads a message from the input stream. The method is thread-safe.
         /// </summary>
         /// <param name="type">The class of a message.</param>
         /// <returns>The read message or <c>null</c> at the end of the stream.</returns>
@@ -64,7 +64,7 @@ namespace Cloudy.Messaging
         }
 
         /// <summary>
-        /// Reads a message from the input stream.
+        /// Reads a message from the input stream. The method is thread-safe.
         /// </summary>
         /// <typeparam name="T">The class of a message.</typeparam>
         /// <returns>The read message or <c>null</c> at the end of the stream.</returns>
@@ -74,7 +74,7 @@ namespace Cloudy.Messaging
         }
 
             /// <summary>
-        /// Writes the message to the output stream.
+        /// Writes the message to the output stream. The method is thread-safe.
         /// </summary>
         /// <typeparam name="T">The class of a message.</typeparam>
         public void Write<T>(T message)
@@ -87,7 +87,7 @@ namespace Cloudy.Messaging
         }
 
         /// <summary>
-        /// Writes the message to the output stream.
+        /// Writes the message to the output stream. The method is thread-safe.
         /// </summary>
         public void Write(object message)
         {
@@ -117,5 +117,18 @@ namespace Cloudy.Messaging
                 outputStream.Close();
             }
         }
+
+        #region Implementation of IDisposable
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        /// <filterpriority>2</filterpriority>
+        public void Dispose()
+        {
+            Close();
+        }
+
+        #endregion
     }
 }

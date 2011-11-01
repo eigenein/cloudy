@@ -1,15 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using Cloudy.Helpers;
+using Cloudy.Messaging.Enums;
+using Cloudy.Messaging.Structures;
 
 namespace Cloudy.Messaging
 {
     /// <summary>
     /// Sends, receives and tracks messages.
     /// </summary>
-    public class MessageDispatcher
+    public class MessageDispatcher : IDisposable
     {
         #region Private Fields
 
         private readonly MessageStream messageStream;
+
+        private readonly Dictionary<int?, MessagingAsyncResult> sendQueue =
+            new Dictionary<int?, MessagingAsyncResult>();
+
+        private readonly BlockingQueue<Dto> receiveQueue = new BlockingQueue<Dto>();
+
+        private readonly object writeLock = new object();
 
         #endregion
 
@@ -24,19 +36,14 @@ namespace Cloudy.Messaging
 
         #region ID creating
 
-        private ulong id;
-
-        private readonly object idLock = new object();
+        private long trackingId;
 
         /// <summary>
-        /// Creates the new unique ID.
+        /// Creates a new tracking ID.
         /// </summary>
-        protected ulong CreateId()
+        private long CreateTrackingId()
         {
-            lock (idLock)
-            {
-                return id++;
-            }
+            return Interlocked.Increment(ref trackingId);
         }
 
         #endregion
@@ -51,6 +58,17 @@ namespace Cloudy.Messaging
             get { return messageStream; }
         }
 
+        /// <summary>
+        /// Gets the count of already received and buffered messages.
+        /// </summary>
+        public int Available
+        {
+            get
+            {
+                return receiveQueue.Count;
+            }
+        }
+
         #endregion
 
         #region Public Methods
@@ -59,9 +77,111 @@ namespace Cloudy.Messaging
         /// Processes incoming messages.
         /// </summary>
         /// <param name="count">The count of messages to be processed.</param>
-        public void ProcessMessages(int count)
+        /// <returns>The count of messages actually processed.</returns>
+        public int ProcessMessages(int count)
         {
-            // TODO
+            Dto message;
+            int processedMessagesCount = 0;
+            // Loop through messages.
+            while (processedMessagesCount < count && 
+                (message = messageStream.Read<Dto>()) != null)
+            {
+                if (message.Tag == WellKnownTags.DeliveryNotification)
+                {
+                    // TODO: Set an asyncresult completed.
+                }
+                else
+                {
+                    // Send the delivery notification.
+                    messageStream.Write(new Dto(message.TrackingId, 
+                        WellKnownTags.DeliveryNotification, null));
+                    if (message.Tag != WellKnownTags.Ping)
+                    {
+                        receiveQueue.Enqueue(message);
+                    }
+                }
+                processedMessagesCount++;
+            }
+            return processedMessagesCount;
+        }
+
+        /// <summary>
+        /// Starts an asynchronous sending of the message.
+        /// </summary>
+        public MessagingAsyncResult BeginSend<T>(T message, int? tag,
+            AsyncCallback callback, object state)
+        {
+            messageStream.Write(new Dto<T>(CreateTrackingId(), tag, message));
+            return new MessagingAsyncResult(callback, state);
+        }
+
+        /// <summary>
+        /// Finishes an asynchronous sending of the message.
+        /// </summary>
+        public void EndSend(MessagingAsyncResult ar, TimeSpan timeout)
+        {
+            ar.EndInvoke(timeout);
+        }
+
+        /// <summary>
+        /// Starts an asynchronous ping.
+        /// </summary>
+        public MessagingAsyncResult BeginPing(AsyncCallback callback, object state)
+        {
+            messageStream.Write(new Dto(CreateTrackingId(), WellKnownTags.Ping, null));
+            return new MessagingAsyncResult(callback, state);
+        }
+
+        /// <summary>
+        /// Finishes an asynchronous ping.
+        /// </summary>
+        public void EndPing(MessagingAsyncResult ar, TimeSpan timeout)
+        {
+            ar.EndInvoke(timeout);
+        }
+
+        /// <summary>
+        /// Receives a message.
+        /// </summary>
+        public byte[] Receive(out int? tag)
+        {
+            return ReceiveDto(out tag).Value;
+        }
+
+        /// <summary>
+        /// Receives a message.
+        /// </summary>
+        public TResult Receive<TResult>(out int? tag)
+        {
+            return ReceiveDto(out tag).ConvertTo<TResult>().Value;
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Receives a DTO.
+        /// </summary>
+        private Dto ReceiveDto(out int? tag)
+        {
+            while (true)
+            {
+                Dto dto = receiveQueue.Dequeue();
+                tag = dto.Tag;
+                return dto;
+            }
+        }
+
+        #region Implementation of IDisposable
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, 
+        /// releasing, or resetting unmanaged resources.
+        /// </summary>
+        /// <filterpriority>2</filterpriority>
+        public void Dispose()
+        {
+            messageStream.Dispose();
+            receiveQueue.Dispose();
         }
 
         #endregion
