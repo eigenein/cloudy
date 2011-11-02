@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cloudy.Helpers;
 using Cloudy.Messaging.Enums;
+using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
 
 namespace Cloudy.Messaging
@@ -147,25 +148,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Receives a message.
         /// </summary>
-        public byte[] Receive(out int? tag)
-        {
-            return ReceiveDto(out tag).Value;
-        }
-
-        /// <summary>
-        /// Receives a message.
-        /// </summary>
-        public TResult Receive<TResult>(out int? tag)
-        {
-            return ReceiveDto(out tag).ConvertTo<TResult>().Value;
-        }
-
-        #endregion
-
-        /// <summary>
-        /// Receives a DTO.
-        /// </summary>
-        private Dto ReceiveDto(out int? tag)
+        public ICastableValueProvider Receive(out int? tag)
         {
             while (true)
             {
@@ -174,6 +157,16 @@ namespace Cloudy.Messaging
                 return dto;
             }
         }
+
+        /// <summary>
+        /// Receives a message.
+        /// </summary>
+        public TResult Receive<TResult>(out int? tag)
+        {
+            return Receive(out tag).GetValue<TResult>();
+        }
+
+        #endregion
 
         #region Implementation of IDisposable
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using Cloudy.Messaging.Interfaces;
 using Cloudy.Protobuf;
 using Cloudy.Protobuf.Attributes;
 
@@ -55,7 +56,7 @@ namespace Cloudy.Messaging.Structures
     /// <summary>
     /// An untyped Data Transfer Object.
     /// </summary>
-    public class Dto : Dto<byte[]>
+    public class Dto : Dto<byte[]>, ICastableValueProvider
     {
         internal Dto(long trackingId, int? tag, byte[] value)
             : base(trackingId, tag, value)
@@ -67,10 +68,18 @@ namespace Cloudy.Messaging.Structures
         /// Deserializes the underlying byte-array value into
         /// a value of the specified type.
         /// </summary>
-        public Dto<T> ConvertTo<T>()
+        public T GetValue<T>()
         {
-            T deserializedValue = (T)Serializer.CreateSerializer(typeof(T)).Deserialize(value);
-            return new Dto<T>(trackingId, tag, deserializedValue);
+            return (T)GetValue(typeof(T));
+        }
+
+        /// <summary>
+        /// Deserializes the underlying byte-array value into
+        /// a value of the specified type.
+        /// </summary>
+        public object GetValue(Type type)
+        {
+            return Serializer.CreateSerializer(type).Deserialize(value);
         }
     }
 }

@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="Helpers\BlockingQueue.cs" />
     <Compile Include="Messaging\Enums\WellKnownTags.cs" />
+    <Compile Include="Messaging\Interfaces\ICastableValueProvider.cs" />
     <Compile Include="Messaging\Structures\Dto.cs" />
     <Compile Include="Messaging\Structures\Values\AuthenticationRequestValue.cs" />
     <Compile Include="Helpers\UdpStream.cs" />
