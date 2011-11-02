@@ -42,9 +42,18 @@ namespace Cloudy.Nodes
         /// <filterpriority>2</filterpriority>
         public void Dispose()
         {
-            ControlMessageDispatcher.MessageStream.Close();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         #endregion
+
+        protected virtual void Dispose(bool dispose)
+        {
+            if (dispose)
+            {
+                ControlMessageDispatcher.Dispose();
+            }
+        }
     }
 }

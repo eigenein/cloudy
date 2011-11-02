@@ -2,6 +2,7 @@
 
 namespace Cloudy.Protobuf.Exceptions
 {
+    [Serializable]
     public class UnexpectedEndOfStreamException : Exception
     {
         public UnexpectedEndOfStreamException(string message)

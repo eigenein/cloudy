@@ -13,7 +13,7 @@ namespace Cloudy.Helpers
 
         private readonly object queueLocker = new object();
 
-        private AutoResetEvent queueWaitHandle = new AutoResetEvent(false);
+        private readonly AutoResetEvent queueWaitHandle = new AutoResetEvent(false);
 
         /// <summary>
         /// Adds the object to the end of the queue.
@@ -68,10 +68,18 @@ namespace Cloudy.Helpers
         /// <filterpriority>2</filterpriority>
         public void Dispose()
         {
-            queueWaitHandle.Close();
-            queueWaitHandle = null;
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         #endregion
+
+        protected virtual void Dispose(bool dispose)
+        {
+            if (dispose)
+            {
+                queueWaitHandle.Close();
+            }
+        }
     }
 }

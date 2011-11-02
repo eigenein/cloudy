@@ -16,9 +16,18 @@ namespace Cloudy.Nodes
         /// <filterpriority>2</filterpriority>
         public void Dispose()
         {
-            // TODO
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         #endregion
+
+        protected virtual void Dispose(bool dispose)
+        {
+            if (dispose)
+            {
+                // Do nothing.
+            }
+        }
     }
 }

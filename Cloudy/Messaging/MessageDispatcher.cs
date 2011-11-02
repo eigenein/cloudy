@@ -16,12 +16,10 @@ namespace Cloudy.Messaging
 
         private readonly MessageStream messageStream;
 
-        private readonly Dictionary<int?, MessagingAsyncResult> sendQueue =
-            new Dictionary<int?, MessagingAsyncResult>();
+        private readonly Dictionary<long, MessagingAsyncResult> sendQueue =
+            new Dictionary<long, MessagingAsyncResult>();
 
         private readonly BlockingQueue<Dto> receiveQueue = new BlockingQueue<Dto>();
-
-        private readonly object writeLock = new object();
 
         #endregion
 
@@ -36,14 +34,14 @@ namespace Cloudy.Messaging
 
         #region ID creating
 
-        private long trackingId;
+        private long nextTrackingId;
 
         /// <summary>
         /// Creates a new tracking ID.
         /// </summary>
         private long CreateTrackingId()
         {
-            return Interlocked.Increment(ref trackingId);
+            return Interlocked.Increment(ref nextTrackingId);
         }
 
         #endregion
@@ -111,8 +109,11 @@ namespace Cloudy.Messaging
         public MessagingAsyncResult BeginSend<T>(T message, int? tag,
             AsyncCallback callback, object state)
         {
-            messageStream.Write(new Dto<T>(CreateTrackingId(), tag, message));
-            return new MessagingAsyncResult(callback, state);
+            long trackingId = CreateTrackingId();
+            messageStream.Write(new Dto<T>(trackingId, tag, message));
+            MessagingAsyncResult ar = new MessagingAsyncResult(callback, state);
+            sendQueue.Add(trackingId, ar);
+            return ar;
         }
 
         /// <summary>
@@ -128,8 +129,11 @@ namespace Cloudy.Messaging
         /// </summary>
         public MessagingAsyncResult BeginPing(AsyncCallback callback, object state)
         {
-            messageStream.Write(new Dto(CreateTrackingId(), WellKnownTags.Ping, null));
-            return new MessagingAsyncResult(callback, state);
+            long trackingId = CreateTrackingId();
+            messageStream.Write(new Dto(trackingId, WellKnownTags.Ping, null));
+            MessagingAsyncResult ar = new MessagingAsyncResult(callback, state);
+            sendQueue.Add(trackingId, ar);
+            return ar;
         }
 
         /// <summary>
@@ -180,10 +184,19 @@ namespace Cloudy.Messaging
         /// <filterpriority>2</filterpriority>
         public void Dispose()
         {
-            messageStream.Dispose();
-            receiveQueue.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         #endregion
+
+        protected virtual void Dispose(bool dispose)
+        {
+            if (dispose)
+            {
+                messageStream.Dispose();
+                receiveQueue.Dispose();
+            }
+        }
     }
 }

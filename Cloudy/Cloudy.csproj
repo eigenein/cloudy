@@ -38,7 +38,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>Cloudy.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\Cloudy.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -101,9 +101,10 @@
     <Compile Include="Protobuf\ValueBuilders\SingleValueBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Cloudy.snk" />
+    <None Include="..\Cloudy.snk">
+      <Link>Cloudy.snk</Link>
+    </None>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

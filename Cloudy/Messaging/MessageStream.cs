@@ -11,7 +11,11 @@ namespace Cloudy.Messaging
     {
         private readonly Stream inputStream;
 
+        private readonly object inputStreamLocker = new object();
+
         private readonly Stream outputStream;
+
+        private readonly object outputStreamLocker = new object();
 
         /// <summary>
         /// Initializes a new instance.
@@ -49,7 +53,7 @@ namespace Cloudy.Messaging
         /// <returns>The read message or <c>null</c> at the end of the stream.</returns>
         public object Read(Type type)
         {
-            lock (inputStream)
+            lock (inputStreamLocker)
             {
                 try
                 {
@@ -79,7 +83,7 @@ namespace Cloudy.Messaging
         /// <typeparam name="T">The class of a message.</typeparam>
         public void Write<T>(T message)
         {
-            lock (outputStream)
+            lock (outputStreamLocker)
             {
                 Serializer.CreateSerializer(typeof(T)).Serialize(
                     outputStream, true);
@@ -91,7 +95,7 @@ namespace Cloudy.Messaging
         /// </summary>
         public void Write(object message)
         {
-            lock (outputStream)
+            lock (outputStreamLocker)
             {
                 Serializer.CreateSerializer(message.GetType()).Serialize(
                     outputStream, message, true);
@@ -126,9 +130,18 @@ namespace Cloudy.Messaging
         /// <filterpriority>2</filterpriority>
         public void Dispose()
         {
-            Close();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         #endregion
+
+        protected virtual void Dispose(bool dispose)
+        {
+            if (dispose)
+            {
+                Close();
+            }
+        }
     }
 }

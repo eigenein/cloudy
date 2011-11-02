@@ -106,16 +106,25 @@ namespace Cloudy.Messaging.Structures
         /// <filterpriority>2</filterpriority>
         public void Dispose()
         {
-            ManualResetEvent waitHandleInstance = waitHandle;
-            if (waitHandleInstance == null)
-            {
-                return;
-            }
-            waitHandle = null;
-            waitHandleInstance.Close();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         #endregion
+
+        protected virtual void Dispose(bool dispose)
+        {
+            if (dispose)
+            {
+                ManualResetEvent waitHandleInstance = waitHandle;
+                if (waitHandleInstance == null)
+                {
+                    return;
+                }
+                waitHandle = null;
+                waitHandleInstance.Close();
+            }
+        }
     }
 
     public class MessagingAsyncResult<T> : MessagingAsyncResult
