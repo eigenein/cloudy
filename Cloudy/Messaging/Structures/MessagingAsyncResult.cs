@@ -127,6 +127,9 @@ namespace Cloudy.Messaging.Structures
         }
     }
 
+    /// <summary>
+    /// Represents a result of a messaging asynchronous operation.
+    /// </summary>
     public class MessagingAsyncResult<T> : MessagingAsyncResult
     {
         internal MessagingAsyncResult(AsyncCallback callback, object state)
