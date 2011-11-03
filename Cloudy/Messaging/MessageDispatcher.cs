@@ -87,7 +87,8 @@ namespace Cloudy.Messaging
             {
                 if (message.Tag == WellKnownTags.DeliveryNotification)
                 {
-                    // TODO: Set an asyncresult completed.
+                    sendQueue[message.TrackingId].SetCompleted();
+                    sendQueue.Remove(message.TrackingId);
                 }
                 else
                 {

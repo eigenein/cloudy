@@ -3,8 +3,7 @@
 namespace Cloudy.Messaging.Enums
 {
     /// <summary>
-    /// Defines the well-known tags. Declared as a class because there should
-    /// be a possibility to extend this.
+    /// Defines the well-known tags.
     /// </summary>
     public static class WellKnownTags
     {

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Cloudy Message Passing Library Tests")]
+[assembly: AssemblyTitle("Simple Chat Client")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("8286aae7-10b4-4224-945e-87fa3d4cf042")]
+[assembly: Guid("ec7e11fc-88b1-4627-9204-28b5f05597d7")]
 
 // Version information for an assembly consists of the following four values:
 //
