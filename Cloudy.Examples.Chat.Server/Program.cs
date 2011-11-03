@@ -6,7 +6,6 @@ namespace Cloudy.Examples.Chat.Server
     {
         public static void Main(string[] args)
         {
-            
         }
     }
 }

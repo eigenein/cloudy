@@ -31,6 +31,14 @@ namespace Cloudy.Messaging
         public MessageDispatcher(MessageStream messageStream)
         {
             this.messageStream = messageStream;
+            if (!messageStream.CanRead)
+            {
+                throw new InvalidOperationException("The stream is not readable.");
+            }
+            if (!messageStream.CanWrite)
+            {
+                throw new InvalidOperationException("The stream is not writeable.");
+            }
         }
 
         #region ID creating

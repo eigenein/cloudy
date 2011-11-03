@@ -9,11 +9,9 @@ namespace Cloudy.Messaging
     /// </summary>
     public class MessageStream : IDisposable
     {
-        private readonly Stream inputStream;
+        private readonly Stream stream;
 
         private readonly object inputStreamLocker = new object();
-
-        private readonly Stream outputStream;
 
         private readonly object outputStreamLocker = new object();
 
@@ -22,28 +20,32 @@ namespace Cloudy.Messaging
         /// </summary>
         /// <param name="stream">The underlying I/O stream.</param>
         public MessageStream(Stream stream)
-            : this(stream, stream)
         {
-            // Do nothing.
+            this.stream = stream;
         }
 
         /// <summary>
-        /// Initializes a new instance.
+        /// Gets the underlying stream.
         /// </summary>
-        /// <param name="inputStream">The underlying input stream.</param>
-        /// <param name="outputStream">The underlying output stream.</param>
-        public MessageStream(Stream inputStream, Stream outputStream)
+        public Stream Stream
         {
-            if (!inputStream.CanRead)
-            {
-                throw new ArgumentException("The inputStream is not readable.");
-            }
-            this.inputStream = inputStream;
-            if (!outputStream.CanWrite)
-            {
-                throw new ArgumentException("The outputStream is not writable.");
-            }
-            this.outputStream = outputStream;
+            get { return stream; }
+        }
+
+        /// <summary>
+        /// Indicates whether the current stream supports reading.
+        /// </summary>
+        public bool CanRead
+        {
+            get { return stream.CanRead; }
+        }
+
+        /// <summary>
+        /// Indicates whether the current stream supports writing.
+        /// </summary>
+        public bool CanWrite
+        {
+            get { return stream.CanWrite; }
         }
 
         /// <summary>
@@ -58,7 +60,7 @@ namespace Cloudy.Messaging
                 try
                 {
                     return Serializer.CreateSerializer(type).Deserialize(
-                        inputStream, true);
+                        stream, true);
                 }
                 catch (EndOfStreamException)
                 {
@@ -86,7 +88,7 @@ namespace Cloudy.Messaging
             lock (outputStreamLocker)
             {
                 Serializer.CreateSerializer(typeof(T)).Serialize(
-                    outputStream, true);
+                    stream, true);
             }
         }
 
@@ -98,7 +100,7 @@ namespace Cloudy.Messaging
             lock (outputStreamLocker)
             {
                 Serializer.CreateSerializer(message.GetType()).Serialize(
-                    outputStream, message, true);
+                    stream, message, true);
             }
         }
 
@@ -107,7 +109,7 @@ namespace Cloudy.Messaging
         /// </summary>
         public void Flush()
         {
-            outputStream.Flush();
+            stream.Flush();
         }
 
         /// <summary>
@@ -115,8 +117,7 @@ namespace Cloudy.Messaging
         /// </summary>
         public void Close()
         {
-            inputStream.Close();
-            outputStream.Close();
+            stream.Close();
         }
 
         #region Implementation of IDisposable
