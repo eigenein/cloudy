@@ -116,10 +116,7 @@ namespace Cloudy.Messaging
         public void Close()
         {
             inputStream.Close();
-            if (!ReferenceEquals(inputStream, outputStream))
-            {
-                outputStream.Close();
-            }
+            outputStream.Close();
         }
 
         #region Implementation of IDisposable
