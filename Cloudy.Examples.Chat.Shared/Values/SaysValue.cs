@@ -7,9 +7,11 @@ namespace Cloudy.Examples.Chat.Shared.Values
     public class SaysValue
     {
         [ProtobufField(1)]
-        public string Sender { get; set; }
-
-        [ProtobufField(2)]
         public string Message { get; set; }
+
+        public override string ToString()
+        {
+            return Message;
+        }
     }
 }

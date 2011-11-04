@@ -52,9 +52,10 @@ namespace Cloudy.Messaging.Structures
             {
                 return;
             }
-            waitHandle = null;
-            waitHandleInstance.WaitOne(timeout);
-            waitHandleInstance.Close();
+            if (!waitHandleInstance.WaitOne(timeout))
+            {
+                throw new TimeoutException(String.Format("Time is out: {0}", timeout));
+            }
         }
 
         #region Implementation of IAsyncResult

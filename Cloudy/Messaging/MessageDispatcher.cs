@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using Cloudy.Helpers;
 using Cloudy.Messaging.Enums;
+using Cloudy.Messaging.Events;
+using Cloudy.Messaging.Exceptions;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
 
@@ -19,7 +21,7 @@ namespace Cloudy.Messaging
 
         private readonly Guid fromId;
 
-        private readonly Func<Guid, MessageStream> resolveStream;
+        private readonly ResolveStreamDelegate resolveStream;
 
         private readonly Dictionary<long, MessagingAsyncResult> sendQueue =
             new Dictionary<long, MessagingAsyncResult>();
@@ -34,7 +36,7 @@ namespace Cloudy.Messaging
         /// <param name="resolveStream">Used to find a stream by a recipient identifier.</param>
         /// <param name="inputStream">The underlying message stream.</param>
         /// <param name="fromId">The sender identifier.</param>
-        public MessageDispatcher(Guid fromId, Func<Guid, MessageStream> resolveStream,
+        public MessageDispatcher(Guid fromId, ResolveStreamDelegate resolveStream,
             MessageStream inputStream)
         {
             if (!inputStream.CanRead)
@@ -100,20 +102,30 @@ namespace Cloudy.Messaging
             {
                 if (message.Tag == WellKnownTags.DeliveryNotification)
                 {
-                    MessagingAsyncResult ar = sendQueue[message.TrackingId];
-                    ar.Notify();
-                    if (ar.IsCompleted)
+                    MessagingAsyncResult ar;
+                    if (sendQueue.TryGetValue(message.TrackingId, out ar))
                     {
-                        sendQueue.Remove(message.TrackingId);
-                        ar.Dispose();
+                        ar.Notify();
+                        if (ar.IsCompleted)
+                        {
+                            sendQueue.Remove(message.TrackingId);
+                            ar.Dispose();
+                        }
                     }
                 }
                 else
                 {
                     // Send the delivery notification.
-                    resolveStream(message.FromId).Write(
-                        new Dto(fromId, message.TrackingId, 
-                        WellKnownTags.DeliveryNotification, null));
+                    MessageStream outputStream;
+                    if (resolveStream(message.FromId, out outputStream))
+                    {
+                        outputStream.Write(new Dto(fromId, message.TrackingId,
+                            WellKnownTags.DeliveryNotification, null));
+                    }
+                    else
+                    {
+                        OnStreamUnresolved(message.FromId);
+                    }
                     if (message.Tag != WellKnownTags.Ping)
                     {
                         receiveQueue.Enqueue(message);
@@ -127,13 +139,38 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Starts an asynchronous sending of the message.
         /// </summary>
+        public MessagingAsyncResult BeginSend<T>(Guid recipient,
+            T message, int? tag, AsyncCallback callback, object state)
+        {
+            MessageStream outputStream;
+            if (!resolveStream(recipient, out outputStream))
+            {
+                throw new StreamUnresolvedException(recipient);
+            }
+            Dto<T> dto = new Dto<T>(fromId, CreateTrackingId(), tag, message);
+            outputStream.Write(dto);
+            MessagingAsyncResult ar = new MessagingAsyncResult(1,
+                callback, state);
+            sendQueue.Add(dto.TrackingId, ar);
+            return ar;
+        }
+
+        /// <summary>
+        /// Starts an asynchronous sending of the message.
+        /// </summary>
         public MessagingAsyncResult BeginSend<T>(Guid[] recipients, 
             T message, int? tag, AsyncCallback callback, object state)
         {
+            // Pre-serialize the DTO's value to improve performance.
             Dto dto = new Dto<T>(fromId, CreateTrackingId(), tag, message).AsUntyped();
             foreach (Guid recipient in recipients)
             {
-                resolveStream(recipient).Write(dto);
+                MessageStream outputStream;
+                if (!resolveStream(recipient, out outputStream))
+                {
+                    throw new StreamUnresolvedException(recipient);
+                }
+                outputStream.Write(dto);
             }
             MessagingAsyncResult ar = new MessagingAsyncResult(recipients.Length,
                 callback, state);
@@ -147,6 +184,16 @@ namespace Cloudy.Messaging
         public void EndSend(MessagingAsyncResult ar, TimeSpan timeout)
         {
             ar.EndInvoke(timeout);
+        }
+
+        /// <summary>
+        /// Starts an asynchronous ping.
+        /// </summary>
+        public MessagingAsyncResult BeginPing(Guid target,
+            AsyncCallback callback, object state)
+        {
+            return BeginSend<object>(target, null, WellKnownTags.Ping,
+                callback, state);
         }
 
         /// <summary>
@@ -170,7 +217,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Receives a message.
         /// </summary>
-        public ICastableValueProvider Receive(out Guid from, out int? tag)
+        public ICastableValue Receive(out Guid from, out int? tag)
         {
             while (true)
             {
@@ -186,7 +233,22 @@ namespace Cloudy.Messaging
         /// </summary>
         public TResult Receive<TResult>(out Guid from, out int? tag)
         {
-            return Receive(out from, out tag).GetValue<TResult>();
+            return Receive(out from, out tag).Get<TResult>();
+        }
+
+        #endregion
+
+        #region Events
+
+        public event EventHandler<StreamUnresolvedEventArgs> StreamUnresolved;
+
+        private void OnStreamUnresolved(Guid id)
+        {
+            EventHandler<StreamUnresolvedEventArgs> handler = StreamUnresolved;
+            if (handler != null)
+            {
+                handler(this, new StreamUnresolvedEventArgs(id));
+            }
         }
 
         #endregion

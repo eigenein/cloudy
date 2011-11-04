@@ -88,7 +88,7 @@ namespace Cloudy.Messaging
             lock (outputStreamLocker)
             {
                 Serializer.CreateSerializer(typeof(T)).Serialize(
-                    stream, true);
+                    stream, message, true);
             }
         }
 

@@ -41,8 +41,8 @@ namespace Cloudy.Helpers
                     {
                         return queue.Dequeue();
                     }
-                    queueWaitHandle.WaitOne();
                 }
+                queueWaitHandle.WaitOne();
             }
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Permissions;
 using Cloudy.Protobuf.Attributes;
 using Cloudy.Protobuf.Encoding;
 using Cloudy.Protobuf.Enums;

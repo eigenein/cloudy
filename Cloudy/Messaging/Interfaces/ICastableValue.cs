@@ -5,10 +5,10 @@ namespace Cloudy.Messaging.Interfaces
     /// <summary>
     /// Provides methods to cast the object to the specified type.
     /// </summary>
-    public interface ICastableValueProvider
+    public interface ICastableValue
     {
-        T GetValue<T>();
+        T Get<T>();
 
-        object GetValue(Type type);
+        object Get(Type type);
     }
 }

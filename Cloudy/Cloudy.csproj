@@ -23,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <RunCodeAnalysis>true</RunCodeAnalysis>
+    <CodeAnalysisRuleSet>..\Cloudy.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,6 +34,7 @@
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <RunCodeAnalysis>true</RunCodeAnalysis>
+    <CodeAnalysisRuleSet>..\Cloudy.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -88,7 +90,10 @@
   <ItemGroup>
     <Compile Include="Helpers\BlockingQueue.cs" />
     <Compile Include="Messaging\Enums\WellKnownTags.cs" />
-    <Compile Include="Messaging\Interfaces\ICastableValueProvider.cs" />
+    <Compile Include="Messaging\Events\StreamUnresolvedEventArgs.cs" />
+    <Compile Include="Messaging\Exceptions\StreamUnresolvedException.cs" />
+    <Compile Include="Messaging\Interfaces\ICastableValue.cs" />
+    <Compile Include="Messaging\Interfaces\ResolveStreamDelegate.cs" />
     <Compile Include="Messaging\Structures\Dto.cs" />
     <Compile Include="Messaging\Structures\Values\AuthenticationRequestValue.cs" />
     <Compile Include="Helpers\UdpStream.cs" />
@@ -143,6 +148,7 @@
       <Link>Cloudy.snk</Link>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

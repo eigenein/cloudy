@@ -11,19 +11,20 @@ namespace Cloudy.Nodes
     {
         private readonly Guid id;
 
-        /// <summary>
-        /// Contains only a master fake ID.
-        /// </summary>
-        private readonly Guid[] defaultRecipients = new Guid[] { Guid.Empty };
-
         protected readonly MessageDispatcher ControlMessageDispatcher;
 
         protected Client(Stream controlStream, Guid id)
         {
             MessageStream inputStream = new MessageStream(controlStream);
             this.ControlMessageDispatcher = new MessageDispatcher(id,
-                recipientId => inputStream, inputStream);
+                ResolveMasterStream, inputStream);
             this.id = id;
+        }
+
+        private bool ResolveMasterStream(Guid idToResolve, out MessageStream stream)
+        {
+            stream = ControlMessageDispatcher.InputStream;
+            return true;
         }
 
         /// <summary>
@@ -34,6 +35,11 @@ namespace Cloudy.Nodes
             get { return id; }
         }
 
+        /// <summary>
+        /// Performs an authetication.
+        /// </summary>
+        /// <param name="credentials"></param>
+        /// <returns>Whether authentication was successful.</returns>
         public bool Authenticate<T>(T credentials)
         {
             throw new NotImplementedException();
