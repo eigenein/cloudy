@@ -14,16 +14,27 @@ namespace Cloudy.Messaging.Structures
 
         private ManualResetEvent waitHandle = new ManualResetEvent(false);
 
-        internal MessagingAsyncResult(AsyncCallback callback, object state)
+        private int notificationsLeftCount;
+
+        internal MessagingAsyncResult(int expectedNotificationsCount,
+            AsyncCallback callback, object state)
         {
             this.state = state;
             this.callback = callback;
+            this.notificationsLeftCount = expectedNotificationsCount;
         }
 
-        internal void SetCompleted()
+        /// <summary>
+        /// Notifies that an asynchronous operation has got a response.
+        /// </summary>
+        internal void Notify()
         {
             ManualResetEvent waitHandleInstance = waitHandle;
             if (waitHandleInstance == null)
+            {
+                return;
+            }
+            if (Interlocked.Decrement(ref notificationsLeftCount) != 0)
             {
                 return;
             }
@@ -124,26 +135,6 @@ namespace Cloudy.Messaging.Structures
                 waitHandle = null;
                 waitHandleInstance.Close();
             }
-        }
-    }
-
-    /// <summary>
-    /// Represents a result of a messaging asynchronous operation.
-    /// </summary>
-    public class MessagingAsyncResult<T> : MessagingAsyncResult
-    {
-        internal MessagingAsyncResult(AsyncCallback callback, object state)
-            : base(callback, state)
-        {
-            // Do nothing.
-        }
-
-        public T Result { get; internal set; }
-
-        public T EndInvokeWithResult(TimeSpan timeout)
-        {
-            EndInvoke(timeout);
-            return Result;
         }
     }
 }

@@ -15,7 +15,11 @@ namespace Cloudy.Messaging
     {
         #region Private Fields
 
-        private readonly MessageStream messageStream;
+        private readonly MessageStream inputStream;
+
+        private readonly Guid fromId;
+
+        private readonly Func<Guid, MessageStream> resolveStream;
 
         private readonly Dictionary<long, MessagingAsyncResult> sendQueue =
             new Dictionary<long, MessagingAsyncResult>();
@@ -27,18 +31,19 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="messageStream">The underlying message stream.</param>
-        public MessageDispatcher(MessageStream messageStream)
+        /// <param name="resolveStream">Used to find a stream by a recipient identifier.</param>
+        /// <param name="inputStream">The underlying message stream.</param>
+        /// <param name="fromId">The sender identifier.</param>
+        public MessageDispatcher(Guid fromId, Func<Guid, MessageStream> resolveStream,
+            MessageStream inputStream)
         {
-            this.messageStream = messageStream;
-            if (!messageStream.CanRead)
+            if (!inputStream.CanRead)
             {
                 throw new InvalidOperationException("The stream is not readable.");
             }
-            if (!messageStream.CanWrite)
-            {
-                throw new InvalidOperationException("The stream is not writeable.");
-            }
+            this.inputStream = inputStream;
+            this.resolveStream = resolveStream;
+            this.fromId = fromId;
         }
 
         #region ID creating
@@ -58,11 +63,11 @@ namespace Cloudy.Messaging
         #region Properties
 
         /// <summary>
-        /// Gets the underlying message stream.
+        /// Gets the underlying input message stream.
         /// </summary>
-        public MessageStream MessageStream
+        public MessageStream InputStream
         {
-            get { return messageStream; }
+            get { return inputStream; }
         }
 
         /// <summary>
@@ -85,23 +90,29 @@ namespace Cloudy.Messaging
         /// </summary>
         /// <param name="count">The count of messages to be processed.</param>
         /// <returns>The count of messages actually processed.</returns>
-        public int ProcessMessages(int count)
+        public int ProcessIncomingMessages(int count)
         {
             Dto message;
             int processedMessagesCount = 0;
             // Loop through messages.
             while (processedMessagesCount < count && 
-                (message = messageStream.Read<Dto>()) != null)
+                (message = inputStream.Read<Dto>()) != null)
             {
                 if (message.Tag == WellKnownTags.DeliveryNotification)
                 {
-                    sendQueue[message.TrackingId].SetCompleted();
-                    sendQueue.Remove(message.TrackingId);
+                    MessagingAsyncResult ar = sendQueue[message.TrackingId];
+                    ar.Notify();
+                    if (ar.IsCompleted)
+                    {
+                        sendQueue.Remove(message.TrackingId);
+                        ar.Dispose();
+                    }
                 }
                 else
                 {
                     // Send the delivery notification.
-                    messageStream.Write(new Dto(message.TrackingId, 
+                    resolveStream(message.FromId).Write(
+                        new Dto(fromId, message.TrackingId, 
                         WellKnownTags.DeliveryNotification, null));
                     if (message.Tag != WellKnownTags.Ping)
                     {
@@ -116,13 +127,17 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Starts an asynchronous sending of the message.
         /// </summary>
-        public MessagingAsyncResult BeginSend<T>(T message, int? tag,
-            AsyncCallback callback, object state)
+        public MessagingAsyncResult BeginSend<T>(Guid[] recipients, 
+            T message, int? tag, AsyncCallback callback, object state)
         {
-            long trackingId = CreateTrackingId();
-            messageStream.Write(new Dto<T>(trackingId, tag, message));
-            MessagingAsyncResult ar = new MessagingAsyncResult(callback, state);
-            sendQueue.Add(trackingId, ar);
+            Dto dto = new Dto<T>(fromId, CreateTrackingId(), tag, message).AsUntyped();
+            foreach (Guid recipient in recipients)
+            {
+                resolveStream(recipient).Write(dto);
+            }
+            MessagingAsyncResult ar = new MessagingAsyncResult(recipients.Length,
+                callback, state);
+            sendQueue.Add(dto.TrackingId, ar);
             return ar;
         }
 
@@ -137,13 +152,11 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Starts an asynchronous ping.
         /// </summary>
-        public MessagingAsyncResult BeginPing(AsyncCallback callback, object state)
+        public MessagingAsyncResult BeginPing(Guid[] targets,
+            AsyncCallback callback, object state)
         {
-            long trackingId = CreateTrackingId();
-            messageStream.Write(new Dto(trackingId, WellKnownTags.Ping, null));
-            MessagingAsyncResult ar = new MessagingAsyncResult(callback, state);
-            sendQueue.Add(trackingId, ar);
-            return ar;
+            return BeginSend<object>(targets, null, WellKnownTags.Ping,
+                callback, state);
         }
 
         /// <summary>
@@ -157,12 +170,13 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Receives a message.
         /// </summary>
-        public ICastableValueProvider Receive(out int? tag)
+        public ICastableValueProvider Receive(out Guid from, out int? tag)
         {
             while (true)
             {
                 Dto dto = receiveQueue.Dequeue();
                 tag = dto.Tag;
+                from = dto.FromId;
                 return dto;
             }
         }
@@ -170,9 +184,9 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Receives a message.
         /// </summary>
-        public TResult Receive<TResult>(out int? tag)
+        public TResult Receive<TResult>(out Guid from, out int? tag)
         {
-            return Receive(out tag).GetValue<TResult>();
+            return Receive(out from, out tag).GetValue<TResult>();
         }
 
         #endregion
@@ -196,7 +210,7 @@ namespace Cloudy.Messaging
         {
             if (dispose)
             {
-                messageStream.Dispose();
+                inputStream.Dispose();
                 receiveQueue.Dispose();
             }
         }

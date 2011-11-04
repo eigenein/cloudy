@@ -11,12 +11,18 @@ namespace Cloudy.Nodes
     {
         private readonly Guid id;
 
+        /// <summary>
+        /// Contains only a master fake ID.
+        /// </summary>
+        private readonly Guid[] defaultRecipients = new Guid[] { Guid.Empty };
+
         protected readonly MessageDispatcher ControlMessageDispatcher;
 
         protected Client(Stream controlStream, Guid id)
         {
-            this.ControlMessageDispatcher = new MessageDispatcher(
-                new MessageStream(controlStream));
+            MessageStream inputStream = new MessageStream(controlStream);
+            this.ControlMessageDispatcher = new MessageDispatcher(id,
+                recipientId => inputStream, inputStream);
             this.id = id;
         }
 

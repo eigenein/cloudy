@@ -11,24 +11,35 @@ namespace Cloudy.Messaging.Structures
     [ProtobufSerializable]
     public class Dto<T>
     {
-        protected readonly long trackingId;
+        private readonly Guid fromId;
+
+        private readonly long trackingId;
 
         protected readonly T value;
 
-        protected readonly int? tag;
+        private readonly int? tag;
 
-        internal Dto(long trackingId, int? tag, T value)
+        internal Dto(Guid fromId, long trackingId, int? tag, T value)
         {
+            this.fromId = fromId;
             this.trackingId = trackingId;
             this.value = value;
             this.tag = tag;
         }
 
         /// <summary>
+        /// Gets the recipient identifier.
+        /// </summary>
+        public Guid FromId
+        {
+            get { return fromId; }
+        }
+
+        /// <summary>
         /// An ID that should be unique within the set of currently
         /// active operations. Used to track messages.
         /// </summary>
-        [ProtobufField(1)]
+        [ProtobufField(2)]
         public long TrackingId
         {
             get { return trackingId; }
@@ -37,7 +48,7 @@ namespace Cloudy.Messaging.Structures
         /// <summary>
         /// An user-specific tag. Can indicate a type of the message.
         /// </summary>
-        [ProtobufField(2)]
+        [ProtobufField(3)]
         public int? Tag
         { 
             get { return tag; }
@@ -46,10 +57,20 @@ namespace Cloudy.Messaging.Structures
         /// <summary>
         /// Gets an underlying value.
         /// </summary>
-        [ProtobufField(3)]
+        [ProtobufField(4)]
         public T Value
         { 
             get { return value; }
+        }
+
+        /// <summary>
+        /// Converts this Data Transfer Object into an untyped one via
+        /// serialization.
+        /// </summary>
+        public Dto AsUntyped()
+        {
+            return new Dto(fromId, trackingId, tag,
+                Serializer.CreateSerializer(typeof(T)).Serialize(this));
         }
     }
 
@@ -58,8 +79,8 @@ namespace Cloudy.Messaging.Structures
     /// </summary>
     public class Dto : Dto<byte[]>, ICastableValueProvider
     {
-        internal Dto(long trackingId, int? tag, byte[] value)
-            : base(trackingId, tag, value)
+        internal Dto(Guid fromId, long trackingId, int? tag, byte[] value)
+            : base(fromId, trackingId, tag, value)
         {
             // Do nothing.
         }
