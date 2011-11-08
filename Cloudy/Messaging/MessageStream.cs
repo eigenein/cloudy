@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Cloudy.Messaging.Structures;
 using Cloudy.Protobuf;
 
 namespace Cloudy.Messaging
@@ -79,7 +80,33 @@ namespace Cloudy.Messaging
             return (T)Read(typeof(T));
         }
 
-            /// <summary>
+        /// <summary>
+        /// Reads a tagged message from the input stream. The method is thread-safe.
+        /// </summary>
+        /// <typeparam name="T">The class of a message.</typeparam>
+        /// <returns>The read message or <c>null</c> at the end of the stream.</returns>
+        public T Read<T>(out int? tag)
+        {
+            return (T)Read(typeof(T), out tag);
+        }
+
+        /// <summary>
+        /// Reads a tagged message from the input stream. The method is thread-safe.
+        /// </summary>
+        /// <returns>The read message or <c>null</c> at the end of the stream.</returns>
+        public object Read(Type type, out int? tag)
+        {
+            tag = 0;
+            Dto dto = (Dto)Read(type);
+            if (dto == null)
+            {
+                return null;
+            }
+            tag = dto.Tag;
+            return dto.Get(type);
+        }
+
+        /// <summary>
         /// Writes the message to the output stream. The method is thread-safe.
         /// </summary>
         /// <typeparam name="T">The class of a message.</typeparam>
@@ -102,6 +129,23 @@ namespace Cloudy.Messaging
                 Serializer.CreateSerializer(message.GetType()).Serialize(
                     stream, message, true);
             }
+        }
+
+        /// <summary>
+        /// Writes the tagged message to the output stream. The method is thread-safe.
+        /// </summary>
+        public void Write(int? tag, object message)
+        {
+            Write(new Dto(tag, Serializer.CreateSerializer(
+                message.GetType()).Serialize(message)));
+        }
+
+        /// <summary>
+        /// Writes the tagged message to the output stream. The method is thread-safe.
+        /// </summary>
+        public void Write<T>(int? tag, T message)
+        {
+            Write(new Dto<T>(tag, message));
         }
 
         /// <summary>

@@ -19,48 +19,23 @@ namespace Cloudy.Messaging.Structures
             // Do nothing.
         }
 
-        public Dto(Guid fromId, long trackingId, int? tag, T value)
+        public Dto(int? tag, T value)
         {
-            this.FromId = fromId;
-            this.TrackingId = trackingId;
             this.Value = value;
             this.Tag = tag;
         }
 
         /// <summary>
-        /// Gets the recipient identifier.
-        /// </summary>
-        [ProtobufField(1)]
-        public Guid FromId { get; set; }
-
-        /// <summary>
-        /// An ID that should be unique within the set of currently
-        /// active operations. Used to track messages.
-        /// </summary>
-        [ProtobufField(2)]
-        public long TrackingId { get; set; }
-
-        /// <summary>
         /// An user-specific tag. Can indicate a type of the message.
         /// </summary>
-        [ProtobufField(3)]
+        [ProtobufField(1)]
         public int? Tag { get; set; }
 
         /// <summary>
         /// Gets an underlying value.
         /// </summary>
-        [ProtobufField(4)]
+        [ProtobufField(2)]
         public T Value { get; set; }
-
-        /// <summary>
-        /// Converts this Data Transfer Object into an untyped one via
-        /// serialization.
-        /// </summary>
-        public Dto AsUntyped()
-        {
-            return new Dto(FromId, TrackingId, Tag,
-                Serializer.CreateSerializer(typeof(T)).Serialize(this));
-        }
     }
 
     /// <summary>
@@ -76,8 +51,8 @@ namespace Cloudy.Messaging.Structures
             // Do nothing.
         }
 
-        public Dto(Guid fromId, long trackingId, int? tag, byte[] value)
-            : base(fromId, trackingId, tag, value)
+        public Dto(int? tag, byte[] value)
+            : base(tag, value)
         {
             // Do nothing.
         }

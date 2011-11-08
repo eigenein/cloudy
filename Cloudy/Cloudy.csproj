@@ -93,8 +93,10 @@
     <Compile Include="Messaging\Events\StreamUnresolvedEventArgs.cs" />
     <Compile Include="Messaging\Exceptions\StreamUnresolvedException.cs" />
     <Compile Include="Messaging\Interfaces\ICastableValue.cs" />
+    <Compile Include="Messaging\Interfaces\ITrackable.cs" />
     <Compile Include="Messaging\Interfaces\ResolveStreamDelegate.cs" />
     <Compile Include="Messaging\Structures\Dto.cs" />
+    <Compile Include="Messaging\Structures\TrackableDto.cs" />
     <Compile Include="Messaging\Structures\Values\AuthenticationRequestValue.cs" />
     <Compile Include="Helpers\UdpStream.cs" />
     <Compile Include="Messaging\MessageDispatcher.cs" />

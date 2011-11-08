@@ -26,7 +26,8 @@ namespace Cloudy.Messaging
         private readonly Dictionary<long, MessagingAsyncResult> sendQueue =
             new Dictionary<long, MessagingAsyncResult>();
 
-        private readonly BlockingQueue<Dto> receiveQueue = new BlockingQueue<Dto>();
+        private readonly BlockingQueue<TrackableDto> receiveQueue = 
+            new BlockingQueue<TrackableDto>();
 
         #endregion
 
@@ -94,11 +95,11 @@ namespace Cloudy.Messaging
         /// <returns>The count of messages actually processed.</returns>
         public int ProcessIncomingMessages(int count)
         {
-            Dto message;
+            TrackableDto message;
             int processedMessagesCount = 0;
             // Loop through messages.
             while (processedMessagesCount < count && 
-                (message = inputStream.Read<Dto>()) != null)
+                (message = inputStream.Read<TrackableDto>()) != null)
             {
                 if (message.Tag == WellKnownTags.DeliveryNotification)
                 {
@@ -119,7 +120,7 @@ namespace Cloudy.Messaging
                     MessageStream outputStream;
                     if (resolveStream(message.FromId, out outputStream))
                     {
-                        outputStream.Write(new Dto(fromId, message.TrackingId,
+                        outputStream.Write(new TrackableDto(fromId, message.TrackingId,
                             WellKnownTags.DeliveryNotification, null));
                     }
                     else
@@ -147,7 +148,7 @@ namespace Cloudy.Messaging
             {
                 throw new StreamUnresolvedException(recipient);
             }
-            Dto<T> dto = new Dto<T>(fromId, CreateTrackingId(), tag, message);
+            TrackableDto<T> dto = new TrackableDto<T>(fromId, CreateTrackingId(), tag, message);
             outputStream.Write(dto);
             MessagingAsyncResult ar = new MessagingAsyncResult(1,
                 callback, state);
@@ -162,7 +163,9 @@ namespace Cloudy.Messaging
             T message, int? tag, AsyncCallback callback, object state)
         {
             // Pre-serialize the DTO's value to improve performance.
-            Dto dto = new Dto<T>(fromId, CreateTrackingId(), tag, message).AsUntyped();
+            long trackingId = CreateTrackingId();
+            TrackableDto dto = new TrackableDto<T>(
+                fromId, trackingId, tag, message).AsTrackableDto();
             foreach (Guid recipient in recipients)
             {
                 MessageStream outputStream;
@@ -174,7 +177,7 @@ namespace Cloudy.Messaging
             }
             MessagingAsyncResult ar = new MessagingAsyncResult(recipients.Length,
                 callback, state);
-            sendQueue.Add(dto.TrackingId, ar);
+            sendQueue.Add(trackingId, ar);
             return ar;
         }
 
@@ -221,7 +224,7 @@ namespace Cloudy.Messaging
         {
             while (true)
             {
-                Dto dto = receiveQueue.Dequeue();
+                TrackableDto dto = receiveQueue.Dequeue();
                 tag = dto.Tag;
                 from = dto.FromId;
                 return dto;
