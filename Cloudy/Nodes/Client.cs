@@ -11,20 +11,12 @@ namespace Cloudy.Nodes
     {
         private readonly Guid id;
 
-        protected readonly MessageDispatcher ControlMessageDispatcher;
+        protected readonly MessageStream ControlMessageStream;
 
         protected Client(Stream controlStream, Guid id)
         {
-            MessageStream inputStream = new MessageStream(controlStream);
-            this.ControlMessageDispatcher = new MessageDispatcher(id,
-                ResolveMasterStream, inputStream);
+            this.ControlMessageStream = new MessageStream(controlStream);
             this.id = id;
-        }
-
-        private bool ResolveMasterStream(Guid idToResolve, out MessageStream stream)
-        {
-            stream = ControlMessageDispatcher.InputStream;
-            return true;
         }
 
         /// <summary>
@@ -64,7 +56,7 @@ namespace Cloudy.Nodes
         {
             if (dispose)
             {
-                ControlMessageDispatcher.Dispose();
+                ControlMessageStream.Dispose();
             }
         }
     }
