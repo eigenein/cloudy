@@ -41,7 +41,7 @@ namespace Cloudy.Messaging.Structures
     /// <summary>
     /// An untyped Data Transfer Object.
     /// </summary>
-    public class Dto : Dto<byte[]>, ICastableValue
+    public class Dto : ICastableValue
     {
         /// <summary>
         /// A parameterless constructor for deserialization.
@@ -52,10 +52,22 @@ namespace Cloudy.Messaging.Structures
         }
 
         public Dto(int? tag, byte[] value)
-            : base(tag, value)
         {
-            // Do nothing.
+            this.Tag = tag;
+            this.Value = value;
         }
+
+        /// <summary>
+        /// An user-specific tag. Can indicate a type of the message.
+        /// </summary>
+        [ProtobufField(1)]
+        public int? Tag { get; set; }
+
+        /// <summary>
+        /// Gets an underlying value.
+        /// </summary>
+        [ProtobufField(2)]
+        public byte[] Value { get; set; }
 
         /// <summary>
         /// Deserializes the underlying byte-array value into

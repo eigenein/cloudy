@@ -165,7 +165,7 @@ namespace Cloudy.Messaging
             // Pre-serialize the DTO's value to improve performance.
             long trackingId = CreateTrackingId();
             TrackableDto dto = new TrackableDto<T>(
-                fromId, trackingId, tag, message).AsTrackableDto();
+                fromId, trackingId, tag, message).Preserialize();
             foreach (Guid recipient in recipients)
             {
                 MessageStream outputStream;
@@ -243,6 +243,9 @@ namespace Cloudy.Messaging
 
         #region Events
 
+        /// <summary>
+        /// Occurs when the sender ID or recipient ID was unresolved to a message stream.
+        /// </summary>
         public event EventHandler<StreamUnresolvedEventArgs> StreamUnresolved;
 
         private void OnStreamUnresolved(Guid id)

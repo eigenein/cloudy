@@ -54,7 +54,8 @@ namespace Cloudy.Messaging.Structures
             }
             if (!waitHandleInstance.WaitOne(timeout))
             {
-                throw new TimeoutException(String.Format("Time is out: {0}", timeout));
+                throw new TimeoutException(
+                    String.Format("Timeout: {0}", timeout));
             }
         }
 

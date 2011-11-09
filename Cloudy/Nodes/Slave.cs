@@ -1,16 +1,11 @@
 ﻿using System;
-using System.IO;
 
 namespace Cloudy.Nodes
 {
     /// <summary>
     /// Represents an abstract node.
     /// </summary>
-    public abstract class Slave : Client
+    public abstract class Slave
     {
-        protected Slave(Stream controlStream, Guid id) 
-            : base(controlStream, id)
-        {
-        }
     }
 }
