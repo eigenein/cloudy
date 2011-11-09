@@ -13,7 +13,7 @@ namespace Cloudy.Test.Protobuf
         public void TestSerializeBasic()
         {
             Serializer serializer = Serializer.CreateSerializer(typeof(A));
-            object o = new A { B = 150 };
+            object o = new A { UIntValue = 150 };
             AssertExtensions.AreEqual(new byte[] { 0x08, 0x96, 0x01 },
                 serializer.Serialize(o));
         }
@@ -59,7 +59,7 @@ namespace Cloudy.Test.Protobuf
         {
             Serializer serializer = Serializer.CreateSerializer(typeof(A));
             A a = (A)serializer.Deserialize(new byte[] { });
-            Assert.AreEqual(666, a.B);
+            Assert.AreEqual(666, a.UIntValue);
         }
 
         [Test]
@@ -75,7 +75,7 @@ namespace Cloudy.Test.Protobuf
         {
             Serializer serializer = Serializer.CreateSerializer(typeof(A));
             A a = (A)serializer.Deserialize(new byte[] { 0x08, 0x01, 0x08, 0x02, 0x08, 0x03 });
-            Assert.AreEqual(a.B, 3u);
+            Assert.AreEqual(a.UIntValue, 3u);
         }
 
         [Test]
@@ -98,7 +98,7 @@ namespace Cloudy.Test.Protobuf
         [Test]
         public void TestSerializeEmbeddedMessage()
         {
-            F f = new F() { Message = new A() { B = 150 } };
+            F f = new F() { Message = new A() { UIntValue = 150 } };
             Serializer serializer = Serializer.CreateSerializer(typeof(F));
             AssertExtensions.AreEqual(new byte[] { 0x1a, 0x03, 0x08, 0x96, 0x01 },
                 serializer.Serialize(f));
@@ -107,13 +107,13 @@ namespace Cloudy.Test.Protobuf
         [Test]
         public void TestEmbeddedMessageBoundaries()
         {
-            G g = new G() { A1 = 1, A2 = new A() { B = 2 }, A3 = 3 };
+            G g = new G() { A1 = 1, A2 = new A() { UIntValue = 2 }, A3 = 3 };
             Serializer serializer = Serializer.CreateSerializer(typeof(G));
             g = (G)serializer.Deserialize(serializer.Serialize(g));
             Assert.AreEqual(g.A1, 1);
             Assert.AreEqual(g.A3, 3);
             Assert.NotNull(g.A2);
-            Assert.AreEqual(g.A2.B, 2);
+            Assert.AreEqual(g.A2.UIntValue, 2);
         }
 
         [Test]
@@ -122,7 +122,7 @@ namespace Cloudy.Test.Protobuf
             Serializer serializer = Serializer.CreateSerializer(typeof(F));
             F f = (F)serializer.Deserialize(new byte[] { 0x1a, 0x03, 0x08, 0x96, 0x01 });
             Assert.IsNotNull(f.Message);
-            Assert.AreEqual(f.Message.B, 150);
+            Assert.AreEqual(f.Message.UIntValue, 150);
         }
 
         [Test]

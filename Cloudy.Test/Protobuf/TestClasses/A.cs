@@ -11,10 +11,10 @@ namespace Cloudy.Test.Protobuf.TestClasses
         /// </summary>
         public A()
         {
-            B = 666;
+            UIntValue = 666;
         }
 
         [ProtobufField(1)]
-        public uint B { get; set; }
+        public uint UIntValue { get; set; }
     }
 }

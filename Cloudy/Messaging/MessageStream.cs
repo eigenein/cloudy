@@ -84,10 +84,17 @@ namespace Cloudy.Messaging
         /// Reads a tagged message from the input stream. The method is thread-safe.
         /// </summary>
         /// <typeparam name="T">The class of a message.</typeparam>
-        /// <returns>The read message or <c>null</c> at the end of the stream.</returns>
+        /// <returns>The read message or <c>default(T)</c> at the end of the stream.</returns>
         public T Read<T>(out int? tag)
         {
-            return (T)Read(typeof(T), out tag);
+            tag = 0;
+            Dto<T> dto = Read<Dto<T>>();
+            if (dto == null)
+            {
+                return default(T);
+            }
+            tag = dto.Tag;
+            return dto.Value;
         }
 
         /// <summary>
@@ -97,7 +104,7 @@ namespace Cloudy.Messaging
         public object Read(Type type, out int? tag)
         {
             tag = 0;
-            Dto dto = (Dto)Read(type);
+            Dto dto = Read<Dto>();
             if (dto == null)
             {
                 return null;
