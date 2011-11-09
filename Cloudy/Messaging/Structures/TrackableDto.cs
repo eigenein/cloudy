@@ -65,6 +65,7 @@ namespace Cloudy.Messaging.Structures
     /// <summary>
     /// An untyped trackable Data Transfer Object.
     /// </summary>
+    [ProtobufSerializable]
     public class TrackableDto : ITrackable, ICastableValue
     {
         /// <summary>

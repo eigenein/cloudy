@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
 using Cloudy.Protobuf;
 
@@ -83,25 +84,8 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Reads a tagged message from the input stream. The method is thread-safe.
         /// </summary>
-        /// <typeparam name="T">The class of a message.</typeparam>
-        /// <returns>The read message or <c>default(T)</c> at the end of the stream.</returns>
-        public T Read<T>(out int? tag)
-        {
-            tag = 0;
-            Dto<T> dto = Read<Dto<T>>();
-            if (dto == null)
-            {
-                return default(T);
-            }
-            tag = dto.Tag;
-            return dto.Value;
-        }
-
-        /// <summary>
-        /// Reads a tagged message from the input stream. The method is thread-safe.
-        /// </summary>
         /// <returns>The read message or <c>null</c> at the end of the stream.</returns>
-        public object Read(Type type, out int? tag)
+        public ICastableValue Read(out int? tag)
         {
             tag = 0;
             Dto dto = Read<Dto>();
@@ -110,7 +94,7 @@ namespace Cloudy.Messaging
                 return null;
             }
             tag = dto.Tag;
-            return dto.Get(type);
+            return dto;
         }
 
         /// <summary>

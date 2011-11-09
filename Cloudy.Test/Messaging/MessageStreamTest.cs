@@ -43,7 +43,7 @@ namespace Cloudy.Test.Messaging
                     for (int i = 0; i < 3; i++)
                     {
                         int? tag;
-                        uint value = messageStream.Read<A>(out tag).UIntValue;
+                        uint value = messageStream.Read(out tag).Get<A>().UIntValue;
                         Assert.AreEqual(tags[i], tag);
                         Assert.AreEqual(values[i], value);
                     }

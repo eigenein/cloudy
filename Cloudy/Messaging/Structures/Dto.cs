@@ -41,6 +41,7 @@ namespace Cloudy.Messaging.Structures
     /// <summary>
     /// An untyped Data Transfer Object.
     /// </summary>
+    [ProtobufSerializable]
     public class Dto : ICastableValue
     {
         /// <summary>
