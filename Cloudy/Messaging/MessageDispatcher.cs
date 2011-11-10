@@ -7,6 +7,7 @@ using Cloudy.Messaging.Events;
 using Cloudy.Messaging.Exceptions;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
+using Cloudy.Networking;
 
 namespace Cloudy.Messaging
 {
@@ -40,10 +41,6 @@ namespace Cloudy.Messaging
         public MessageDispatcher(Guid fromId, ResolveStreamDelegate resolveStream,
             MessageStream inputStream)
         {
-            if (!inputStream.CanRead)
-            {
-                throw new InvalidOperationException("The stream is not readable.");
-            }
             this.inputStream = inputStream;
             this.resolveStream = resolveStream;
             this.fromId = fromId;
@@ -278,7 +275,7 @@ namespace Cloudy.Messaging
         {
             if (dispose)
             {
-                inputStream.Dispose();
+                inputStream.Close();
                 receiveQueue.Dispose();
             }
         }

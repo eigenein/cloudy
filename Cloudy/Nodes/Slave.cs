@@ -3,9 +3,9 @@
 namespace Cloudy.Nodes
 {
     /// <summary>
-    /// Represents an abstract node.
+    /// Represents an abstract slave node.
     /// </summary>
-    public abstract class Slave
+    public abstract class Slave : Node
     {
     }
 }

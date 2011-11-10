@@ -5,9 +5,11 @@ using System.Threading;
 using Cloudy.Examples.Chat.Shared;
 using Cloudy.Examples.Chat.Shared.Enums;
 using Cloudy.Examples.Chat.Shared.Values;
+using Cloudy.Helpers;
 using Cloudy.Messaging;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
+using Cloudy.Networking.IP;
 
 namespace Cloudy.Examples.Chat.Client
 {
@@ -17,12 +19,17 @@ namespace Cloudy.Examples.Chat.Client
 
         public static void Main(string[] args)
         {
+            Console.WriteLine("Requesting my address ...");
+            Console.WriteLine("My endpoint is {0}",
+                IPEndPointClient.RequestExternalEndPoint(IPAddress.Loopback,
+                Options.EndPointDiscoveryPortNumber, 2013, new TimeSpan(0, 0, 3)));
+
             TcpClient client = new TcpClient();
             Console.WriteLine("Connecting ...");
-            client.Connect(new IPEndPoint(IPAddress.Loopback, Options.PortNumber));
+            client.Connect(new IPEndPoint(IPAddress.Loopback, Options.MessagingPortNumber));
             Console.WriteLine("Connected.");
-            dispatcher = new MessageDispatcher(Options.ClientId,
-                ResolveStream, new MessageStream(client.GetStream()));
+            dispatcher = new MessageDispatcher(Options.ClientId, ResolveStream, 
+                new MessageStream(new StreamSenderReceiver(client.GetStream())));
             ThreadPool.QueueUserWorkItem(DispatchMessages);
             Console.WriteLine("Started dispatching.");
             while (true)

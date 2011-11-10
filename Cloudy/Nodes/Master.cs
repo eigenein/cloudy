@@ -3,31 +3,10 @@
 namespace Cloudy.Nodes
 {
     /// <summary>
-    /// Represents an abstract master.
+    /// Represents an abstract master node.
     /// </summary>
-    public abstract class Master : IDisposable
+    public abstract class Master : Node
     {
-        #region Implementation of IDisposable
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing,
-        /// releasing, or resetting unmanaged resources.
-        /// </summary>
-        /// <filterpriority>2</filterpriority>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        #endregion
-
-        protected virtual void Dispose(bool dispose)
-        {
-            if (dispose)
-            {
-                // Do nothing.
-            }
-        }
+        
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Security.Permissions;
 using Cloudy.Protobuf.Attributes;
 using Cloudy.Protobuf.Encoding;
@@ -190,20 +191,27 @@ namespace Cloudy.Protobuf
 
         public override void Serialize(Stream stream, object o)
         {
-            if (o.GetType() != expectedType)
+            try
             {
-                throw new InvalidOperationException(String.Format(
-                    "Expected type: {0}, but was: {1}", expectedType, o.GetType()));
-            }
-            foreach (KeyValuePair<uint, BuildingProperty> entry in properties)
-            {
-                SerializerWithWireType serializer = entry.Value.BuildingSerializer.Serializer;
-                object value = entry.Value.Property.GetValue(o, null);
-                if (!serializer.ShouldBeSkipped(value))
+                if (o.GetType() != expectedType)
                 {
-                    ProtobufWriter.WriteKey(stream, entry.Key, serializer.WireType);
-                    entry.Value.BuildingSerializer.Serializer.Serialize(stream, value);
+                    throw new InvalidOperationException(String.Format(
+                        "Expected type: {0}, but was: {1}", expectedType, o.GetType()));
                 }
+                foreach (KeyValuePair<uint, BuildingProperty> entry in properties)
+                {
+                    SerializerWithWireType serializer = entry.Value.BuildingSerializer.Serializer;
+                    object value = entry.Value.Property.GetValue(o, null);
+                    if (!serializer.ShouldBeSkipped(value))
+                    {
+                        ProtobufWriter.WriteKey(stream, entry.Key, serializer.WireType);
+                        entry.Value.BuildingSerializer.Serializer.Serialize(stream, value);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new SerializationException("Serialization has failed.", ex);
             }
         }
 
@@ -228,43 +236,50 @@ namespace Cloudy.Protobuf
 
         public override object Deserialize(Stream stream)
         {
-            Dictionary<uint, IValueBuilder> buildingProperties = properties.ToDictionary(
-                entry => entry.Key,
-                entry => entry.Value.BuildingSerializer.Builder.CreateInstance());
-            while (true)
+            try
             {
-                WireType wireType;
-                uint fieldNumber;
-                try
+                Dictionary<uint, IValueBuilder> buildingProperties = properties.ToDictionary(
+                    entry => entry.Key,
+                    entry => entry.Value.BuildingSerializer.Builder.CreateInstance());
+                while (true)
                 {
-                    ProtobufReader.ReadKey(stream, out fieldNumber, out wireType);
+                    WireType wireType;
+                    uint fieldNumber;
+                    try
+                    {
+                        ProtobufReader.ReadKey(stream, out fieldNumber, out wireType);
+                    }
+                    catch (EndOfStreamException)
+                    {
+                        break;
+                    }
+                    IValueBuilder valueBuilder;
+                    if (buildingProperties.TryGetValue(fieldNumber, out valueBuilder))
+                    {
+                        valueBuilder.UpdateValue(properties[fieldNumber]
+                            .BuildingSerializer.Serializer.Deserialize(stream));
+                    }
+                    else
+                    {
+                        UnknownFieldSkipHelper.Skip(stream, wireType);
+                    }
                 }
-                catch (EndOfStreamException)
+                object o = Activator.CreateInstance(expectedType);
+                foreach (KeyValuePair<uint, IValueBuilder> property in buildingProperties)
                 {
-                    break;
+                    object value = property.Value.BuildObject();
+                    if (value != null)
+                    {
+                        properties[property.Key].Property.SetValue(o,
+                            value, null);
+                    }
                 }
-                IValueBuilder valueBuilder;
-                if (buildingProperties.TryGetValue(fieldNumber, out valueBuilder))
-                {
-                    valueBuilder.UpdateValue(properties[fieldNumber]
-                        .BuildingSerializer.Serializer.Deserialize(stream));
-                }
-                else
-                {
-                    UnknownFieldSkipHelper.Skip(stream, wireType);
-                }
+                return o;
             }
-            object o = Activator.CreateInstance(expectedType);
-            foreach (KeyValuePair<uint, IValueBuilder> property in buildingProperties)
+            catch (Exception ex)
             {
-                object value = property.Value.BuildObject();
-                if (value != null)
-                {
-                    properties[property.Key].Property.SetValue(o,
-                        value, null);
-                }
+                throw new SerializationException("Deserialization has failed.", ex);
             }
-            return o;
         }
 
         public object Deserialize(Stream stream, bool streamingMode)

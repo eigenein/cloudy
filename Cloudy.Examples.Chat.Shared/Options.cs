@@ -4,7 +4,9 @@ namespace Cloudy.Examples.Chat.Shared
 {
     public static class Options
     {
-        public const int PortNumber = 2011;
+        public const int MessagingPortNumber = 2011;
+
+        public const int EndPointDiscoveryPortNumber = 2012;
 
         public static readonly Guid ServerId = new Guid(
             "{0C87E8FD-22CA-40CE-AC56-A086C2350D78}");

@@ -1,5 +1,6 @@
 ﻿using System;
-using System.IO;
+using System.Net;
+using System.Net.Sockets;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
 using Cloudy.Protobuf;
@@ -11,7 +12,7 @@ namespace Cloudy.Messaging
     /// </summary>
     public class MessageStream : IDisposable
     {
-        private readonly Stream stream;
+        private readonly ISenderReceiver senderReceiver;
 
         private readonly object inputStreamLocker = new object();
 
@@ -20,54 +21,31 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="stream">The underlying I/O stream.</param>
-        public MessageStream(Stream stream)
+        /// <param name="senderReceiver">The underlying sender-receiver.</param>
+        public MessageStream(ISenderReceiver senderReceiver)
         {
-            this.stream = stream;
+            this.senderReceiver = senderReceiver;
         }
 
         /// <summary>
-        /// Gets the underlying stream.
+        /// Gets the underlying sender-receiver.
         /// </summary>
-        public Stream Stream
+        public ISenderReceiver SenderReceiver
         {
-            get { return stream; }
-        }
-
-        /// <summary>
-        /// Indicates whether the current stream supports reading.
-        /// </summary>
-        public bool CanRead
-        {
-            get { return stream.CanRead; }
-        }
-
-        /// <summary>
-        /// Indicates whether the current stream supports writing.
-        /// </summary>
-        public bool CanWrite
-        {
-            get { return stream.CanWrite; }
+            get { return senderReceiver; }
         }
 
         /// <summary>
         /// Reads a message from the input stream. The method is thread-safe.
         /// </summary>
         /// <param name="type">The class of a message.</param>
-        /// <returns>The read message or <c>null</c> at the end of the stream.</returns>
+        /// <returns>The read message.</returns>
         public object Read(Type type)
         {
             lock (inputStreamLocker)
             {
-                try
-                {
-                    return Serializer.CreateSerializer(type).Deserialize(
-                        stream, true);
-                }
-                catch (EndOfStreamException)
-                {
-                    return null;
-                }
+                return Serializer.CreateSerializer(type).Deserialize(
+                    senderReceiver.Receive());
             }
         }
 
@@ -87,12 +65,7 @@ namespace Cloudy.Messaging
         /// <returns>The read message or <c>null</c> at the end of the stream.</returns>
         public ICastableValue Read(out int? tag)
         {
-            tag = 0;
             Dto dto = Read<Dto>();
-            if (dto == null)
-            {
-                return null;
-            }
             tag = dto.Tag;
             return dto;
         }
@@ -105,8 +78,9 @@ namespace Cloudy.Messaging
         {
             lock (outputStreamLocker)
             {
-                Serializer.CreateSerializer(typeof(T)).Serialize(
-                    stream, message, true);
+                byte[] dgram = Serializer.CreateSerializer(
+                    typeof(T)).Serialize(message);
+                senderReceiver.Send(dgram);
             }
         }
 
@@ -117,8 +91,9 @@ namespace Cloudy.Messaging
         {
             lock (outputStreamLocker)
             {
-                Serializer.CreateSerializer(message.GetType()).Serialize(
-                    stream, message, true);
+                byte[] dgram = Serializer.CreateSerializer(
+                    message.GetType()).Serialize(message);
+                senderReceiver.Send(dgram);
             }
         }
 
@@ -140,19 +115,11 @@ namespace Cloudy.Messaging
         }
 
         /// <summary>
-        /// Causes any buffered data to be written to the underlying device.
-        /// </summary>
-        public void Flush()
-        {
-            stream.Flush();
-        }
-
-        /// <summary>
         /// Closes the stream.
         /// </summary>
         public void Close()
         {
-            stream.Close();
+            senderReceiver.Close();
         }
 
         #region Implementation of IDisposable

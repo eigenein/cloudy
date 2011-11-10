@@ -89,20 +89,27 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\BlockingQueue.cs" />
+    <Compile Include="Helpers\InvokeHelper.cs" />
+    <Compile Include="Helpers\StreamSenderReceiver.cs" />
+    <Compile Include="Helpers\UdpClientSenderReceiver.cs" />
     <Compile Include="Messaging\Enums\WellKnownTags.cs" />
     <Compile Include="Messaging\Events\StreamUnresolvedEventArgs.cs" />
     <Compile Include="Messaging\Exceptions\StreamUnresolvedException.cs" />
     <Compile Include="Messaging\Interfaces\ICastableValue.cs" />
+    <Compile Include="Messaging\Interfaces\ISenderReceiver.cs" />
     <Compile Include="Messaging\Interfaces\ITrackable.cs" />
     <Compile Include="Messaging\Interfaces\ResolveStreamDelegate.cs" />
     <Compile Include="Messaging\Structures\Dto.cs" />
     <Compile Include="Messaging\Structures\TrackableDto.cs" />
     <Compile Include="Messaging\Structures\Values\AuthenticationRequestValue.cs" />
-    <Compile Include="Helpers\UdpStream.cs" />
     <Compile Include="Messaging\MessageDispatcher.cs" />
     <Compile Include="Messaging\MessageStream.cs" />
     <Compile Include="Messaging\Structures\MessagingAsyncResult.cs" />
+    <Compile Include="Networking\IP\IPEndPointClient.cs" />
+    <Compile Include="Networking\IP\IPEndPointServer.cs" />
+    <Compile Include="Networking\Dto\IPEndPointDto.cs" />
     <Compile Include="Nodes\Master.cs" />
+    <Compile Include="Nodes\Node.cs" />
     <Compile Include="Nodes\Slave.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protobuf\Attributes\ProtobufFieldAttribute.cs" />

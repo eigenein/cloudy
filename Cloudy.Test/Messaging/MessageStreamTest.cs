@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Cloudy.Helpers;
 using Cloudy.Messaging;
 using Cloudy.Test.Protobuf.TestClasses;
 using NUnit.Framework;
@@ -14,7 +15,8 @@ namespace Cloudy.Test.Messaging
         {
             using (MemoryStream stream = new MemoryStream())
             {
-                MessageStream messageStream = new MessageStream(stream);
+                MessageStream messageStream = new MessageStream(
+                    new StreamSenderReceiver(stream));
                 foreach (object message in 
                     new object[] { new A { UIntValue = 1 }, new A { UIntValue = 2 } })
                 {
@@ -33,7 +35,8 @@ namespace Cloudy.Test.Messaging
             int[] tags = new int[] { 78, 10, 67 };
             using (MemoryStream stream = new MemoryStream())
             {
-                using (MessageStream messageStream = new MessageStream(stream))
+                using (MessageStream messageStream = new MessageStream(
+                    new StreamSenderReceiver(stream)))
                 {
                     for (int i = 0; i < 3; i++)
                     {
