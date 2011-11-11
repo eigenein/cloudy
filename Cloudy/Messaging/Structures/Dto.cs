@@ -42,7 +42,7 @@ namespace Cloudy.Messaging.Structures
     /// An untyped Data Transfer Object.
     /// </summary>
     [ProtobufSerializable]
-    public class Dto : ICastableValue
+    public class Dto : ICastable
     {
         /// <summary>
         /// A parameterless constructor for deserialization.
@@ -74,16 +74,16 @@ namespace Cloudy.Messaging.Structures
         /// Deserializes the underlying byte-array value into
         /// a value of the specified type.
         /// </summary>
-        public T Get<T>()
+        public T Cast<T>()
         {
-            return (T)Get(typeof(T));
+            return (T)Cast(typeof(T));
         }
 
         /// <summary>
         /// Deserializes the underlying byte-array value into
         /// a value of the specified type.
         /// </summary>
-        public object Get(Type type)
+        public object Cast(Type type)
         {
             return Serializer.CreateSerializer(type).Deserialize(Value);
         }

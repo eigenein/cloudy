@@ -2,18 +2,18 @@
 using System.Net;
 using Cloudy.Protobuf.Attributes;
 
-namespace Cloudy.Networking.Dto
+namespace Cloudy.Networking.Values
 {
     /// <summary>
     /// Holds an <see cref="System.Net.IPEndPoint"/> representation.
     /// </summary>
     [ProtobufSerializable]
-    public class IPEndPointDto
+    public class ExternalIPEndPointResponse
     {
         /// <summary>
         /// Empty constructor for deserialization.
         /// </summary>
-        public IPEndPointDto()
+        public ExternalIPEndPointResponse()
         {
             // Do nothing.
         }
@@ -21,16 +21,23 @@ namespace Cloudy.Networking.Dto
         /// <summary>
         /// Initializes a new instance by the given endpoint.
         /// </summary>
-        public IPEndPointDto(IPEndPoint endPoint)
+        public ExternalIPEndPointResponse(int requestId, IPEndPoint endPoint)
         {
+            RequestId = requestId;
             PortNumber = endPoint.Port;
             IPAddress = endPoint.Address.GetAddressBytes();
         }
 
+        /// <summary>
+        /// Request ID. Set by a server to the same value as in the original request.
+        /// </summary>
         [ProtobufField(1)]
-        public int PortNumber { get; set; }
+        public int RequestId { get; set; }
 
         [ProtobufField(2)]
+        public int PortNumber { get; set; }
+
+        [ProtobufField(3)]
         public byte[] IPAddress { get; set; }
 
         /// <summary>

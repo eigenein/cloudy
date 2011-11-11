@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using Cloudy.Protobuf;
 using Cloudy.Protobuf.Exceptions;
 using Cloudy.Test.Protobuf.TestClasses;
@@ -32,7 +33,14 @@ namespace Cloudy.Test.Protobuf
         {
             Serializer serializer = Serializer.CreateSerializer(typeof(C));
             object o = new C();
-            Assert.Throws<MissingValueException>(() => serializer.Serialize(o));
+            try
+            {
+                serializer.Serialize(o);
+            }
+            catch (SerializationException ex)
+            {
+                Assert.IsInstanceOf<MissingValueException>(ex.InnerException);
+            }
         }
 
         [Test]
@@ -66,8 +74,14 @@ namespace Cloudy.Test.Protobuf
         public void TestDeserializeMissingRequiredValue()
         {
             Serializer serializer = Serializer.CreateSerializer(typeof(C));
-            Assert.Throws<MissingValueException>(() => serializer.Deserialize(
-                new byte[] { }));
+            try
+            {
+                serializer.Deserialize(new byte[] { });
+            }
+            catch (SerializationException ex)
+            {
+                Assert.IsInstanceOf<MissingValueException>(ex.InnerException);
+            }
         }
 
         [Test]

@@ -1,94 +1,36 @@
 ﻿using System;
 using System.Net;
-using System.Net.Sockets;
-using System.Threading;
 using Cloudy.Examples.Chat.Shared;
-using Cloudy.Examples.Chat.Shared.Enums;
-using Cloudy.Examples.Chat.Shared.Values;
-using Cloudy.Helpers;
-using Cloudy.Messaging;
-using Cloudy.Messaging.Interfaces;
-using Cloudy.Messaging.Structures;
 using Cloudy.Networking.IP;
+using NLog;
 
 namespace Cloudy.Examples.Chat.Client
 {
     public static class Program
     {
-        private static MessageDispatcher dispatcher;
+        private static readonly Logger Logger =
+            LogManager.GetCurrentClassLogger();
 
         public static void Main(string[] args)
         {
-            Console.WriteLine("Requesting my address ...");
-            Console.WriteLine("My endpoint is {0}",
-                IPEndPointClient.RequestExternalEndPoint(IPAddress.Loopback,
-                Options.EndPointDiscoveryPortNumber, 2013, new TimeSpan(0, 0, 3)));
+            Logger.Info("Starting the client ...");
 
-            TcpClient client = new TcpClient();
-            Console.WriteLine("Connecting ...");
-            client.Connect(new IPEndPoint(IPAddress.Loopback, Options.MessagingPortNumber));
-            Console.WriteLine("Connected.");
-            dispatcher = new MessageDispatcher(Options.ClientId, ResolveStream, 
-                new MessageStream(new StreamSenderReceiver(client.GetStream())));
-            ThreadPool.QueueUserWorkItem(DispatchMessages);
-            Console.WriteLine("Started dispatching.");
-            while (true)
+            Logger.Info("Requesting for external IP endpoint ...");
+            IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Loopback,
+                Constants.ExternalIPEndPointServerPortNumber);
+            IPEndPoint externalEndPoint;
+            if (!ExternalIPEndPointClient.RequestInformation(
+                serverEndPoint, Constants.PrimaryPortNumber, out externalEndPoint))
             {
-                MessagingAsyncResult ar;
-                Console.Write("Say something > ");
-                string line = Console.ReadLine();
-                if (String.IsNullOrEmpty(line))
-                {
-                    ar = dispatcher.BeginSend(Options.ServerId, new LeavesValue(),
-                        Tags.Leaves, null, null);
-                    Console.WriteLine("Leaving ...");
-                    dispatcher.EndSend(ar, new TimeSpan(0, 0, 10));
-                    break;
-                }
-                ar = dispatcher.BeginSend(Options.ServerId,
-                    new SaysValue { Message = line }, Tags.Says, null, null);
-                Console.WriteLine("Sending ...");
-                try
-                {
-                    dispatcher.EndSend(ar, new TimeSpan(0, 0, 10));
-                    Console.WriteLine("Delivered!");
-                }
-                catch (TimeoutException)
-                {
-                    Console.WriteLine("Timed out :(");
-                }
-                int? tag;
-                Guid fromId;
-                ICastableValue dto = dispatcher.Receive(out fromId, out tag);
-                if (tag == Tags.Says)
-                {
-                    Console.WriteLine("Server says: {0}", dto.Get<SaysValue>().Message);
-                }
-                else if (tag == Tags.Leaves)
-                {
-                    Console.WriteLine("Server leaves.");
-                    break;
-                }
-                else
-                {
-                    Console.WriteLine("What?...");
-                }
+                Logger.Error("Couldn't obtain external IP endpoint.");
+                return;
             }
-            dispatcher = null;
-        }
+            Logger.Info("Got external IP endpoint: {0}", externalEndPoint);
 
-        private static void DispatchMessages(object state)
-        {
-            while (dispatcher != null)
+            string line;
+            while ((line = Console.ReadLine()) != line)
             {
-                dispatcher.ProcessIncomingMessages(1);
             }
-        }
-
-        private static bool ResolveStream(Guid id, out MessageStream stream)
-        {
-            stream = dispatcher.InputStream;
-            return id == Options.ServerId;
         }
     }
 }

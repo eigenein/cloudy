@@ -5,9 +5,10 @@ using System.Runtime.Serialization;
 using System.Threading;
 using Cloudy.Helpers;
 using Cloudy.Messaging;
+using Cloudy.Messaging.Enums;
 using Cloudy.Messaging.Interfaces;
-using Cloudy.Networking.Dto;
-using Cloudy.Protobuf;
+using Cloudy.Networking.Events;
+using Cloudy.Networking.Values;
 
 namespace Cloudy.Networking.IP
 {
@@ -15,22 +16,31 @@ namespace Cloudy.Networking.IP
     /// Represents a service that tells to a client its (client's) external
     /// IP address and port.
     /// </summary>
-    public class IPEndPointServer
+    public class ExternalIPEndPointServer
     {
         private Thread processingThread;
 
-        private readonly UdpClient client;
+        private readonly Communicator<IPEndPoint> communicator;
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="portNumber">The port to listen to.</param>
-        public IPEndPointServer(int portNumber)
+        public ExternalIPEndPointServer(int portNumber)
         {
-            this.client = new UdpClient(portNumber);
+            this.communicator = new Communicator<IPEndPoint>(
+                new UdpClientRawCommunicator(new UdpClient(portNumber)));
         }
 
+        /// <summary>
+        /// Occurs when non-request or invalid request is received.
+        /// </summary>
         public event EventHandler InvalidRequestReceived;
+
+        /// <summary>
+        /// Occurs when a correct request are received.
+        /// </summary>
+        public event EventHandler<ExternalIPEndPointRequestedEventArgs> ExternalIPEndPointRequested;
 
         /// <summary>
         /// Starts processing of requests.
@@ -64,19 +74,21 @@ namespace Cloudy.Networking.IP
         /// <summary>
         /// Processes a single incoming request.
         /// </summary>
-        private void ProcessOneRequest()
+        /// <returns>Whether the request was correct.</returns>
+        private bool ProcessOneRequest()
         {
-            IPEndPoint remoteEndPoint = null;
-            byte[] request = client.Receive(ref remoteEndPoint);
-            // Check if this is a magic datagram.
-            if (request.Length != 1 || request[0] != 0xAA)
+            int? tag;
+            IPEndPoint remoteEndPoint;
+            ICastable message = communicator.Receive(out tag, out remoteEndPoint);
+            if (tag != WellKnownTags.ExternalIPEndPointRequest)
             {
-                OnInvalidRequestReceived();
-                return;
+                return false;
             }
-            byte[] dgram = Serializer.CreateSerializer(typeof(IPEndPointDto)).Serialize(
-                new IPEndPointDto(remoteEndPoint));
-            client.Send(dgram, dgram.Length, remoteEndPoint);
+            ExternalIPEndPointRequest request = message.Cast<ExternalIPEndPointRequest>();
+            OnExternalIPEndPointRequested(remoteEndPoint);
+            communicator.Send(WellKnownTags.ExternalIPEndPointResponse,
+                new ExternalIPEndPointResponse(request.Id, remoteEndPoint), remoteEndPoint);
+            return true;
         }
 
         private void OnInvalidRequestReceived()
@@ -88,6 +100,16 @@ namespace Cloudy.Networking.IP
             }
         }
 
+        private void OnExternalIPEndPointRequested(IPEndPoint endPoint)
+        {
+            EventHandler<ExternalIPEndPointRequestedEventArgs> handler =
+                ExternalIPEndPointRequested;
+            if (handler != null)
+            {
+                handler(this, new ExternalIPEndPointRequestedEventArgs(endPoint));
+            }
+        }
+
         /// <summary>
         /// Runs an infinite loop of processing requests.
         /// </summary>
@@ -95,20 +117,32 @@ namespace Cloudy.Networking.IP
         {
             while (processingThread.ThreadState != ThreadState.AbortRequested)
             {
+                bool result = false;
                 try
                 {
-                    ProcessOneRequest();
+                    result = ProcessOneRequest();
                 }
                 catch (ThreadAbortException)
                 {
                     return;
                 }
+                catch (SerializationException)
+                {
+                    continue;
+                }
+                finally
+                {
+                    if (!result)
+                    {
+                        OnInvalidRequestReceived();
+                    }
+                }
             }
         }
 
-        private void Close()
+        public void Close()
         {
-            client.Close();
+            communicator.Close();
         }
     }
 }

@@ -7,22 +7,26 @@ namespace Cloudy.Helpers
 {
     /// <summary>
     /// A helper class that adapts any stream
-    /// to the <see cref="ISenderReceiver"/> interface.
+    /// to the <see cref="IRawCommunicator"/> interface.
     /// </summary>
-    public class StreamSenderReceiver : ISenderReceiver
+    public class StreamRawCommunicator<TEndPoint> : IRawCommunicator<TEndPoint>
     {
         private readonly Stream stream;
+
+        private readonly TEndPoint defaultEndPoint;
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="stream">The underlying stream.</param>
-        public StreamSenderReceiver(Stream stream)
+        /// <param name="defaultEndPoint">The fake endpoint for the stream.</param>
+        public StreamRawCommunicator(Stream stream, TEndPoint defaultEndPoint)
         {
             this.stream = stream;
+            this.defaultEndPoint = defaultEndPoint;
         }
 
-        #region Implementation of ISenderReceiver
+        #region Implementation of IRawCommunicator
 
         /// <summary>
         /// Sends a byte array.
@@ -55,6 +59,32 @@ namespace Cloudy.Helpers
         public void Close()
         {
             stream.Close();
+        }
+
+        #endregion
+
+        #region Implementation of IRawCommunicator<TEndPoint>
+
+        /// <summary>
+        /// Sends a byte array.
+        /// </summary>
+        public void Send(byte[] data, TEndPoint endPoint)
+        {
+            if (!defaultEndPoint.Equals(endPoint))
+            {
+                throw new InvalidOperationException("Cannot send to a different endpoint.");
+            }
+            Send(data);
+        }
+
+        /// <summary>
+        /// Receives a data.
+        /// </summary>
+        /// <returns>Received data. Indicates the end of stream if empty array is returned.</returns>
+        public byte[] Receive(out TEndPoint endPoint)
+        {
+            endPoint = defaultEndPoint;
+            return Receive();
         }
 
         #endregion

@@ -2,27 +2,27 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cloudy.Helpers;
+using Cloudy.Messaging.Delegates;
 using Cloudy.Messaging.Enums;
 using Cloudy.Messaging.Events;
 using Cloudy.Messaging.Exceptions;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
-using Cloudy.Networking;
 
 namespace Cloudy.Messaging
 {
     /// <summary>
     /// Sends, receives and tracks messages.
     /// </summary>
-    public class MessageDispatcher : IDisposable
+    public class MessageDispatcher<TEndPoint> : IDisposable
     {
         #region Private Fields
 
-        private readonly MessageStream inputStream;
+        private readonly Communicator<TEndPoint> communicator;
 
         private readonly Guid fromId;
 
-        private readonly ResolveStreamDelegate resolveStream;
+        private readonly ResolveEndPointDelegate<TEndPoint> resolveEndPoint;
 
         private readonly Dictionary<long, MessagingAsyncResult> sendQueue =
             new Dictionary<long, MessagingAsyncResult>();
@@ -35,14 +35,14 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="resolveStream">Used to find a stream by a recipient identifier.</param>
-        /// <param name="inputStream">The underlying message stream.</param>
+        /// <param name="resolveEndPoint">Used to find a stream by a recipient identifier.</param>
+        /// <param name="communicator">The underlying message stream.</param>
         /// <param name="fromId">The sender identifier.</param>
-        public MessageDispatcher(Guid fromId, ResolveStreamDelegate resolveStream,
-            MessageStream inputStream)
+        public MessageDispatcher(Guid fromId, ResolveEndPointDelegate<TEndPoint> resolveEndPoint,
+            Communicator<TEndPoint> communicator)
         {
-            this.inputStream = inputStream;
-            this.resolveStream = resolveStream;
+            this.communicator = communicator;
+            this.resolveEndPoint = resolveEndPoint;
             this.fromId = fromId;
         }
 
@@ -65,9 +65,9 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Gets the underlying input message stream.
         /// </summary>
-        public MessageStream InputStream
+        public Communicator Communicator
         {
-            get { return inputStream; }
+            get { return communicator; }
         }
 
         /// <summary>
@@ -92,13 +92,19 @@ namespace Cloudy.Messaging
         /// <returns>The count of messages actually processed.</returns>
         public int ProcessIncomingMessages(int count)
         {
-            TrackableDto message;
             int processedMessagesCount = 0;
             // Loop through messages.
-            while (processedMessagesCount < count && 
-                (message = inputStream.Read<TrackableDto>()) != null)
+            while (processedMessagesCount < count)
             {
-                if (message.Tag == WellKnownTags.DeliveryNotification)
+                TEndPoint resolvedToEndPoint;
+                TEndPoint remoteEndPoint;
+                TrackableDto message = communicator.Receive<TrackableDto>(out remoteEndPoint);
+                if (!resolveEndPoint(message.FromId, out resolvedToEndPoint) ||
+                    !remoteEndPoint.Equals(resolvedToEndPoint))
+                {
+                    OnEndPointMismatched(message.FromId, resolvedToEndPoint);
+                }
+                else if (message.Tag == WellKnownTags.DeliveryNotification)
                 {
                     MessagingAsyncResult ar;
                     if (sendQueue.TryGetValue(message.TrackingId, out ar))
@@ -113,17 +119,9 @@ namespace Cloudy.Messaging
                 }
                 else
                 {
-                    // Send the delivery notification.
-                    MessageStream outputStream;
-                    if (resolveStream(message.FromId, out outputStream))
-                    {
-                        outputStream.Write(new TrackableDto(fromId, message.TrackingId,
-                            WellKnownTags.DeliveryNotification, null));
-                    }
-                    else
-                    {
-                        OnStreamUnresolved(message.FromId);
-                    }
+                    // Regular message. Send the delivery notification.
+                    communicator.Send(new TrackableDto(fromId, message.TrackingId,
+                        WellKnownTags.DeliveryNotification, null), remoteEndPoint);
                     if (message.Tag != WellKnownTags.Ping)
                     {
                         receiveQueue.Enqueue(message);
@@ -140,15 +138,14 @@ namespace Cloudy.Messaging
         public MessagingAsyncResult BeginSend<T>(Guid recipient,
             T message, int? tag, AsyncCallback callback, object state)
         {
-            MessageStream outputStream;
-            if (!resolveStream(recipient, out outputStream))
+            TEndPoint endPoint;
+            if (!resolveEndPoint(recipient, out endPoint))
             {
-                throw new StreamUnresolvedException(recipient);
+                throw new EndPointUnresolvedException(recipient);
             }
             TrackableDto<T> dto = new TrackableDto<T>(fromId, CreateTrackingId(), tag, message);
-            outputStream.Write(dto);
-            MessagingAsyncResult ar = new MessagingAsyncResult(1,
-                callback, state);
+            communicator.Send(dto, endPoint);
+            MessagingAsyncResult ar = new MessagingAsyncResult(1, callback, state);
             sendQueue.Add(dto.TrackingId, ar);
             return ar;
         }
@@ -165,12 +162,12 @@ namespace Cloudy.Messaging
                 fromId, trackingId, tag, message).Preserialize();
             foreach (Guid recipient in recipients)
             {
-                MessageStream outputStream;
-                if (!resolveStream(recipient, out outputStream))
+                TEndPoint endPoint;
+                if (!resolveEndPoint(recipient, out endPoint))
                 {
-                    throw new StreamUnresolvedException(recipient);
+                    throw new EndPointUnresolvedException(recipient);
                 }
-                outputStream.Write(dto);
+                communicator.Send(dto, endPoint);
             }
             MessagingAsyncResult ar = new MessagingAsyncResult(recipients.Length,
                 callback, state);
@@ -217,7 +214,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Receives a message.
         /// </summary>
-        public ICastableValue Receive(out Guid from, out int? tag)
+        public ICastable Receive(out Guid from, out int? tag)
         {
             while (true)
             {
@@ -233,7 +230,7 @@ namespace Cloudy.Messaging
         /// </summary>
         public TResult Receive<TResult>(out Guid from, out int? tag)
         {
-            return Receive(out from, out tag).Get<TResult>();
+            return Receive(out from, out tag).Cast<TResult>();
         }
 
         #endregion
@@ -241,16 +238,19 @@ namespace Cloudy.Messaging
         #region Events
 
         /// <summary>
-        /// Occurs when the sender ID or recipient ID was unresolved to a message stream.
+        /// Occurs when the remote endpoint and the endpoint resolved by ID
+        /// are not the same.
         /// </summary>
-        public event EventHandler<StreamUnresolvedEventArgs> StreamUnresolved;
+        public event EventHandler<EndPointMismatchedEventArgs<TEndPoint>> EndPointMismatched;
 
-        private void OnStreamUnresolved(Guid id)
+        private void OnEndPointMismatched(Guid id, TEndPoint resolvedEndPoint)
         {
-            EventHandler<StreamUnresolvedEventArgs> handler = StreamUnresolved;
+            EventHandler<EndPointMismatchedEventArgs<TEndPoint>> handler =
+                EndPointMismatched;
             if (handler != null)
             {
-                handler(this, new StreamUnresolvedEventArgs(id));
+                handler(this, new EndPointMismatchedEventArgs<TEndPoint>(
+                    id, resolvedEndPoint));
             }
         }
 
@@ -275,7 +275,7 @@ namespace Cloudy.Messaging
         {
             if (dispose)
             {
-                inputStream.Close();
+                communicator.Close();
                 receiveQueue.Dispose();
             }
         }
