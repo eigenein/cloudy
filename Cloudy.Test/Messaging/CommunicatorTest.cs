@@ -40,13 +40,13 @@ namespace Cloudy.Test.Messaging
                 {
                     for (int i = 0; i < 3; i++)
                     {
-                        communicator.Send(tags[i], new A { UIntValue = values[i]});
+                        communicator.SendTagged(tags[i], new A { UIntValue = values[i]});
                     }
                     stream.Position = 0;
                     for (int i = 0; i < 3; i++)
                     {
                         int? tag;
-                        uint value = communicator.Receive(out tag).Cast<A>().UIntValue;
+                        uint value = communicator.ReceiveTagged(out tag).Cast<A>().UIntValue;
                         Assert.AreEqual(tags[i], tag);
                         Assert.AreEqual(values[i], value);
                     }

@@ -39,10 +39,10 @@ namespace Cloudy.Networking.IP
             try
             {
                 int requestId = Random.Next();
-                communicator.Send(WellKnownTags.ExternalIPEndPointRequest,
+                communicator.SendTagged(WellKnownTags.ExternalIPEndPointRequest,
                     new ExternalIPEndPointRequest(requestId), serverEndPoint);
                 int? tag;
-                ICastable message = communicator.Receive(out tag);
+                ICastable message = communicator.ReceiveTagged(out tag);
                 if (tag != WellKnownTags.ExternalIPEndPointResponse)
                 {
                     return false;

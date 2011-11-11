@@ -25,7 +25,7 @@ namespace Cloudy.Examples.Chat.Server
             Console.ReadKey();
 
             endPointServer.Stop();
-            endPointServer.Close();
+            endPointServer.Dispose();
         }
 
         private static void OnExternalIPEndPointRequested(object sender, 

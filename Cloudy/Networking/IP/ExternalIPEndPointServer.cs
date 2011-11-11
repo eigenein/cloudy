@@ -16,7 +16,7 @@ namespace Cloudy.Networking.IP
     /// Represents a service that tells to a client its (client's) external
     /// IP address and port.
     /// </summary>
-    public class ExternalIPEndPointServer
+    public class ExternalIPEndPointServer : IDisposable
     {
         private Thread processingThread;
 
@@ -79,14 +79,14 @@ namespace Cloudy.Networking.IP
         {
             int? tag;
             IPEndPoint remoteEndPoint;
-            ICastable message = communicator.Receive(out tag, out remoteEndPoint);
+            ICastable message = communicator.ReceiveTagged(out tag, out remoteEndPoint);
             if (tag != WellKnownTags.ExternalIPEndPointRequest)
             {
                 return false;
             }
             ExternalIPEndPointRequest request = message.Cast<ExternalIPEndPointRequest>();
             OnExternalIPEndPointRequested(remoteEndPoint);
-            communicator.Send(WellKnownTags.ExternalIPEndPointResponse,
+            communicator.SendTagged(WellKnownTags.ExternalIPEndPointResponse,
                 new ExternalIPEndPointResponse(request.Id, remoteEndPoint), remoteEndPoint);
             return true;
         }
@@ -140,9 +140,26 @@ namespace Cloudy.Networking.IP
             }
         }
 
-        public void Close()
+        #region Implementation of IDisposable
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        /// <filterpriority>2</filterpriority>
+        public void Dispose()
         {
-            communicator.Close();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                communicator.Dispose();
+            }
         }
     }
 }

@@ -100,7 +100,6 @@
     <Compile Include="Messaging\Interfaces\IRawCommunicator.cs" />
     <Compile Include="Messaging\Structures\Dto.cs" />
     <Compile Include="Messaging\Structures\TrackableDto.cs" />
-    <Compile Include="Messaging\Structures\Values\AuthenticationRequestValue.cs" />
     <Compile Include="Messaging\MessageDispatcher.cs" />
     <Compile Include="Messaging\Communicator.cs" />
     <Compile Include="Messaging\Structures\MessagingAsyncResult.cs" />
