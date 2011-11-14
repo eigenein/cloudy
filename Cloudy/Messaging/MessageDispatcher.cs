@@ -65,7 +65,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Gets the underlying input message stream.
         /// </summary>
-        public Communicator Communicator
+        public Communicator<TEndPoint> Communicator
         {
             get { return communicator; }
         }
@@ -99,8 +99,9 @@ namespace Cloudy.Messaging
                 TEndPoint resolvedToEndPoint;
                 TEndPoint remoteEndPoint;
                 TrackableDto message = communicator.Receive<TrackableDto>(out remoteEndPoint);
-                if (!resolveEndPoint(message.FromId, out resolvedToEndPoint) ||
-                    !remoteEndPoint.Equals(resolvedToEndPoint))
+                if (message.Tag != WellKnownTags.Join && (
+                    !resolveEndPoint(message.FromId, out resolvedToEndPoint) ||
+                    !remoteEndPoint.Equals(resolvedToEndPoint)))
                 {
                     OnEndPointMismatched(message.FromId, resolvedToEndPoint);
                 }
@@ -156,10 +157,10 @@ namespace Cloudy.Messaging
         public MessagingAsyncResult BeginSend<T>(Guid[] recipients, 
             T message, int? tag, AsyncCallback callback, object state)
         {
-            // Pre-serialize the DTO's value to improve performance.
+            // Pre-serialize the DTO to improve performance.
             long trackingId = CreateTrackingId();
-            TrackableDto dto = new TrackableDto<T>(
-                fromId, trackingId, tag, message).Preserialize();
+            byte[] bytes = new TrackableDto<T>(
+                fromId, trackingId, tag, message).Serialize();
             foreach (Guid recipient in recipients)
             {
                 TEndPoint endPoint;
@@ -167,7 +168,7 @@ namespace Cloudy.Messaging
                 {
                     throw new EndPointUnresolvedException(recipient);
                 }
-                communicator.Send(dto, endPoint);
+                communicator.RawCommunicator.Send(bytes, endPoint);
             }
             MessagingAsyncResult ar = new MessagingAsyncResult(recipients.Length,
                 callback, state);

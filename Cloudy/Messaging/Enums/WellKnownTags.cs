@@ -19,13 +19,20 @@ namespace Cloudy.Messaging.Enums
         public const int Ping = -2;
 
         /// <summary>
+        /// Indicates that a node is attempting to join a network.
+        /// This is the only way to change an external endpoint and/or
+        /// client's ID.
+        /// </summary>
+        public const int Join = -3;
+
+        /// <summary>
         /// Indicates a request for an external endpoint information.
         /// </summary>
-        public const int ExternalIPEndPointRequest = -3;
+        public const int ExternalIPEndPointRequest = -4;
 
         /// <summary>
         /// Indicates an external endpoint information.
         /// </summary>
-        public const int ExternalIPEndPointResponse = -4;
+        public const int ExternalIPEndPointResponse = -5;
     }
 }

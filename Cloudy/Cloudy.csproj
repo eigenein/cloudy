@@ -108,6 +108,7 @@
     <Compile Include="Networking\IP\ExternalIPEndPointServer.cs" />
     <Compile Include="Networking\Values\ExternalIPEndPointRequest.cs" />
     <Compile Include="Networking\Values\ExternalIPEndPointResponse.cs" />
+    <Compile Include="Networking\Values\JoinValue.cs" />
     <Compile Include="Nodes\Master.cs" />
     <Compile Include="Nodes\Node.cs" />
     <Compile Include="Nodes\Slave.cs" />

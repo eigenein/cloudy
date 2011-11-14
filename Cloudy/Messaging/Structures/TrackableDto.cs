@@ -53,12 +53,11 @@ namespace Cloudy.Messaging.Structures
         public long TrackingId { get; set; }
 
         /// <summary>
-        /// Serializes an underlying value.
+        /// Serializes the DTO.
         /// </summary>
-        public TrackableDto Preserialize()
+        public byte[] Serialize()
         {
-            return new TrackableDto(FromId, TrackingId, Tag,
-                Serializer.CreateSerializer(typeof(TrackableDto<T>)).Serialize(this));
+            return Serializer.CreateSerializer(typeof(TrackableDto<T>)).Serialize(this);
         }
     }
 

@@ -115,28 +115,31 @@ namespace Cloudy.Networking.IP
         /// </summary>
         private void ProcessRequests()
         {
-            while (processingThread.ThreadState != ThreadState.AbortRequested)
+            try
             {
-                bool result = false;
-                try
+                while (processingThread.ThreadState != ThreadState.AbortRequested)
                 {
-                    result = ProcessOneRequest();
-                }
-                catch (ThreadAbortException)
-                {
-                    return;
-                }
-                catch (SerializationException)
-                {
-                    continue;
-                }
-                finally
-                {
-                    if (!result)
+                    bool result = false;
+                    try
                     {
-                        OnInvalidRequestReceived();
+                        result = ProcessOneRequest();
+                    }
+                    catch (SerializationException)
+                    {
+                        continue;
+                    }
+                    finally
+                    {
+                        if (!result)
+                        {
+                            OnInvalidRequestReceived();
+                        }
                     }
                 }
+            }
+            catch (ThreadAbortException)
+            {
+                return;
             }
         }
 

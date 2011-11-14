@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Cloudy.Examples.Chat.Shared;
 using Cloudy.Networking.Events;
 using Cloudy.Networking.IP;
@@ -11,21 +12,33 @@ namespace Cloudy.Examples.Chat.Server
         private static readonly Logger Logger =
             LogManager.GetCurrentClassLogger();
 
+        private static readonly int ExternalIPEndPointServerPortNumber =
+            Configuration.GetInt32("ExternalIPEndPointServerPortNumber");
+
         public static void Main(string[] args)
         {
             Logger.Info("Starting the server ...");
-
-            Logger.Info("Starting the external IP endpoint server ...");
-            ExternalIPEndPointServer endPointServer = new ExternalIPEndPointServer(
-                Constants.ExternalIPEndPointServerPortNumber);
-            endPointServer.ExternalIPEndPointRequested += OnExternalIPEndPointRequested;
-            endPointServer.Start();
+            ExternalIPEndPointServer endPointServer = StartExternalIPEndPointServer();
+            Thread serveClientsThread = new Thread(state => new ClientDispatcher().ServeClients());
+            serveClientsThread.IsBackground = true;
+            serveClientsThread.Start();
 
             Logger.Info("Press any key to terminate.");
             Console.ReadKey();
 
+            serveClientsThread.Abort();
             endPointServer.Stop();
             endPointServer.Dispose();
+        }
+
+        private static ExternalIPEndPointServer StartExternalIPEndPointServer()
+        {
+            Logger.Info("Starting the external IP endpoint server ...");
+            ExternalIPEndPointServer endPointServer = new ExternalIPEndPointServer(
+                ExternalIPEndPointServerPortNumber);
+            endPointServer.ExternalIPEndPointRequested += OnExternalIPEndPointRequested;
+            endPointServer.Start();
+            return endPointServer;
         }
 
         private static void OnExternalIPEndPointRequested(object sender, 

@@ -43,9 +43,9 @@ namespace Cloudy.Networking.Values
         /// <summary>
         /// Reconstructs an <see cref="System.Net.IPEndPoint"/> instance.
         /// </summary>
-        public IPEndPoint AsIPEndPoint()
+        public IPEndPoint AsIPEndPoint
         {
-            return new IPEndPoint(new IPAddress(IPAddress), PortNumber);
+            get { return new IPEndPoint(new IPAddress(IPAddress), PortNumber); }
         }
     }
 }

@@ -52,7 +52,7 @@ namespace Cloudy.Networking.IP
                 {
                     return false;
                 }
-                externalClientEndPoint = response.AsIPEndPoint();
+                externalClientEndPoint = response.AsIPEndPoint;
                 return true;
             }
             catch

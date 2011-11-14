@@ -27,7 +27,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Gets the underlying communicator.
         /// </summary>
-        public virtual IRawCommunicator RawCommunicator
+        public IRawCommunicator RawCommunicator
         {
             get { return rawCommunicator; }
         }
@@ -163,7 +163,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Gets the underlying communicator.
         /// </summary>
-        public override IRawCommunicator RawCommunicator
+        public new IRawCommunicator<TEndPoint> RawCommunicator
         {
             get { return rawCommunicator; }
         }

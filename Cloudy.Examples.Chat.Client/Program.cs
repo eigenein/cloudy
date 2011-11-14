@@ -8,29 +8,47 @@ namespace Cloudy.Examples.Chat.Client
 {
     public static class Program
     {
+        private static readonly Random Random = new Random();
+
+        private static readonly int MySourcePortNumber =
+            Configuration.GetInt32("BaseSourcePortNumber") + Random.Next(100);
+
+        private static readonly int ExternalIPEndPointServerPortNumber =
+            Configuration.GetInt32("ExternalIPEndPointServerPortNumber");
+
         private static readonly Logger Logger =
             LogManager.GetCurrentClassLogger();
+
+        private static IPEndPoint myExternalEndPoint;
 
         public static void Main(string[] args)
         {
             Logger.Info("Starting the client ...");
 
-            Logger.Info("Requesting for external IP endpoint ...");
-            IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Loopback,
-                Constants.ExternalIPEndPointServerPortNumber);
-            IPEndPoint externalEndPoint;
-            if (!ExternalIPEndPointClient.RequestInformation(
-                serverEndPoint, Constants.PrimaryPortNumber, out externalEndPoint))
+            if (!RequestExternalEndPoint())
             {
-                Logger.Error("Couldn't obtain external IP endpoint.");
                 return;
             }
-            Logger.Info("Got external IP endpoint: {0}", externalEndPoint);
 
             string line;
             while ((line = Console.ReadLine()) != line)
             {
             }
+        }
+
+        private static bool RequestExternalEndPoint()
+        {
+            Logger.Info("Requesting for external IP endpoint ...");
+            IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Loopback,
+                ExternalIPEndPointServerPortNumber);
+            if (!ExternalIPEndPointClient.RequestInformation(
+                serverEndPoint, MySourcePortNumber, out myExternalEndPoint))
+            {
+                Logger.Error("Couldn't obtain external IP endpoint.");
+                return false;
+            }
+            Logger.Info("Got external IP endpoint: {0}", myExternalEndPoint);
+            return true;
         }
     }
 }
