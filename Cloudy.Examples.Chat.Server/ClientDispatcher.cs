@@ -9,7 +9,9 @@ using Cloudy.Examples.Chat.Shared.Values;
 using Cloudy.Helpers;
 using Cloudy.Messaging;
 using Cloudy.Messaging.Enums;
+using Cloudy.Messaging.Exceptions;
 using Cloudy.Messaging.Interfaces;
+using Cloudy.Messaging.Structures;
 using Cloudy.Networking.Values;
 using NLog;
 
