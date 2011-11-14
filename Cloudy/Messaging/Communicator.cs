@@ -111,14 +111,6 @@ namespace Cloudy.Messaging
             Send(new Dto<T>(tag, message));
         }
 
-        /// <summary>
-        /// Closes the stream.
-        /// </summary>
-        public void Close()
-        {
-            rawCommunicator.Close();
-        }
-
         #region Implementation of IDisposable
 
         /// <summary>
@@ -137,7 +129,7 @@ namespace Cloudy.Messaging
         {
             if (dispose)
             {
-                Close();
+                rawCommunicator.Dispose();
             }
         }
     }

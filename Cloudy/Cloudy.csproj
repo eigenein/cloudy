@@ -88,14 +88,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Helpers\BlockingQueue.cs" />
+    <Compile Include="Collections\BlockingQueue.cs" />
+    <Compile Include="Computing\ComputingThread.cs" />
+    <Compile Include="Computing\Interfaces\ITopology.cs" />
+    <Compile Include="Computing\Interfaces\ITopologyFactory.cs" />
+    <Compile Include="Computing\Interfaces\INetwork.cs" />
+    <Compile Include="Computing\Messaging\Structures\JoinRequestValue.cs" />
+    <Compile Include="Computing\Topologies\Enums\TopologyType.cs" />
+    <Compile Include="Computing\Topologies\Factories\StarTopologyFactory.cs" />
+    <Compile Include="Computing\Topologies\StarTopology.cs" />
+    <Compile Include="Computing\Topologies\Structures\ThreadAddress.cs" />
+    <Compile Include="Computing\Topologies\TopologyFactoryCache.cs" />
     <Compile Include="Helpers\InvokeHelper.cs" />
-    <Compile Include="Helpers\StreamRawCommunicator.cs" />
-    <Compile Include="Helpers\UdpClientRawCommunicator.cs" />
-    <Compile Include="Messaging\Delegates\ResolveEndPointDelegate.cs" />
-    <Compile Include="Messaging\Enums\WellKnownTags.cs" />
-    <Compile Include="Messaging\Events\EndPointMismatchedEventArgs.cs" />
-    <Compile Include="Messaging\Exceptions\EndPointUnresolvedException.cs" />
+    <Compile Include="Messaging\Raw\StreamRawCommunicator.cs" />
+    <Compile Include="Messaging\Raw\UdpClientRawCommunicator.cs" />
+    <Compile Include="Messaging\Enums\CommonTags.cs" />
     <Compile Include="Messaging\Interfaces\ICastable.cs" />
     <Compile Include="Messaging\Interfaces\IRawCommunicator.cs" />
     <Compile Include="Messaging\Structures\Dto.cs" />
@@ -106,12 +113,11 @@
     <Compile Include="Networking\Events\ExternalIPEndPointRequestedEventArgs.cs" />
     <Compile Include="Networking\IP\ExternalIPEndPointClient.cs" />
     <Compile Include="Networking\IP\ExternalIPEndPointServer.cs" />
-    <Compile Include="Networking\Values\ExternalIPEndPointRequest.cs" />
-    <Compile Include="Networking\Values\ExternalIPEndPointResponse.cs" />
-    <Compile Include="Networking\Values\JoinValue.cs" />
-    <Compile Include="Nodes\Master.cs" />
-    <Compile Include="Nodes\Node.cs" />
-    <Compile Include="Nodes\Slave.cs" />
+    <Compile Include="Networking\Structures\ExternalIPEndPointRequest.cs" />
+    <Compile Include="Networking\Structures\ExternalIPEndPointResponse.cs" />
+    <Compile Include="Computing\Master.cs" />
+    <Compile Include="Computing\Node.cs" />
+    <Compile Include="Computing\Slave.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protobuf\Attributes\ProtobufFieldAttribute.cs" />
     <Compile Include="Protobuf\Attributes\ProtobufSerializableAttribute.cs" />
@@ -151,6 +157,7 @@
     <Compile Include="Protobuf\ValueBuilders\RepeatedValueBuilder.cs" />
     <Compile Include="Protobuf\ValueBuilders\RequiredValueBuilder.cs" />
     <Compile Include="Protobuf\ValueBuilders\SingleValueBuilder.cs" />
+    <Compile Include="Structures\Tuple.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Cloudy.snk">

@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.Serialization;
-using System.Threading;
-using Cloudy.Helpers;
 using Cloudy.Messaging;
 using Cloudy.Messaging.Enums;
 using Cloudy.Messaging.Interfaces;
+using Cloudy.Messaging.Raw;
 using Cloudy.Networking.Events;
-using Cloudy.Networking.Values;
+using Cloudy.Networking.Structures;
 
 namespace Cloudy.Networking.IP
 {
@@ -18,18 +16,16 @@ namespace Cloudy.Networking.IP
     /// </summary>
     public class ExternalIPEndPointServer : IDisposable
     {
-        private Thread processingThread;
-
         private readonly Communicator<IPEndPoint> communicator;
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="portNumber">The port to listen to.</param>
-        public ExternalIPEndPointServer(int portNumber)
+        /// <param name="port">The port to listen to.</param>
+        public ExternalIPEndPointServer(int port)
         {
             this.communicator = new Communicator<IPEndPoint>(
-                new UdpClientRawCommunicator(new UdpClient(portNumber)));
+                new UdpClientRawCommunicator(new UdpClient(port)));
         }
 
         /// <summary>
@@ -43,52 +39,30 @@ namespace Cloudy.Networking.IP
         public event EventHandler<ExternalIPEndPointRequestedEventArgs> ExternalIPEndPointRequested;
 
         /// <summary>
-        /// Starts processing of requests.
+        /// Processes incoming requests.
         /// </summary>
-        public void Start()
+        public int ProcessIncomingRequests(int count)
         {
-            Thread thread = processingThread;
-            if (thread != null)
+            int processedRequestsCount = 0;
+            while (processedRequestsCount < count)
             {
-                throw new InvalidOperationException("Already started.");
+                int? tag;
+                IPEndPoint remoteEndPoint;
+                ICastable message = communicator.ReceiveTagged(out tag, out remoteEndPoint);
+                if (tag == CommonTags.ExternalIPEndPointRequest)
+                {
+                    ExternalIPEndPointRequest request = message.Cast<ExternalIPEndPointRequest>();
+                    OnExternalIPEndPointRequested(remoteEndPoint);
+                    communicator.SendTagged(CommonTags.ExternalIPEndPointResponse,
+                        new ExternalIPEndPointResponse(request.Id, remoteEndPoint), remoteEndPoint);
+                }
+                else
+                {
+                    OnInvalidRequestReceived();
+                }
+                processedRequestsCount += 1;
             }
-            processingThread = new Thread(ProcessRequests);
-            processingThread.IsBackground = true;
-            processingThread.Start();
-        }
-
-        /// <summary>
-        /// Stops processing of requests.
-        /// </summary>
-        public void Stop()
-        {
-            Thread thread = processingThread;
-            if (thread == null)
-            {
-                throw new InvalidOperationException("Already stopped.");
-            }
-            processingThread = null;
-            thread.Abort();
-        }
-
-        /// <summary>
-        /// Processes a single incoming request.
-        /// </summary>
-        /// <returns>Whether the request was correct.</returns>
-        private bool ProcessOneRequest()
-        {
-            int? tag;
-            IPEndPoint remoteEndPoint;
-            ICastable message = communicator.ReceiveTagged(out tag, out remoteEndPoint);
-            if (tag != WellKnownTags.ExternalIPEndPointRequest)
-            {
-                return false;
-            }
-            ExternalIPEndPointRequest request = message.Cast<ExternalIPEndPointRequest>();
-            OnExternalIPEndPointRequested(remoteEndPoint);
-            communicator.SendTagged(WellKnownTags.ExternalIPEndPointResponse,
-                new ExternalIPEndPointResponse(request.Id, remoteEndPoint), remoteEndPoint);
-            return true;
+            return processedRequestsCount;
         }
 
         private void OnInvalidRequestReceived()
@@ -107,39 +81,6 @@ namespace Cloudy.Networking.IP
             if (handler != null)
             {
                 handler(this, new ExternalIPEndPointRequestedEventArgs(endPoint));
-            }
-        }
-
-        /// <summary>
-        /// Runs an infinite loop of processing requests.
-        /// </summary>
-        private void ProcessRequests()
-        {
-            try
-            {
-                while (processingThread.ThreadState != ThreadState.AbortRequested)
-                {
-                    bool result = false;
-                    try
-                    {
-                        result = ProcessOneRequest();
-                    }
-                    catch (SerializationException)
-                    {
-                        continue;
-                    }
-                    finally
-                    {
-                        if (!result)
-                        {
-                            OnInvalidRequestReceived();
-                        }
-                    }
-                }
-            }
-            catch (ThreadAbortException)
-            {
-                return;
             }
         }
 

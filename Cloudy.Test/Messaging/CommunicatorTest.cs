@@ -2,6 +2,7 @@
 using System.IO;
 using Cloudy.Helpers;
 using Cloudy.Messaging;
+using Cloudy.Messaging.Raw;
 using Cloudy.Test.Protobuf.TestClasses;
 using NUnit.Framework;
 

@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using Cloudy.Helpers;
-using Cloudy.Messaging.Delegates;
+using Cloudy.Collections;
 using Cloudy.Messaging.Enums;
-using Cloudy.Messaging.Events;
-using Cloudy.Messaging.Exceptions;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
+using Cloudy.Structures;
 
 namespace Cloudy.Messaging
 {
@@ -20,30 +18,21 @@ namespace Cloudy.Messaging
 
         private readonly Communicator<TEndPoint> communicator;
 
-        private readonly Guid fromId;
-
-        private readonly ResolveEndPointDelegate<TEndPoint> resolveEndPoint;
-
         private readonly Dictionary<long, MessagingAsyncResult> sendQueue =
             new Dictionary<long, MessagingAsyncResult>();
 
-        private readonly BlockingQueue<TrackableDto> receiveQueue = 
-            new BlockingQueue<TrackableDto>();
+        private readonly BlockingQueue<Tuple<TrackableDto, TEndPoint>> receiveQueue = 
+            new BlockingQueue<Tuple<TrackableDto, TEndPoint>>();
 
         #endregion
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="resolveEndPoint">Used to find a stream by a recipient identifier.</param>
         /// <param name="communicator">The underlying message stream.</param>
-        /// <param name="fromId">The sender identifier.</param>
-        public MessageDispatcher(Guid fromId, ResolveEndPointDelegate<TEndPoint> resolveEndPoint,
-            Communicator<TEndPoint> communicator)
+        public MessageDispatcher(Communicator<TEndPoint> communicator)
         {
             this.communicator = communicator;
-            this.resolveEndPoint = resolveEndPoint;
-            this.fromId = fromId;
         }
 
         #region ID creating
@@ -96,16 +85,9 @@ namespace Cloudy.Messaging
             // Loop through messages.
             while (processedMessagesCount < count)
             {
-                TEndPoint resolvedToEndPoint;
                 TEndPoint remoteEndPoint;
                 TrackableDto message = communicator.Receive<TrackableDto>(out remoteEndPoint);
-                if (message.Tag != WellKnownTags.Join && (
-                    !resolveEndPoint(message.FromId, out resolvedToEndPoint) ||
-                    !remoteEndPoint.Equals(resolvedToEndPoint)))
-                {
-                    OnEndPointMismatched(message.FromId, resolvedToEndPoint);
-                }
-                else if (message.Tag == WellKnownTags.DeliveryNotification)
+                if (message.Tag == CommonTags.DeliveryNotification)
                 {
                     MessagingAsyncResult ar;
                     if (sendQueue.TryGetValue(message.TrackingId, out ar))
@@ -121,11 +103,12 @@ namespace Cloudy.Messaging
                 else
                 {
                     // Regular message. Send the delivery notification.
-                    communicator.Send(new TrackableDto(fromId, message.TrackingId,
-                        WellKnownTags.DeliveryNotification, null), remoteEndPoint);
-                    if (message.Tag != WellKnownTags.Ping)
+                    communicator.Send(new TrackableDto(message.TrackingId,
+                        CommonTags.DeliveryNotification, null), remoteEndPoint);
+                    if (message.Tag != CommonTags.Ping)
                     {
-                        receiveQueue.Enqueue(message);
+                        receiveQueue.Enqueue(new Tuple<TrackableDto, TEndPoint>(
+                            message, remoteEndPoint));
                     }
                 }
                 processedMessagesCount++;
@@ -139,7 +122,7 @@ namespace Cloudy.Messaging
         public MessagingAsyncResult BeginSend<T>(TEndPoint endPoint,
             T message, int? tag, AsyncCallback callback, object state)
         {
-            TrackableDto<T> dto = new TrackableDto<T>(fromId, CreateTrackingId(), tag, message);
+            TrackableDto<T> dto = new TrackableDto<T>(CreateTrackingId(), tag, message);
             communicator.Send(dto, endPoint);
             MessagingAsyncResult ar = new MessagingAsyncResult(1, callback, state);
             sendQueue.Add(dto.TrackingId, ar);
@@ -149,37 +132,17 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Starts an asynchronous sending of the message.
         /// </summary>
-        public MessagingAsyncResult BeginSend<T>(Guid recipient,
-            T message, int? tag, AsyncCallback callback, object state)
-        {
-            TEndPoint endPoint;
-            if (!resolveEndPoint(recipient, out endPoint))
-            {
-                throw new EndPointUnresolvedException(recipient);
-            }
-            return BeginSend(endPoint, message, tag, callback, state);
-        }
-
-        /// <summary>
-        /// Starts an asynchronous sending of the message.
-        /// </summary>
-        public MessagingAsyncResult BeginSend<T>(Guid[] recipients, 
+        public MessagingAsyncResult BeginSend<T>(TEndPoint[] endPoints, 
             T message, int? tag, AsyncCallback callback, object state)
         {
             // Pre-serialize the DTO to improve performance.
             long trackingId = CreateTrackingId();
-            byte[] bytes = new TrackableDto<T>(
-                fromId, trackingId, tag, message).Serialize();
-            foreach (Guid recipient in recipients)
+            byte[] bytes = new TrackableDto<T>(trackingId, tag, message).Serialize();
+            foreach (TEndPoint endPoint in endPoints)
             {
-                TEndPoint endPoint;
-                if (!resolveEndPoint(recipient, out endPoint))
-                {
-                    throw new EndPointUnresolvedException(recipient);
-                }
                 communicator.RawCommunicator.Send(bytes, endPoint);
             }
-            MessagingAsyncResult ar = new MessagingAsyncResult(recipients.Length,
+            MessagingAsyncResult ar = new MessagingAsyncResult(endPoints.Length,
                 callback, state);
             sendQueue.Add(trackingId, ar);
             return ar;
@@ -196,20 +159,20 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Starts an asynchronous ping.
         /// </summary>
-        public MessagingAsyncResult BeginPing(Guid target,
+        public MessagingAsyncResult BeginPing(TEndPoint endPoint,
             AsyncCallback callback, object state)
         {
-            return BeginSend<object>(target, null, WellKnownTags.Ping,
+            return BeginSend<object>(endPoint, null, CommonTags.Ping,
                 callback, state);
         }
 
         /// <summary>
         /// Starts an asynchronous ping.
         /// </summary>
-        public MessagingAsyncResult BeginPing(Guid[] targets,
+        public MessagingAsyncResult BeginPing(TEndPoint[] endPoints,
             AsyncCallback callback, object state)
         {
-            return BeginSend<object>(targets, null, WellKnownTags.Ping,
+            return BeginSend<object>(endPoints, null, CommonTags.Ping,
                 callback, state);
         }
 
@@ -224,44 +187,41 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Receives a message.
         /// </summary>
-        public ICastable Receive(out Guid from, out int? tag)
+        public ICastable Receive(out TEndPoint remoteEndPoint, out int? tag)
+        {
+            return Receive(out remoteEndPoint, out tag, TimeSpan.MaxValue);
+        }
+
+        /// <summary>
+        /// Receives a message.
+        /// </summary>
+        public TResult Receive<TResult>(out TEndPoint remoteEndPoint, out int? tag)
+        {
+            return Receive<TResult>(out remoteEndPoint, out tag, TimeSpan.MaxValue);
+        }
+
+        /// <summary>
+        /// Receives a message.
+        /// </summary>
+        public ICastable Receive(out TEndPoint remoteEndPoint, out int? tag,
+            TimeSpan timeout)
         {
             while (true)
             {
-                TrackableDto dto = receiveQueue.Dequeue();
-                tag = dto.Tag;
-                from = dto.FromId;
-                return dto;
+                Tuple<TrackableDto, TEndPoint> pair = receiveQueue.Dequeue(timeout);
+                tag = pair.Item1.Tag;
+                remoteEndPoint = pair.Item2;
+                return pair.Item1;
             }
         }
 
         /// <summary>
         /// Receives a message.
         /// </summary>
-        public TResult Receive<TResult>(out Guid from, out int? tag)
+        public TResult Receive<TResult>(out TEndPoint remoteEndPoint, out int? tag,
+            TimeSpan timeout)
         {
-            return Receive(out from, out tag).Cast<TResult>();
-        }
-
-        #endregion
-
-        #region Events
-
-        /// <summary>
-        /// Occurs when the remote endpoint and the endpoint resolved by ID
-        /// are not the same.
-        /// </summary>
-        public event EventHandler<EndPointMismatchedEventArgs<TEndPoint>> EndPointMismatched;
-
-        private void OnEndPointMismatched(Guid id, TEndPoint resolvedEndPoint)
-        {
-            EventHandler<EndPointMismatchedEventArgs<TEndPoint>> handler =
-                EndPointMismatched;
-            if (handler != null)
-            {
-                handler(this, new EndPointMismatchedEventArgs<TEndPoint>(
-                    id, resolvedEndPoint));
-            }
+            return Receive(out remoteEndPoint, out tag, timeout).Cast<TResult>();
         }
 
         #endregion
@@ -285,7 +245,7 @@ namespace Cloudy.Messaging
         {
             if (dispose)
             {
-                communicator.Close();
+                communicator.Dispose();
                 receiveQueue.Dispose();
             }
         }

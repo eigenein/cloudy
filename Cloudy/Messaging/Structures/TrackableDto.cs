@@ -19,12 +19,11 @@ namespace Cloudy.Messaging.Structures
             // Do nothing.
         }
 
-        public TrackableDto(Guid fromId, long trackingId, int? tag, T value)
+        public TrackableDto(long trackingId, int? tag, T value)
         {
             this.Tag = tag;
             this.Value = value;
             this.TrackingId = trackingId;
-            this.FromId = fromId;
         }
 
         /// <summary>
@@ -40,16 +39,10 @@ namespace Cloudy.Messaging.Structures
         public T Value { get; set; }
 
         /// <summary>
-        /// Gets the recipient identifier.
-        /// </summary>
-        [ProtobufField(3)]
-        public Guid FromId { get; set; }
-
-        /// <summary>
         /// An ID that should be unique within the set of currently
         /// active operations. Used to track messages.
         /// </summary>
-        [ProtobufField(4)]
+        [ProtobufField(3)]
         public long TrackingId { get; set; }
 
         /// <summary>
@@ -75,12 +68,11 @@ namespace Cloudy.Messaging.Structures
             // Do nothing.
         }
 
-        public TrackableDto(Guid fromId, long trackingId, int? tag, byte[] value)
+        public TrackableDto(long trackingId, int? tag, byte[] value)
         {
             this.Tag = tag;
             this.Value = value;
             this.TrackingId = trackingId;
-            this.FromId = fromId;
         }
 
         /// <summary>
@@ -96,16 +88,10 @@ namespace Cloudy.Messaging.Structures
         public byte[] Value { get; set; }
 
         /// <summary>
-        /// Gets the recipient identifier.
-        /// </summary>
-        [ProtobufField(3)]
-        public Guid FromId { get; set; }
-
-        /// <summary>
         /// An ID that should be unique within the set of currently
         /// active operations. Used to track messages.
         /// </summary>
-        [ProtobufField(4)]
+        [ProtobufField(3)]
         public long TrackingId { get; set; }
 
         /// <summary>
