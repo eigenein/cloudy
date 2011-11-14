@@ -36,7 +36,7 @@ namespace Cloudy.Examples.Chat.Client
         private readonly Dictionary<Guid, IPEndPoint> endPointCache =
             new Dictionary<Guid, IPEndPoint>();
 
-        private Thread processingThread;
+        private Thread dispatcherThread;
 
         private MessageDispatcher<IPEndPoint> dispatcher;
 
@@ -59,9 +59,9 @@ namespace Cloudy.Examples.Chat.Client
             Communicator<IPEndPoint> communicator = new Communicator<IPEndPoint>(
                 new UdpClientRawCommunicator(new UdpClient(mySourcePortNumber)));
             dispatcher = new MessageDispatcher<IPEndPoint>(myId, ResolveEndPoint, communicator);
-            processingThread = new Thread(RunDispatcher);
-            processingThread.IsBackground = true;
-            processingThread.Start();
+            dispatcherThread = new Thread(RunDispatcher);
+            dispatcherThread.IsBackground = true;
+            dispatcherThread.Start();
             dispatcher.BeginSend(serverEndPoint,
                 new JoinValue(myId, GetLocalEndPoint(), myExternalEndPoint),
                 WellKnownTags.Join, null, null);
@@ -91,7 +91,7 @@ namespace Cloudy.Examples.Chat.Client
 
         public void Close()
         {
-            processingThread.Abort();
+            dispatcherThread.Abort();
             dispatcher.Dispose();
         }
 
