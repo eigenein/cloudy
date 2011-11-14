@@ -19,14 +19,13 @@ namespace Cloudy.Examples.Chat.Server
         {
             Logger.Info("Starting the server ...");
             ExternalIPEndPointServer endPointServer = StartExternalIPEndPointServer();
-            Thread serveClientsThread = new Thread(state => new ClientDispatcher().ServeClients());
-            serveClientsThread.IsBackground = true;
-            serveClientsThread.Start();
+            ClientDispatcher clientDispatcher = new ClientDispatcher();
+            clientDispatcher.Start();
 
             Logger.Info("Press any key to terminate.");
             Console.ReadKey();
 
-            serveClientsThread.Abort();
+            clientDispatcher.Close();
             endPointServer.Stop();
             endPointServer.Dispose();
         }

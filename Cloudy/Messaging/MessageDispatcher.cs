@@ -136,6 +136,19 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Starts an asynchronous sending of the message.
         /// </summary>
+        public MessagingAsyncResult BeginSend<T>(TEndPoint endPoint,
+            T message, int? tag, AsyncCallback callback, object state)
+        {
+            TrackableDto<T> dto = new TrackableDto<T>(fromId, CreateTrackingId(), tag, message);
+            communicator.Send(dto, endPoint);
+            MessagingAsyncResult ar = new MessagingAsyncResult(1, callback, state);
+            sendQueue.Add(dto.TrackingId, ar);
+            return ar;
+        }
+
+        /// <summary>
+        /// Starts an asynchronous sending of the message.
+        /// </summary>
         public MessagingAsyncResult BeginSend<T>(Guid recipient,
             T message, int? tag, AsyncCallback callback, object state)
         {
@@ -144,11 +157,7 @@ namespace Cloudy.Messaging
             {
                 throw new EndPointUnresolvedException(recipient);
             }
-            TrackableDto<T> dto = new TrackableDto<T>(fromId, CreateTrackingId(), tag, message);
-            communicator.Send(dto, endPoint);
-            MessagingAsyncResult ar = new MessagingAsyncResult(1, callback, state);
-            sendQueue.Add(dto.TrackingId, ar);
-            return ar;
+            return BeginSend(endPoint, message, tag, callback, state);
         }
 
         /// <summary>

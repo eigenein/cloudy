@@ -26,6 +26,7 @@ namespace Cloudy.Networking.Values
         /// <param name="externalEndPoint">The external endpoint of a sender.</param>
         public JoinValue(Guid id, IPEndPoint sourceEndPoint, IPEndPoint externalEndPoint)
         {
+            this.Id = id;
             this.SourceAddress = sourceEndPoint.Address.GetAddressBytes();
             this.SourcePortNumber = sourceEndPoint.Port;
             this.ExternalAddress = externalEndPoint.Address.GetAddressBytes();
