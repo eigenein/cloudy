@@ -89,16 +89,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collections\BlockingQueue.cs" />
-    <Compile Include="Computing\ComputingThread.cs" />
-    <Compile Include="Computing\Interfaces\ITopology.cs" />
-    <Compile Include="Computing\Interfaces\ITopologyFactory.cs" />
-    <Compile Include="Computing\Interfaces\INetwork.cs" />
+    <Compile Include="Computing\Interfaces\IThreadingNetwork.cs" />
     <Compile Include="Computing\Messaging\Structures\JoinRequestValue.cs" />
+    <Compile Include="Computing\Messaging\Structures\JoinResponseValue.cs" />
+    <Compile Include="Computing\Structures\SlaveContext.cs" />
     <Compile Include="Computing\Topologies\Enums\TopologyType.cs" />
-    <Compile Include="Computing\Topologies\Factories\StarTopologyFactory.cs" />
-    <Compile Include="Computing\Topologies\StarTopology.cs" />
+    <Compile Include="Computing\Topologies\Interfaces\ITopology.cs" />
     <Compile Include="Computing\Topologies\Structures\ThreadAddress.cs" />
-    <Compile Include="Computing\Topologies\TopologyFactoryCache.cs" />
+    <Compile Include="Computing\Topologies\TopologiesFactory.cs" />
     <Compile Include="Helpers\InvokeHelper.cs" />
     <Compile Include="Messaging\Raw\StreamRawCommunicator.cs" />
     <Compile Include="Messaging\Raw\UdpClientRawCommunicator.cs" />
@@ -110,11 +108,6 @@
     <Compile Include="Messaging\MessageDispatcher.cs" />
     <Compile Include="Messaging\Communicator.cs" />
     <Compile Include="Messaging\Structures\MessagingAsyncResult.cs" />
-    <Compile Include="Networking\Events\ExternalIPEndPointRequestedEventArgs.cs" />
-    <Compile Include="Networking\IP\ExternalIPEndPointClient.cs" />
-    <Compile Include="Networking\IP\ExternalIPEndPointServer.cs" />
-    <Compile Include="Networking\Structures\ExternalIPEndPointRequest.cs" />
-    <Compile Include="Networking\Structures\ExternalIPEndPointResponse.cs" />
     <Compile Include="Computing\Master.cs" />
     <Compile Include="Computing\Node.cs" />
     <Compile Include="Computing\Slave.cs" />

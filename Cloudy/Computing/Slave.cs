@@ -12,37 +12,32 @@ namespace Cloudy.Computing
     /// </summary>
     public abstract class Slave : Node
     {
-        private readonly IPEndPoint sourceEndPoint;
+        private readonly IPEndPoint localEndPoint;
 
-        private readonly IPEndPoint externalEndPoint;
-
-        protected Slave(IPEndPoint sourceEndPoint, IPEndPoint externalEndPoint) 
-            : base(sourceEndPoint.Port)
+        protected Slave(IPEndPoint localEndPoint) 
+            : base(localEndPoint.Port)
         {
-            this.sourceEndPoint = sourceEndPoint;
-            this.externalEndPoint = externalEndPoint;
+            this.localEndPoint = localEndPoint;
         }
-
-        protected abstract TimeSpan SendTimeout { get; }
 
         // protected abstract 
 
         /// <summary>
         /// When overridden, creates a computing thread.
         /// </summary>
-        protected abstract Action<INetwork> CreateThread();
+        protected abstract Action<IThreadingNetwork> CreateThread();
 
         /// <summary>
         /// Joins a network.
         /// </summary>
         /// <param name="remoteEndPoint">The master endpoint.</param>
-        public void JoinNetwork(IPEndPoint remoteEndPoint)
+        /// <param name="metadata">The metadata that will be associated with the slave.</param>
+        public void JoinNetwork(IPEndPoint remoteEndPoint, byte[] metadata)
         {
-            MessagingAsyncResult ar;
-            ar = Dispatcher.BeginSend(remoteEndPoint, new JoinRequestValue(
-                sourceEndPoint, externalEndPoint), CommonTags.JoinRequest, null, null);
-            Dispatcher.EndSend(ar, SendTimeout);
-            
+            MessagingAsyncResult ar = Dispatcher.BeginSend(remoteEndPoint, 
+                new JoinRequestValue(localEndPoint, metadata), 
+                CommonTags.JoinRequest, null, null);
+            Dispatcher.EndSend(ar, PingTimeout);
         }
     }
 }

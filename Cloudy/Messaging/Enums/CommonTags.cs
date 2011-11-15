@@ -19,18 +19,13 @@ namespace Cloudy.Messaging.Enums
         public const int Ping = -2;
 
         /// <summary>
-        /// Indicates a request for an external endpoint information.
-        /// </summary>
-        public const int ExternalIPEndPointRequest = -3;
-
-        /// <summary>
-        /// Indicates an external endpoint information.
-        /// </summary>
-        public const int ExternalIPEndPointResponse = -4;
-
-        /// <summary>
         /// Indicates a request for joining to a network.
         /// </summary>
-        public const int JoinRequest = -5;
+        public const int JoinRequest = -3;
+
+        /// <summary>
+        /// Indicates a master response to joining to a network.
+        /// </summary>
+        public const int JoinResponse = -4;
     }
 }

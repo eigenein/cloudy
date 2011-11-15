@@ -15,34 +15,24 @@ namespace Cloudy.Computing.Messaging.Structures
             // Do nothing.
         }
 
-        public JoinRequestValue(IPEndPoint sourceEndPoint, IPEndPoint externalEndPoint)
+        public JoinRequestValue(IPEndPoint localEndPoint, byte[] metadata)
         {
-            this.SourceAddress = sourceEndPoint.Address.GetAddressBytes();
-            this.SourcePort = sourceEndPoint.Port;
-            this.ExternalAddress = externalEndPoint.Address.GetAddressBytes();
-            this.ExternalPort = externalEndPoint.Port;
+            this.LocalAddress = localEndPoint.Address.GetAddressBytes();
+            this.LocalPort = localEndPoint.Port;
         }
 
         [ProtobufField(1)]
-        public byte[] SourceAddress { get; set; }
+        public byte[] LocalAddress { get; set; }
 
         [ProtobufField(2)]
-        public int SourcePort { get; set; }
+        public int LocalPort { get; set; }
 
         [ProtobufField(3)]
-        public byte[] ExternalAddress { get; set; }
+        public byte[] Metadata { get; set; }
 
-        [ProtobufField(4)]
-        public int ExternalPort { get; set; }
-
-        public IPEndPoint SourceEndPoint
+        public IPEndPoint LocalEndPoint
         {
-            get { return new IPEndPoint(new IPAddress(SourceAddress), SourcePort); }
-        }
-
-        public IPEndPoint ExternalEndPoint
-        {
-            get { return new IPEndPoint(new IPAddress(ExternalAddress), ExternalPort); }
+            get { return new IPEndPoint(new IPAddress(LocalAddress), LocalPort); }
         }
     }
 }

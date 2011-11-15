@@ -1,31 +1,42 @@
 ﻿using System;
+using System.Linq;
 using Cloudy.Protobuf.Attributes;
 
 namespace Cloudy.Computing.Topologies.Structures
 {
     /// <summary>
-    /// Uniquely identifies a thread location in the whole network.
+    /// Represents a slave address within a network with multiple topologies.
     /// </summary>
     [ProtobufSerializable]
     public class ThreadAddress
     {
         /// <summary>
-        /// Identifies one of active topologies in the current network.
+        /// Gets or sets the topology index.
         /// </summary>
         [ProtobufField(1)]
-        public int TopologyId { get; set; }
-    }
+        public int TopologyIndex { get; set; }
 
-    /// <summary>
-    /// Uniquely identifies a thread location in the whole network.
-    /// </summary>
-    [ProtobufSerializable]
-    public class ThreadAddress<TAddress> : ThreadAddress
-    {
         /// <summary>
-        /// Identifies a node location within the topology.
+        /// Gets or sets the thread address relatively to the topology index.
         /// </summary>
         [ProtobufField(2)]
-        public TAddress Address { get; set; }
+        public int[] RelativeAddress { get; set; }
+
+        public override int GetHashCode()
+        {
+            return RelativeAddress.Aggregate(TopologyIndex, (current, value) => current * 31 + value);
+        }
+
+        public override bool Equals(object obj)
+        {
+            ThreadAddress anotherAddress = obj as ThreadAddress;
+            if (anotherAddress == null || 
+                anotherAddress.TopologyIndex != TopologyIndex ||
+                anotherAddress.RelativeAddress.Length != RelativeAddress.Length)
+            {
+                return false;
+            }
+            return !RelativeAddress.Where((el, i) => el != anotherAddress.RelativeAddress[i]).Any();
+        }
     }
 }

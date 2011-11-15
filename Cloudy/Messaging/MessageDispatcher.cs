@@ -11,6 +11,7 @@ namespace Cloudy.Messaging
 {
     /// <summary>
     /// Sends, receives and tracks messages.
+    /// Sequential receiving, asynchronous sending.
     /// </summary>
     public class MessageDispatcher<TEndPoint> : IDisposable
     {
