@@ -20,11 +20,11 @@ namespace Cloudy.Computing.Topologies.Structures
         /// Gets or sets the thread address relatively to the topology index.
         /// </summary>
         [ProtobufField(2)]
-        public int[] RelativeAddress { get; set; }
+        public RelativeAddress RelativeAddress { get; set; }
 
         public override int GetHashCode()
         {
-            return RelativeAddress.Aggregate(TopologyIndex, (current, value) => current * 31 + value);
+            return RelativeAddress.Parts.Aggregate(TopologyIndex, (current, value) => current * 31 + value);
         }
 
         public override bool Equals(object obj)
@@ -36,7 +36,12 @@ namespace Cloudy.Computing.Topologies.Structures
             {
                 return false;
             }
-            return !RelativeAddress.Where((el, i) => el != anotherAddress.RelativeAddress[i]).Any();
+            return !RelativeAddress.Parts.Where((el, i) => el != anotherAddress.RelativeAddress[i]).Any();
+        }
+
+        public override string ToString()
+        {
+            return String.Format("{0:x}:{1}", TopologyIndex, RelativeAddress);
         }
     }
 }

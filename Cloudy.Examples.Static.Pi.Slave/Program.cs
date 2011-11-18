@@ -24,13 +24,15 @@ namespace Cloudy.Examples.Static.Pi.Slave
         private static readonly int LocalPort = 
             ApplicationSettings.GetInteger("BaseLocalPort") + RandomExtensions.Instance.Next(100);
 
+        private static readonly int SlotsCount = ApplicationSettings.GetInteger("SlotsCount");
+
         static void Main(string[] args)
         {
             Logger.Info("Starting Slave ...");
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
             ExampleSlave slave = new ExampleSlave(new IPEndPoint(
-                LocalAddress, LocalPort));
+                LocalAddress, LocalPort), SlotsCount);
             slave.Joined += (sender, e) => Logger.Info("Joined as {0}", e.ExternalEndPoint);
             ThreadPool.QueueUserWorkItem(RunSlave, slave);
 

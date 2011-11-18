@@ -5,7 +5,6 @@ using Cloudy.Computing.Events;
 using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Messaging.Structures;
 using Cloudy.Messaging.Enums;
-using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
 
 namespace Cloudy.Computing
@@ -24,6 +23,8 @@ namespace Cloudy.Computing
         {
             this.localEndPoint = localEndPoint;
         }
+
+        public abstract int SlotsCount { get; }
 
         public SlaveState State
         {
@@ -48,7 +49,7 @@ namespace Cloudy.Computing
         public void JoinNetwork(IPEndPoint remoteEndPoint, byte[] metadata)
         {
             MessagingAsyncResult ar = Dispatcher.BeginSend(remoteEndPoint, 
-                new JoinRequestValue(localEndPoint, metadata), 
+                new JoinRequestValue(localEndPoint, SlotsCount, metadata), 
                 CommonTags.JoinRequest, null, null);
             Dispatcher.EndSend(ar, ReceiptTimeout);
             JoinResponseValue response = Dispatcher.Receive<JoinResponseValue>(

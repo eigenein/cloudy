@@ -1,4 +1,6 @@
 ﻿using System;
+using Cloudy.Computing.Exceptions;
+using Cloudy.Computing.Structures;
 
 namespace Cloudy.Computing
 {
@@ -19,6 +21,22 @@ namespace Cloudy.Computing
         public override int MinimumThreadsCount
         {
             get { return threadsCount; }
+        }
+
+        protected override void OnSlaveJoined(SlaveContext slaveContext)
+        {
+            base.OnSlaveJoined(slaveContext);
+            if (TotalThreadSlotsCount >= MinimumThreadsCount)
+            {
+                // TODO: Ruuuuuuun!
+            }
+        }
+
+        protected override void OnSlaveLeft(SlaveContext slaveContext)
+        {
+            base.OnSlaveLeft(slaveContext);
+            // TODO: Check whether the slave has allocated slots. If no - do not throw.
+            throw new NetworkFailure("A static master doesn't support dynamic slaves."); 
         }
     }
 }

@@ -95,6 +95,7 @@
     <Compile Include="Computing\Events\AbstractSlaveEventArgs.cs" />
     <Compile Include="Computing\Events\SlaveJoinedEventArgs.cs" />
     <Compile Include="Computing\Events\SlaveLeftEventArgs.cs" />
+    <Compile Include="Computing\Exceptions\NetworkFailure.cs" />
     <Compile Include="Computing\Interfaces\IThreadWorld.cs" />
     <Compile Include="Computing\Messaging\Structures\JoinRequestValue.cs" />
     <Compile Include="Computing\Messaging\Structures\JoinResponseValue.cs" />
@@ -102,6 +103,8 @@
     <Compile Include="Computing\Structures\SlaveContext.cs" />
     <Compile Include="Computing\Topologies\Enums\TopologyType.cs" />
     <Compile Include="Computing\Topologies\Interfaces\ITopology.cs" />
+    <Compile Include="Computing\Topologies\StarTopology.cs" />
+    <Compile Include="Computing\Topologies\Structures\RelativeAddress.cs" />
     <Compile Include="Computing\Topologies\Structures\ThreadAddress.cs" />
     <Compile Include="Computing\Topologies\TopologiesFactory.cs" />
     <Compile Include="Helpers\InvokeHelper.cs" />

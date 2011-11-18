@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using Cloudy.Computing.Structures;
+using Cloudy.Computing.Topologies.Structures;
 
 namespace Cloudy.Computing.Topologies.Interfaces
 {
     public interface ITopology
     {
-        IEnumerable<int[]> Allocate(SlaveContext slave, int threadsCount);
+        RelativeAddress[] Allocate(SlaveContext slave, int threadsCount);
 
-        void Free(int[] address);
+        void Free(RelativeAddress address);
 
-        int[] GetRoute(int[] current, int[] destination);
+        RelativeAddress GetRoute(RelativeAddress current, RelativeAddress destination);
     }
 }

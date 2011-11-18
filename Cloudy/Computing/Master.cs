@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Events;
+using Cloudy.Computing.Exceptions;
 using Cloudy.Computing.Messaging.Structures;
 using Cloudy.Computing.Structures;
 using Cloudy.Computing.Topologies.Enums;
@@ -20,6 +21,8 @@ namespace Cloudy.Computing
             new Dictionary<IPEndPoint, SlaveContext>();
 
         protected MasterState state = MasterState.Joined;
+
+        private int totalThreadSlotsCount;
 
         protected Master(int port)
             : base(port)
@@ -41,6 +44,18 @@ namespace Cloudy.Computing
             get { return state; }
         }
 
+        /// <summary>
+        /// Gets the total count of thread slots within all the joined slaves.
+        /// </summary>
+        public int TotalThreadSlotsCount
+        {
+            get { return totalThreadSlotsCount; }
+        }
+
+        public event EventHandler<SlaveJoinedEventArgs> SlaveJoined;
+
+        public event EventHandler<SlaveLeftEventArgs> SlaveLeft;
+
         public override int ProcessIncomingMessages(int count)
         {
             int processedMessagesCount = Dispatcher.ProcessIncomingMessages(count);
@@ -57,7 +72,8 @@ namespace Cloudy.Computing
                         {
                             LocalEndPoint = joinRequestValue.LocalEndPoint,
                             ExternalEndPoint = remoteEndPoint,
-                            Metadata = joinRequestValue.Metadata
+                            Metadata = joinRequestValue.Metadata,
+                            SlotsCount = joinRequestValue.SlotsCount
                         };
                         Dispatcher.BeginSend(remoteEndPoint, new JoinResponseValue(remoteEndPoint),
                             CommonTags.JoinResponse, JoinResponseAsyncCallback, slaveContext);
@@ -70,6 +86,7 @@ namespace Cloudy.Computing
 
         protected virtual void OnSlaveJoined(SlaveContext slaveContext)
         {
+            totalThreadSlotsCount += slaveContext.SlotsCount;
             EventHandler<SlaveJoinedEventArgs> handler = SlaveJoined;
             if (handler != null)
             {
@@ -79,16 +96,44 @@ namespace Cloudy.Computing
 
         protected virtual void OnSlaveLeft(SlaveContext slaveContext)
         {
+            totalThreadSlotsCount += slaveContext.SlotsCount;
             EventHandler<SlaveLeftEventArgs> handler = SlaveLeft;
             if (handler != null)
             {
                 handler(this, new SlaveLeftEventArgs(slaveContext));
             }
+            if (totalThreadSlotsCount < MinimumThreadsCount)
+            {
+                OnNetworkFailure();
+                // TODO: Perform pausing (optionally) until slots are enough.
+                throw new NetworkFailure("There are not enough thread slots.");
+            }
         }
 
-        public event EventHandler<SlaveJoinedEventArgs> SlaveJoined;
+        /// <summary>
+        /// Called when the network is finally failed.
+        /// </summary>
+        protected virtual void OnNetworkFailure()
+        {
+            // TODO: Shutdown all the slaves.
+        }
 
-        public event EventHandler<SlaveLeftEventArgs> SlaveLeft;
+        /// <summary>
+        /// Assigns addresses to the available threads.
+        /// </summary>
+        protected void AllocateAddresses()
+        {
+            // TODO:
+        }
+
+        /// <summary>
+        /// Initializes interconnections within the network.
+        /// Assumed that addresses are already assigned.
+        /// </summary>
+        protected void InitializeTopologyInterconnections()
+        {
+            // TODO:
+        }
 
         /// <summary>
         /// Called when a slave receives a join response.

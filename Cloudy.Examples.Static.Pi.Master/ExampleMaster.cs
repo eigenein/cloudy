@@ -16,7 +16,7 @@ namespace Cloudy.Examples.Static.Pi.Master
         /// </summary>
         public override TopologyType[] UsedTopologies
         {
-            get { throw new NotImplementedException(); }
+            get { return new[] { TopologyType.Star }; }
         }
     }
 }

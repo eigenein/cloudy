@@ -13,15 +13,15 @@ namespace Cloudy.Examples.Static.Pi.Master
         private static readonly int Port = ApplicationSettings.GetInteger(
             "Port");
 
-        private static readonly int ThreadsCount = ApplicationSettings.GetInteger(
-            "ThreadsCount");
+        private static readonly int SlotsCount = ApplicationSettings.GetInteger(
+            "SlotsCount");
 
         static void Main(string[] args)
         {
             Logger.Info("Starting Master on port {0} ...", Port);
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
-            ExampleMaster master = new ExampleMaster(Port, ThreadsCount);
+            ExampleMaster master = new ExampleMaster(Port, SlotsCount);
             master.SlaveJoined += (sender, e) => Logger.Info("Slave joined: {0}", e.SlaveContext);
             master.SlaveLeft += (sender, e) => Logger.Info("Slave left: {0}", e.SlaveContext);
             ThreadPool.QueueUserWorkItem(RunMaster, master);

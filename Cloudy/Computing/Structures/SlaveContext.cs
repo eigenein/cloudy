@@ -20,6 +20,11 @@ namespace Cloudy.Computing.Structures
         /// </summary>
         public byte[] Metadata { get; set; }
 
+        /// <summary>
+        /// Gets or sets the available thread slots count on the slave.
+        /// </summary>
+        public int SlotsCount { get; set; }
+
         public override string ToString()
         {
             return ExternalEndPoint.ToString();

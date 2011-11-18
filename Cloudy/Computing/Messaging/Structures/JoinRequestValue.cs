@@ -15,10 +15,11 @@ namespace Cloudy.Computing.Messaging.Structures
             // Do nothing.
         }
 
-        public JoinRequestValue(IPEndPoint localEndPoint, byte[] metadata)
+        public JoinRequestValue(IPEndPoint localEndPoint, int slotsCount, byte[] metadata)
         {
             this.LocalAddress = localEndPoint.Address.GetAddressBytes();
             this.LocalPort = localEndPoint.Port;
+            this.SlotsCount = slotsCount;
         }
 
         [ProtobufField(1)]
@@ -29,6 +30,9 @@ namespace Cloudy.Computing.Messaging.Structures
 
         [ProtobufField(3)]
         public byte[] Metadata { get; set; }
+
+        [ProtobufField(4)]
+        public int SlotsCount { get; set; }
 
         public IPEndPoint LocalEndPoint
         {
