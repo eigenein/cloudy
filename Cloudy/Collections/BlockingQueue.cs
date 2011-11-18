@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using Cloudy.Helpers;
 
 namespace Cloudy.Collections
 {
@@ -33,7 +34,7 @@ namespace Cloudy.Collections
         /// </summary>
         public T Dequeue()
         {
-            return Dequeue(TimeSpan.MaxValue);
+            return Dequeue(TimeSpanExtensions.Infinite);
         }
 
         /// <summary>

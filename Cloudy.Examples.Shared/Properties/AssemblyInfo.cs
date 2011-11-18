@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Cloudy Message Passing Library")]
+[assembly: AssemblyTitle("Cloudy Examples Shared Library")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("df44e4b1-a315-4d3f-838c-3b6a568155b8")]
+[assembly: Guid("3555b000-4826-4d41-bb9d-998c657f199d")]
 
 // Version information for an assembly consists of the following four values:
 //

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using Cloudy.Computing.Enums;
+using Cloudy.Computing.Events;
 using Cloudy.Computing.Messaging.Structures;
 using Cloudy.Computing.Structures;
 using Cloudy.Computing.Topologies.Enums;
@@ -17,6 +19,8 @@ namespace Cloudy.Computing
         private readonly Dictionary<IPEndPoint, SlaveContext> slaves =
             new Dictionary<IPEndPoint, SlaveContext>();
 
+        protected MasterState state = MasterState.Joined;
+
         protected Master(int port)
             : base(port)
         {
@@ -27,10 +31,20 @@ namespace Cloudy.Computing
         /// </summary>
         public abstract TopologyType[] UsedTopologies { get; }
 
-        protected override int ProcessIncomingMessages(int count)
+        /// <summary>
+        /// Gets the minimum joined threads count for the network.
+        /// </summary>
+        public abstract int MinimumThreadsCount { get; }
+
+        public MasterState State
         {
-            int processedMessagesCount = 0;
-            while (processedMessagesCount < count)
+            get { return state; }
+        }
+
+        public override int ProcessIncomingMessages(int count)
+        {
+            int processedMessagesCount = Dispatcher.ProcessIncomingMessages(count);
+            while (state == MasterState.Joined && Dispatcher.Available > 0)
             {
                 int? tag;
                 IPEndPoint remoteEndPoint;
@@ -45,7 +59,7 @@ namespace Cloudy.Computing
                             ExternalEndPoint = remoteEndPoint,
                             Metadata = joinRequestValue.Metadata
                         };
-                        Dispatcher.BeginSend(remoteEndPoint, new JoinResponseValue(),
+                        Dispatcher.BeginSend(remoteEndPoint, new JoinResponseValue(remoteEndPoint),
                             CommonTags.JoinResponse, JoinResponseAsyncCallback, slaveContext);
                         break;
                 }
@@ -53,6 +67,28 @@ namespace Cloudy.Computing
             }
             return processedMessagesCount;
         }
+
+        protected virtual void OnSlaveJoined(SlaveContext slaveContext)
+        {
+            EventHandler<SlaveJoinedEventArgs> handler = SlaveJoined;
+            if (handler != null)
+            {
+                handler(this, new SlaveJoinedEventArgs(slaveContext));
+            }
+        }
+
+        protected virtual void OnSlaveLeft(SlaveContext slaveContext)
+        {
+            EventHandler<SlaveLeftEventArgs> handler = SlaveLeft;
+            if (handler != null)
+            {
+                handler(this, new SlaveLeftEventArgs(slaveContext));
+            }
+        }
+
+        public event EventHandler<SlaveJoinedEventArgs> SlaveJoined;
+
+        public event EventHandler<SlaveLeftEventArgs> SlaveLeft;
 
         /// <summary>
         /// Called when a slave receives a join response.
@@ -63,6 +99,7 @@ namespace Cloudy.Computing
             // And we can add it to our lists.
             SlaveContext slaveContext = (SlaveContext)ar.AsyncState;
             slaves[slaveContext.ExternalEndPoint] = slaveContext;
+            OnSlaveJoined(slaveContext);
         }
     }
 }

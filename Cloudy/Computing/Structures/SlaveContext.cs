@@ -19,5 +19,10 @@ namespace Cloudy.Computing.Structures
         /// The associated metadata.
         /// </summary>
         public byte[] Metadata { get; set; }
+
+        public override string ToString()
+        {
+            return ExternalEndPoint.ToString();
+        }
     }
 }

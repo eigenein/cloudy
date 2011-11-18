@@ -26,7 +26,8 @@ namespace Cloudy.Computing
         /// <param name="port">The source UDP port.</param>
         protected Node(int port)
         {
-            this.PingTimeout = new TimeSpan(0, 0, 1);
+            this.ReceiptTimeout = this.ResponseTimeout = 
+                new TimeSpan(0, 0, 10);
 
             IRawCommunicator<IPEndPoint> rawCommunicator =
                 new UdpClientRawCommunicator(new UdpClient(port));
@@ -35,12 +36,17 @@ namespace Cloudy.Computing
         }
 
         /// <summary>
+        /// Gets or sets the timeout for a response to some control messages.
+        /// </summary>
+        public TimeSpan ResponseTimeout { get; set; }
+
+        /// <summary>
         /// Gets or sets the timeout for delivery notification when sending 
         /// a message.
         /// </summary>
-        public TimeSpan PingTimeout { get; set; }
+        public TimeSpan ReceiptTimeout { get; set; }
 
-        protected abstract int ProcessIncomingMessages(int count);
+        public abstract int ProcessIncomingMessages(int count);
 
         #region Implementation of IDisposable
 

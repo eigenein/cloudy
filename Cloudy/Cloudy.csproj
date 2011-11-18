@@ -89,15 +89,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collections\BlockingQueue.cs" />
-    <Compile Include="Computing\Interfaces\IThreadingNetwork.cs" />
+    <Compile Include="Computing\Enums\MasterState.cs" />
+    <Compile Include="Computing\Enums\SlaveState.cs" />
+    <Compile Include="Computing\Events\JoinedEventArgs.cs" />
+    <Compile Include="Computing\Events\AbstractSlaveEventArgs.cs" />
+    <Compile Include="Computing\Events\SlaveJoinedEventArgs.cs" />
+    <Compile Include="Computing\Events\SlaveLeftEventArgs.cs" />
+    <Compile Include="Computing\Interfaces\IThreadWorld.cs" />
     <Compile Include="Computing\Messaging\Structures\JoinRequestValue.cs" />
     <Compile Include="Computing\Messaging\Structures\JoinResponseValue.cs" />
+    <Compile Include="Computing\StaticMaster.cs" />
     <Compile Include="Computing\Structures\SlaveContext.cs" />
     <Compile Include="Computing\Topologies\Enums\TopologyType.cs" />
     <Compile Include="Computing\Topologies\Interfaces\ITopology.cs" />
     <Compile Include="Computing\Topologies\Structures\ThreadAddress.cs" />
     <Compile Include="Computing\Topologies\TopologiesFactory.cs" />
     <Compile Include="Helpers\InvokeHelper.cs" />
+    <Compile Include="Helpers\TimeSpanExtensions.cs" />
     <Compile Include="Messaging\Raw\StreamRawCommunicator.cs" />
     <Compile Include="Messaging\Raw\UdpClientRawCommunicator.cs" />
     <Compile Include="Messaging\Enums\CommonTags.cs" />

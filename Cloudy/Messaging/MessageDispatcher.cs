@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cloudy.Collections;
+using Cloudy.Helpers;
 using Cloudy.Messaging.Enums;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
@@ -88,7 +89,7 @@ namespace Cloudy.Messaging
             {
                 TEndPoint remoteEndPoint;
                 TrackableDto message = communicator.Receive<TrackableDto>(out remoteEndPoint);
-                if (message.Tag == CommonTags.DeliveryNotification)
+                if (message.Tag == CommonTags.Receipt)
                 {
                     MessagingAsyncResult ar;
                     if (sendQueue.TryGetValue(message.TrackingId, out ar))
@@ -105,7 +106,7 @@ namespace Cloudy.Messaging
                 {
                     // Regular message. Send the delivery notification.
                     communicator.Send(new TrackableDto(message.TrackingId,
-                        CommonTags.DeliveryNotification, null), remoteEndPoint);
+                        CommonTags.Receipt, null), remoteEndPoint);
                     if (message.Tag != CommonTags.Ping)
                     {
                         receiveQueue.Enqueue(new Tuple<TrackableDto, TEndPoint>(
@@ -190,7 +191,27 @@ namespace Cloudy.Messaging
         /// </summary>
         public ICastable Receive(out TEndPoint remoteEndPoint, out int? tag)
         {
-            return Receive(out remoteEndPoint, out tag, TimeSpan.MaxValue);
+            return Receive(out remoteEndPoint, out tag, TimeSpanExtensions.Infinite);
+        }
+
+        /// <summary>
+        /// Receives a message.
+        /// </summary>
+        public TResult Receive<TResult>()
+        {
+            TEndPoint remoteEndPoint;
+            int? tag;
+            return Receive<TResult>(out remoteEndPoint, out tag, TimeSpanExtensions.Infinite);
+        }
+
+        /// <summary>
+        /// Receives a message.
+        /// </summary>
+        public TResult Receive<TResult>(TimeSpan timeout)
+        {
+            TEndPoint remoteEndPoint;
+            int? tag;
+            return Receive<TResult>(out remoteEndPoint, out tag, timeout);
         }
 
         /// <summary>
@@ -198,7 +219,7 @@ namespace Cloudy.Messaging
         /// </summary>
         public TResult Receive<TResult>(out TEndPoint remoteEndPoint, out int? tag)
         {
-            return Receive<TResult>(out remoteEndPoint, out tag, TimeSpan.MaxValue);
+            return Receive<TResult>(out remoteEndPoint, out tag, TimeSpanExtensions.Infinite);
         }
 
         /// <summary>

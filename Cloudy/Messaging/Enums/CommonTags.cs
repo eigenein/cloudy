@@ -10,7 +10,7 @@ namespace Cloudy.Messaging.Enums
         /// <summary>
         /// The delivery notification tag.
         /// </summary>
-        public const int DeliveryNotification = -1;
+        public const int Receipt = -1;
 
         /// <summary>
         /// The ping tag. Ping DTO's are not buffered on the destination

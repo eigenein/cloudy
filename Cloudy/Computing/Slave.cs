@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Net;
+using Cloudy.Computing.Enums;
+using Cloudy.Computing.Events;
 using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Messaging.Structures;
 using Cloudy.Messaging.Enums;
+using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
 
 namespace Cloudy.Computing
@@ -14,18 +17,28 @@ namespace Cloudy.Computing
     {
         private readonly IPEndPoint localEndPoint;
 
+        private SlaveState state = SlaveState.NotJoined;
+
         protected Slave(IPEndPoint localEndPoint) 
             : base(localEndPoint.Port)
         {
             this.localEndPoint = localEndPoint;
         }
 
-        // protected abstract 
+        public SlaveState State
+        {
+            get { return state; }
+        }
 
         /// <summary>
-        /// When overridden, creates a computing thread.
+        /// Occurs when a slaves successfully joins the network.
         /// </summary>
-        protected abstract Action<IThreadingNetwork> CreateThread();
+        public event EventHandler<JoinedEventArgs> Joined;
+
+        /// <summary>
+        /// Runs a computation.
+        /// </summary>
+        protected abstract void Run(IThreadWorld world);
 
         /// <summary>
         /// Joins a network.
@@ -37,7 +50,32 @@ namespace Cloudy.Computing
             MessagingAsyncResult ar = Dispatcher.BeginSend(remoteEndPoint, 
                 new JoinRequestValue(localEndPoint, metadata), 
                 CommonTags.JoinRequest, null, null);
-            Dispatcher.EndSend(ar, PingTimeout);
+            Dispatcher.EndSend(ar, ReceiptTimeout);
+            JoinResponseValue response = Dispatcher.Receive<JoinResponseValue>(
+                ResponseTimeout);
+            state = SlaveState.Joined;
+            if (Joined != null)
+            {
+                Joined(this, new JoinedEventArgs(response.ExternalEndPoint));
+            }
+        }
+
+        public override int ProcessIncomingMessages(int count)
+        {
+            int processedMessagesCount = Dispatcher.ProcessIncomingMessages(count);
+            switch (state)
+            {
+                case SlaveState.Joined:
+                    while (Dispatcher.Available > 0)
+                    {
+                        int? tag;
+                        IPEndPoint remoteEndPoint;
+                        // ICastable message = 
+                            Dispatcher.Receive(out remoteEndPoint, out tag);
+                    }
+                    break;
+            }
+            return processedMessagesCount;
         }
     }
 }
