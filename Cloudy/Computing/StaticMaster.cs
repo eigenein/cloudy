@@ -24,15 +24,6 @@ namespace Cloudy.Computing
             get { return threadsCount; }
         }
 
-        protected override void OnSlaveJoined(SlaveContext slaveContext)
-        {
-            base.OnSlaveJoined(slaveContext);
-            if (TotalThreadSlotsCount >= MinimumThreadsCount)
-            {
-                // Do the stuff: allocate and run.
-            }
-        }
-
         protected override void OnSlaveLeft(SlaveContext slaveContext)
         {
             base.OnSlaveLeft(slaveContext);

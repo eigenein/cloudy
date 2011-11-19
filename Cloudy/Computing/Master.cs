@@ -22,7 +22,7 @@ namespace Cloudy.Computing
 
         private readonly Topology topology;
 
-        protected MasterState state = MasterState.Joined;
+        protected MasterState state = MasterState.AwaitingForSlaves;
 
         private int totalThreadSlotsCount;
 
@@ -64,7 +64,7 @@ namespace Cloudy.Computing
         public override int ProcessIncomingMessages(int count)
         {
             int processedMessagesCount = Dispatcher.ProcessIncomingMessages(count);
-            while (state == MasterState.Joined && Dispatcher.Available > 0)
+            while (state != MasterState.Left && Dispatcher.Available > 0)
             {
                 int? tag;
                 IPEndPoint remoteEndPoint;
@@ -96,6 +96,12 @@ namespace Cloudy.Computing
             if (handler != null)
             {
                 handler(this, new SlaveJoinedEventArgs(slaveContext));
+            }
+            if (state == MasterState.AwaitingForSlaves &&
+                totalThreadSlotsCount >= MinimumThreadsCount)
+            {
+                // TODO: allocate and run.
+                state = MasterState.Running;
             }
         }
 

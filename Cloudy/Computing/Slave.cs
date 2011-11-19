@@ -63,18 +63,17 @@ namespace Cloudy.Computing
 
         public override int ProcessIncomingMessages(int count)
         {
-            int processedMessagesCount = Dispatcher.ProcessIncomingMessages(count);
-            switch (state)
+            if (state != SlaveState.Joined)
             {
-                case SlaveState.Joined:
-                    while (Dispatcher.Available > 0)
-                    {
-                        int? tag;
-                        IPEndPoint remoteEndPoint;
-                        // ICastable message = 
-                            Dispatcher.Receive(out remoteEndPoint, out tag);
-                    }
-                    break;
+                return 0;
+            }
+            int processedMessagesCount = Dispatcher.ProcessIncomingMessages(count);
+            while (Dispatcher.Available > 0)
+            {
+                int? tag;
+                IPEndPoint remoteEndPoint;
+                // ICastable message = 
+                Dispatcher.Receive(out remoteEndPoint, out tag);
             }
             return processedMessagesCount;
         }

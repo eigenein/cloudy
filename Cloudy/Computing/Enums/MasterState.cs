@@ -4,7 +4,8 @@ namespace Cloudy.Computing.Enums
 {
     public enum MasterState
     {
-        Joined,
+        AwaitingForSlaves,
+        Running,
         Left
     }
 }
