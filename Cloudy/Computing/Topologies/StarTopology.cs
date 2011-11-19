@@ -1,25 +1,30 @@
 ﻿using System;
-using Cloudy.Computing.Structures;
-using Cloudy.Computing.Topologies.Interfaces;
+using System.Collections.Generic;
+using Cloudy.Computing.Topologies.Enums;
 using Cloudy.Computing.Topologies.Structures;
 
 namespace Cloudy.Computing.Topologies
 {
-    public class StarTopology : ITopology
+    public class StarTopology : Topology
     {
-        #region Implementation of ITopology
+        #region Overrides of Topology
 
-        public RelativeAddress[] Allocate(SlaveContext slave, int threadsCount)
+        public override TopologyType TopologyType
+        {
+            get { return TopologyType.Star; }
+        }
+
+        public override ThreadAddress Allocate()
         {
             throw new NotImplementedException();
         }
 
-        public void Free(RelativeAddress address)
+        public override void Reset()
         {
             throw new NotImplementedException();
         }
 
-        public RelativeAddress GetRoute(RelativeAddress current, RelativeAddress destination)
+        public override IEnumerator<ThreadAddress> GetEnumerator()
         {
             throw new NotImplementedException();
         }

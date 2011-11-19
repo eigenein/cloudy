@@ -6,7 +6,7 @@ using Cloudy.Computing.Events;
 using Cloudy.Computing.Exceptions;
 using Cloudy.Computing.Messaging.Structures;
 using Cloudy.Computing.Structures;
-using Cloudy.Computing.Topologies.Enums;
+using Cloudy.Computing.Topologies;
 using Cloudy.Messaging.Enums;
 using Cloudy.Messaging.Interfaces;
 
@@ -20,19 +20,19 @@ namespace Cloudy.Computing
         private readonly Dictionary<IPEndPoint, SlaveContext> slaves =
             new Dictionary<IPEndPoint, SlaveContext>();
 
+        private readonly Topology topology;
+
         protected MasterState state = MasterState.Joined;
 
         private int totalThreadSlotsCount;
 
-        protected Master(int port)
+        private int runningThreadsCount;
+
+        protected Master(int port, Topology topology)
             : base(port)
         {
+            this.topology = topology;
         }
-
-        /// <summary>
-        /// Gets topologies that are used in the network.
-        /// </summary>
-        public abstract TopologyType[] UsedTopologies { get; }
 
         /// <summary>
         /// Gets the minimum joined threads count for the network.
@@ -50,6 +50,11 @@ namespace Cloudy.Computing
         public int TotalThreadSlotsCount
         {
             get { return totalThreadSlotsCount; }
+        }
+
+        public int RunningThreadsCount
+        {
+            get { return runningThreadsCount; }
         }
 
         public event EventHandler<SlaveJoinedEventArgs> SlaveJoined;
@@ -96,11 +101,15 @@ namespace Cloudy.Computing
 
         protected virtual void OnSlaveLeft(SlaveContext slaveContext)
         {
-            totalThreadSlotsCount += slaveContext.SlotsCount;
-            EventHandler<SlaveLeftEventArgs> handler = SlaveLeft;
-            if (handler != null)
+            totalThreadSlotsCount -= slaveContext.SlotsCount;
+            slaves.Remove(slaveContext.ExternalEndPoint);
+            foreach (ThreadContext thread in slaveContext.Threads)
             {
-                handler(this, new SlaveLeftEventArgs(slaveContext));
+                OnNeighborLeft(thread.Address);
+            }
+            if (SlaveLeft != null)
+            {
+                SlaveLeft(this, new SlaveLeftEventArgs(slaveContext));
             }
             if (totalThreadSlotsCount < MinimumThreadsCount)
             {
@@ -116,23 +125,6 @@ namespace Cloudy.Computing
         protected virtual void OnNetworkFailure()
         {
             // TODO: Shutdown all the slaves.
-        }
-
-        /// <summary>
-        /// Assigns addresses to the available threads.
-        /// </summary>
-        protected void AllocateAddresses()
-        {
-            // TODO:
-        }
-
-        /// <summary>
-        /// Initializes interconnections within the network.
-        /// Assumed that addresses are already assigned.
-        /// </summary>
-        protected void InitializeTopologyInterconnections()
-        {
-            // TODO:
         }
 
         /// <summary>

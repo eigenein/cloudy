@@ -1,6 +1,7 @@
 ﻿using System;
 using Cloudy.Computing.Exceptions;
 using Cloudy.Computing.Structures;
+using Cloudy.Computing.Topologies;
 
 namespace Cloudy.Computing
 {
@@ -12,8 +13,8 @@ namespace Cloudy.Computing
     {
         private readonly int threadsCount;
 
-        protected StaticMaster(int port, int threadsCount) 
-            : base(port)
+        protected StaticMaster(int port, int threadsCount, Topology topology) 
+            : base(port, topology)
         {
             this.threadsCount = threadsCount;
         }
@@ -28,7 +29,7 @@ namespace Cloudy.Computing
             base.OnSlaveJoined(slaveContext);
             if (TotalThreadSlotsCount >= MinimumThreadsCount)
             {
-                // TODO: Ruuuuuuun!
+                // Do the stuff: allocate and run.
             }
         }
 

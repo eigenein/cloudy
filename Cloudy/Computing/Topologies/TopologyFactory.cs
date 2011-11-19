@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using Cloudy.Computing.Topologies.Enums;
-using Cloudy.Computing.Topologies.Interfaces;
 
 namespace Cloudy.Computing.Topologies
 {
-    public static class TopologiesFactory
+    public static class TopologyFactory
     {
-        private static readonly Dictionary<TopologyType, Func<ITopology>> Cache =
-            new Dictionary<TopologyType, Func<ITopology>>()
+        private static readonly Dictionary<TopologyType, Func<Topology>> Cache =
+            new Dictionary<TopologyType, Func<Topology>>()
             {
                 {TopologyType.Star, () => new StarTopology()}
             };
 
-        public static ITopology Create(TopologyType topologyType)
+        public static Topology Create(TopologyType topologyType)
         {
             return Cache[topologyType]();
         }

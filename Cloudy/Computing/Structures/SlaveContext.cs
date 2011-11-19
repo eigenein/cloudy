@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 
 namespace Cloudy.Computing.Structures
@@ -24,6 +25,11 @@ namespace Cloudy.Computing.Structures
         /// Gets or sets the available thread slots count on the slave.
         /// </summary>
         public int SlotsCount { get; set; }
+
+        /// <summary>
+        /// Gets the allocated threads.
+        /// </summary>
+        public List<ThreadContext> Threads { get; set; }
 
         public override string ToString()
         {

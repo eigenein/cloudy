@@ -30,7 +30,7 @@ namespace Cloudy.Computing
                 new TimeSpan(0, 0, 10);
 
             IRawCommunicator<IPEndPoint> rawCommunicator =
-                new UdpClientRawCommunicator(new UdpClient(port));
+                new UdpClientRawCommunicator(new UdpClient(port) { DontFragment = true });
             this.Dispatcher = new MessageDispatcher<IPEndPoint>(
                 new Communicator<IPEndPoint>(rawCommunicator));
         }
@@ -47,6 +47,11 @@ namespace Cloudy.Computing
         public TimeSpan ReceiptTimeout { get; set; }
 
         public abstract int ProcessIncomingMessages(int count);
+
+        protected void OnNeighborLeft(ThreadAddress address)
+        {
+            Neighbors.Remove(address);
+        }
 
         #region Implementation of IDisposable
 

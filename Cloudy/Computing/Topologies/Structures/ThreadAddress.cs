@@ -5,43 +5,32 @@ using Cloudy.Protobuf.Attributes;
 namespace Cloudy.Computing.Topologies.Structures
 {
     /// <summary>
-    /// Represents a slave address within a network with multiple topologies.
+    /// Represents the thread address.
     /// </summary>
     [ProtobufSerializable]
     public class ThreadAddress
     {
-        /// <summary>
-        /// Gets or sets the topology index.
-        /// </summary>
         [ProtobufField(1)]
-        public int TopologyIndex { get; set; }
+        public int[] Parts { get; set; }
 
-        /// <summary>
-        /// Gets or sets the thread address relatively to the topology index.
-        /// </summary>
-        [ProtobufField(2)]
-        public RelativeAddress RelativeAddress { get; set; }
+        public int Length
+        {
+            get { return Parts.Length; }
+        }
+
+        public int this[int index]
+        {
+            get { return Parts[index]; }
+        }
 
         public override int GetHashCode()
         {
-            return RelativeAddress.Parts.Aggregate(TopologyIndex, (current, value) => current * 31 + value);
-        }
-
-        public override bool Equals(object obj)
-        {
-            ThreadAddress anotherAddress = obj as ThreadAddress;
-            if (anotherAddress == null || 
-                anotherAddress.TopologyIndex != TopologyIndex ||
-                anotherAddress.RelativeAddress.Length != RelativeAddress.Length)
-            {
-                return false;
-            }
-            return !RelativeAddress.Parts.Where((el, i) => el != anotherAddress.RelativeAddress[i]).Any();
+            return Parts.Aggregate(0, (current, part) => current * 31 + part);
         }
 
         public override string ToString()
         {
-            return String.Format("{0:x}:{1}", TopologyIndex, RelativeAddress);
+            return String.Join(":", Parts.Select(part => part.ToString()).ToArray());
         }
     }
 }
