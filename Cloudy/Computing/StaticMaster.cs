@@ -19,7 +19,7 @@ namespace Cloudy.Computing
             this.threadsCount = threadsCount;
         }
 
-        public override int MinimumThreadsCount
+        public override int StartThreadsCount
         {
             get { return threadsCount; }
         }

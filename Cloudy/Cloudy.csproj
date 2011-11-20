@@ -96,13 +96,16 @@
     <Compile Include="Computing\Events\AbstractSlaveEventArgs.cs" />
     <Compile Include="Computing\Events\SlaveJoinedEventArgs.cs" />
     <Compile Include="Computing\Events\SlaveLeftEventArgs.cs" />
+    <Compile Include="Computing\Events\ThreadAllocatedEventArgs.cs" />
     <Compile Include="Computing\Exceptions\NetworkFailure.cs" />
     <Compile Include="Computing\Interfaces\IThreadWorld.cs" />
+    <Compile Include="Computing\Messaging\Structures\AllocateThreadValue.cs" />
     <Compile Include="Computing\Messaging\Structures\JoinRequestValue.cs" />
     <Compile Include="Computing\Messaging\Structures\JoinResponseValue.cs" />
     <Compile Include="Computing\StaticMaster.cs" />
     <Compile Include="Computing\Structures\SlaveContext.cs" />
     <Compile Include="Computing\Structures\ThreadContext.cs" />
+    <Compile Include="Computing\Topologies\Enumerators\StarAddressesEnumerator.cs" />
     <Compile Include="Computing\Topologies\Enums\TopologyType.cs" />
     <Compile Include="Computing\Topologies\Interfaces\IRouter.cs" />
     <Compile Include="Computing\Topologies\Topology.cs" />

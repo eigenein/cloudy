@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using Cloudy.Computing.Enums;
 
 namespace Cloudy.Computing.Structures
 {
     public class SlaveContext
     {
+        private readonly List<ThreadContext> threads = new List<ThreadContext>();
+
         /// <summary>
         /// The endpoint of the slave in its local network.
         /// </summary>
@@ -29,7 +32,12 @@ namespace Cloudy.Computing.Structures
         /// <summary>
         /// Gets the allocated threads.
         /// </summary>
-        public List<ThreadContext> Threads { get; set; }
+        public List<ThreadContext> Threads
+        {
+            get { return threads; }
+        }
+
+        public SlaveState State { get; set; }
 
         public override string ToString()
         {

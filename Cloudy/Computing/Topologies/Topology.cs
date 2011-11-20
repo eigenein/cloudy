@@ -10,9 +10,7 @@ namespace Cloudy.Computing.Topologies
     {
         public abstract TopologyType TopologyType { get; }
 
-        public abstract ThreadAddress Allocate();
-
-        public abstract void Reset();
+        public abstract void Allocate(int count);
 
         #region Implementation of IEnumerable
 

@@ -17,9 +17,6 @@ namespace Cloudy.Computing
     {
         protected readonly MessageDispatcher<IPEndPoint> Dispatcher;
 
-        protected readonly Dictionary<ThreadAddress, IPEndPoint> Neighbors =
-            new Dictionary<ThreadAddress, IPEndPoint>();
-
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
@@ -47,11 +44,6 @@ namespace Cloudy.Computing
         public TimeSpan ReceiptTimeout { get; set; }
 
         public abstract int ProcessIncomingMessages(int count);
-
-        protected void OnNeighborLeft(ThreadAddress address)
-        {
-            Neighbors.Remove(address);
-        }
 
         #region Implementation of IDisposable
 

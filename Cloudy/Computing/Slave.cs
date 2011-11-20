@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Events;
 using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Messaging.Structures;
+using Cloudy.Computing.Topologies.Structures;
 using Cloudy.Messaging.Enums;
+using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
 
 namespace Cloudy.Computing
@@ -15,6 +18,9 @@ namespace Cloudy.Computing
     public abstract class Slave : Node
     {
         private readonly IPEndPoint localEndPoint;
+
+        private readonly Dictionary<ThreadAddress, IPEndPoint> neighbors =
+            new Dictionary<ThreadAddress, IPEndPoint>();
 
         private SlaveState state = SlaveState.NotJoined;
 
@@ -35,6 +41,11 @@ namespace Cloudy.Computing
         /// Occurs when a slaves successfully joins the network.
         /// </summary>
         public event EventHandler<JoinedEventArgs> Joined;
+
+        /// <summary>
+        /// Occurs when a thread is allocated in the slave.
+        /// </summary>
+        public event EventHandler<ThreadAllocatedEventArgs> ThreadAllocated;
 
         /// <summary>
         /// Runs a computation.
@@ -63,17 +74,22 @@ namespace Cloudy.Computing
 
         public override int ProcessIncomingMessages(int count)
         {
-            if (state != SlaveState.Joined)
-            {
-                return 0;
-            }
             int processedMessagesCount = Dispatcher.ProcessIncomingMessages(count);
-            while (Dispatcher.Available > 0)
+            while (state == SlaveState.Joined && Dispatcher.Available > 0)
             {
                 int? tag;
                 IPEndPoint remoteEndPoint;
-                // ICastable message = 
-                Dispatcher.Receive(out remoteEndPoint, out tag);
+                ICastable message = Dispatcher.Receive(out remoteEndPoint, out tag);
+                switch (tag)
+                {
+                    case CommonTags.AllocateThread:
+                        AllocateThreadValue value = message.Cast<AllocateThreadValue>();
+                        if (ThreadAllocated != null)
+                        {
+                            ThreadAllocated(this, new ThreadAllocatedEventArgs(value.ThreadAddress));
+                        }
+                        break;
+                }
             }
             return processedMessagesCount;
         }

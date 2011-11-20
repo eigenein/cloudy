@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Events;
 using Cloudy.Computing.Exceptions;
 using Cloudy.Computing.Messaging.Structures;
 using Cloudy.Computing.Structures;
 using Cloudy.Computing.Topologies;
+using Cloudy.Computing.Topologies.Structures;
 using Cloudy.Messaging.Enums;
 using Cloudy.Messaging.Interfaces;
+using Cloudy.Messaging.Structures;
+using ThreadState = Cloudy.Computing.Enums.ThreadState;
 
 namespace Cloudy.Computing
 {
@@ -26,7 +30,7 @@ namespace Cloudy.Computing
 
         private int totalThreadSlotsCount;
 
-        private int runningThreadsCount;
+        // private int runningThreadsCount;
 
         protected Master(int port, Topology topology)
             : base(port)
@@ -35,9 +39,9 @@ namespace Cloudy.Computing
         }
 
         /// <summary>
-        /// Gets the minimum joined threads count for the network.
+        /// Gets the count of available threads to start threads at the first time.
         /// </summary>
-        public abstract int MinimumThreadsCount { get; }
+        public abstract int StartThreadsCount { get; }
 
         public MasterState State
         {
@@ -54,7 +58,7 @@ namespace Cloudy.Computing
 
         public int RunningThreadsCount
         {
-            get { return runningThreadsCount; }
+            get { throw new NotImplementedException(); }
         }
 
         public event EventHandler<SlaveJoinedEventArgs> SlaveJoined;
@@ -78,7 +82,8 @@ namespace Cloudy.Computing
                             LocalEndPoint = joinRequestValue.LocalEndPoint,
                             ExternalEndPoint = remoteEndPoint,
                             Metadata = joinRequestValue.Metadata,
-                            SlotsCount = joinRequestValue.SlotsCount
+                            SlotsCount = joinRequestValue.SlotsCount,
+                            State = SlaveState.Joined
                         };
                         Dispatcher.BeginSend(remoteEndPoint, new JoinResponseValue(remoteEndPoint),
                             CommonTags.JoinResponse, JoinResponseAsyncCallback, slaveContext);
@@ -98,10 +103,9 @@ namespace Cloudy.Computing
                 handler(this, new SlaveJoinedEventArgs(slaveContext));
             }
             if (state == MasterState.AwaitingForSlaves &&
-                totalThreadSlotsCount >= MinimumThreadsCount)
+                totalThreadSlotsCount >= StartThreadsCount)
             {
-                // TODO: allocate and run.
-                state = MasterState.Running;
+                ThreadPool.QueueUserWorkItem(StartNetwork);
             }
         }
 
@@ -109,20 +113,121 @@ namespace Cloudy.Computing
         {
             totalThreadSlotsCount -= slaveContext.SlotsCount;
             slaves.Remove(slaveContext.ExternalEndPoint);
-            foreach (ThreadContext thread in slaveContext.Threads)
-            {
-                OnNeighborLeft(thread.Address);
-            }
             if (SlaveLeft != null)
             {
                 SlaveLeft(this, new SlaveLeftEventArgs(slaveContext));
             }
-            if (totalThreadSlotsCount < MinimumThreadsCount)
+        }
+
+        private void StartNetwork(object state)
+        {
+            AssignAddresses(); // TODO: event
+            AllocateThreads(); // TODO: event
+            // RunThreads(); // TODO: event
+            CleanUpSlaves(); // TODO: event
+            this.state = MasterState.Running; // TODO: Add event to state change
+        }
+
+        /// <summary>
+        /// Assigns addresses to the available threads.
+        /// </summary>
+        /// <returns>Assigned addresses count.</returns>
+        protected int AssignAddresses()
+        {
+            int addressesAssignedCount = 0;
+            topology.Allocate(totalThreadSlotsCount);
+            IEnumerator<ThreadAddress> addressEnumerator = topology.GetEnumerator();
+            foreach (KeyValuePair<IPEndPoint, SlaveContext> mapping in slaves)
             {
-                OnNetworkFailure();
-                // TODO: Perform pausing (optionally) until slots are enough.
-                throw new NetworkFailure("There are not enough thread slots.");
+                for (int i = 0; i < mapping.Value.SlotsCount; i++)
+                {
+                    if (!addressEnumerator.MoveNext())
+                    {
+                        break;
+                    }
+                    ThreadContext context = new ThreadContext();
+                    context.Address = addressEnumerator.Current;
+                    context.State = ThreadState.Initial;
+                    mapping.Value.Threads.Add(context);
+                    addressesAssignedCount += 1;
+                }
             }
+            return addressesAssignedCount;
+        }
+
+        /// <summary>
+        /// Sends allocation messages to slaves.
+        /// </summary>
+        /// <returns>Successfully allocated threads count.</returns>
+        protected int AllocateThreads()
+        {
+            int count = 0;
+            foreach (KeyValuePair<IPEndPoint, SlaveContext> mapping in slaves)
+            {
+                foreach (ThreadContext thread in mapping.Value.Threads)
+                {
+                    if (mapping.Value.State != SlaveState.Joined)
+                    {
+                        break;
+                    }
+                    if (thread.State != ThreadState.Initial)
+                    {
+                        continue;
+                    }
+                    AllocateThreadValue value = new AllocateThreadValue();
+                    value.ThreadAddress = thread.Address;
+                    MessagingAsyncResult ar = Dispatcher.BeginSend(
+                        mapping.Key, value, CommonTags.AllocateThread,
+                        null, null);
+                    try
+                    {
+                        Dispatcher.EndSend(ar, ResponseTimeout);
+                        thread.State = ThreadState.Allocated;
+                        count += 1;
+                    }
+                    catch (TimeoutException)
+                    {
+                        mapping.Value.State = SlaveState.Left;
+                    }
+                }
+            } 
+            return count;
+        }
+
+        /// <summary>
+        /// Cleans up the left slaves.
+        /// </summary>
+        /// <returns>Slaves cleaned up count.</returns>
+        protected int CleanUpSlaves()
+        {
+            int count = 0;
+            foreach (SlaveContext slave in slaves.Values)
+            {
+                if (slave.State == SlaveState.Left)
+                {
+                    OnSlaveLeft(slave);
+                    count += 1;
+                }
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// Initializes interconnections between slaves.
+        /// </summary>
+        /// <returns>Connections initalized count.</returns>
+        protected int SetupInterconnections()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Starts computational threads.
+        /// </summary>
+        /// <returns>Running threads count.</returns>
+        protected bool RunThreads()
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

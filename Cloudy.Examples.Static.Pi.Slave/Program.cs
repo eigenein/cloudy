@@ -34,6 +34,7 @@ namespace Cloudy.Examples.Static.Pi.Slave
             ExampleSlave slave = new ExampleSlave(new IPEndPoint(
                 LocalAddress, LocalPort), SlotsCount);
             slave.Joined += (sender, e) => Logger.Info("Joined as {0}", e.ExternalEndPoint);
+            slave.ThreadAllocated += (sender, e) => Logger.Info("Allocated thread {0}", e.ThreadAddress);
             ThreadPool.QueueUserWorkItem(RunSlave, slave);
 
             Logger.Info("Joining the network ...");

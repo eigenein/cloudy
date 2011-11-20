@@ -27,5 +27,10 @@ namespace Cloudy.Messaging.Enums
         /// Indicates a master response to joining to a network.
         /// </summary>
         public const int JoinResponse = -4;
+
+        /// <summary>
+        /// Thread allocation on a slave.
+        /// </summary>
+        public const int AllocateThread = -5;
     }
 }

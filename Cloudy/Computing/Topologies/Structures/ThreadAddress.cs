@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Cloudy.Protobuf.Attributes;
 
@@ -10,17 +11,46 @@ namespace Cloudy.Computing.Topologies.Structures
     [ProtobufSerializable]
     public class ThreadAddress
     {
+        private int[] parts;
+
+        /// <summary>
+        /// Empty constructor for deserialization.
+        /// </summary>
+        public ThreadAddress()
+        {
+            // Do nothing.
+        }
+
+        public ThreadAddress(int value)
+        {
+            Parts = new[] { value };
+        }
+
         [ProtobufField(1)]
-        public int[] Parts { get; set; }
+        public ICollection<int> Parts
+        {
+            get { return parts; }
+            set { this.parts = value.ToArray(); }
+        }
 
         public int Length
         {
-            get { return Parts.Length; }
+            get { return parts.Length; }
         }
 
         public int this[int index]
         {
-            get { return Parts[index]; }
+            get { return parts[index]; }
+        }
+
+        public override bool Equals(object obj)
+        {
+            ThreadAddress other = obj as ThreadAddress;
+            if (other == null)
+            {
+                return false;
+            }
+            return !parts.Where((part, i) => part != other.parts[i]).Any();
         }
 
         public override int GetHashCode()
@@ -30,7 +60,7 @@ namespace Cloudy.Computing.Topologies.Structures
 
         public override string ToString()
         {
-            return String.Join(":", Parts.Select(part => part.ToString()).ToArray());
+            return String.Join(":", parts.Select(part => part.ToString()).ToArray());
         }
     }
 }

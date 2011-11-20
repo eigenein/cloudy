@@ -19,6 +19,9 @@ namespace Cloudy.Computing.Enums
         /// </summary>
         Ready,
 
+        /// <summary>
+        /// The thread is running. :)
+        /// </summary>
         Running
     }
 }
