@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using Cloudy.Computing.Enums;
-using Cloudy.Computing.Events;
-using Cloudy.Computing.Exceptions;
 using Cloudy.Computing.Messaging.Structures;
 using Cloudy.Computing.Structures;
 using Cloudy.Computing.Topologies;
 using Cloudy.Computing.Topologies.Structures;
+using Cloudy.Helpers;
 using Cloudy.Messaging.Enums;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
@@ -61,9 +60,15 @@ namespace Cloudy.Computing
             get { throw new NotImplementedException(); }
         }
 
-        public event EventHandler<SlaveJoinedEventArgs> SlaveJoined;
+        public event ParametrizedEventHandler<SlaveContext> SlaveJoined;
 
-        public event EventHandler<SlaveLeftEventArgs> SlaveLeft;
+        public event ParametrizedEventHandler<SlaveContext> SlaveLeft;
+
+        public event ParametrizedEventHandler<int> AddressesAssigned;
+
+        public event ParametrizedEventHandler<int> ThreadsAllocated;
+
+        public event ParametrizedEventHandler<int> SlavesCleanedUp;
 
         public override int ProcessIncomingMessages(int count)
         {
@@ -97,10 +102,10 @@ namespace Cloudy.Computing
         protected virtual void OnSlaveJoined(SlaveContext slaveContext)
         {
             totalThreadSlotsCount += slaveContext.SlotsCount;
-            EventHandler<SlaveJoinedEventArgs> handler = SlaveJoined;
+            ParametrizedEventHandler<SlaveContext> handler = SlaveJoined;
             if (handler != null)
             {
-                handler(this, new SlaveJoinedEventArgs(slaveContext));
+                handler(this, new EventArgs<SlaveContext>(slaveContext));
             }
             if (state == MasterState.AwaitingForSlaves &&
                 totalThreadSlotsCount >= StartThreadsCount)
@@ -115,7 +120,7 @@ namespace Cloudy.Computing
             slaves.Remove(slaveContext.ExternalEndPoint);
             if (SlaveLeft != null)
             {
-                SlaveLeft(this, new SlaveLeftEventArgs(slaveContext));
+                SlaveLeft(this, new EventArgs<SlaveContext>(slaveContext));
             }
         }
 
@@ -134,7 +139,7 @@ namespace Cloudy.Computing
         /// <returns>Assigned addresses count.</returns>
         protected int AssignAddresses()
         {
-            int addressesAssignedCount = 0;
+            int count = 0;
             topology.Allocate(totalThreadSlotsCount);
             IEnumerator<ThreadAddress> addressEnumerator = topology.GetEnumerator();
             foreach (KeyValuePair<IPEndPoint, SlaveContext> mapping in slaves)
@@ -149,10 +154,14 @@ namespace Cloudy.Computing
                     context.Address = addressEnumerator.Current;
                     context.State = ThreadState.Initial;
                     mapping.Value.Threads.Add(context);
-                    addressesAssignedCount += 1;
+                    count += 1;
                 }
             }
-            return addressesAssignedCount;
+            if (AddressesAssigned != null)
+            {
+                AddressesAssigned(this, new EventArgs<int>(count));
+            }
+            return count;
         }
 
         /// <summary>
@@ -190,7 +199,11 @@ namespace Cloudy.Computing
                         mapping.Value.State = SlaveState.Left;
                     }
                 }
-            } 
+            }
+            if (ThreadsAllocated != null)
+            {
+                ThreadsAllocated(this, new EventArgs<int>(count));
+            }
             return count;
         }
 
@@ -208,6 +221,10 @@ namespace Cloudy.Computing
                     OnSlaveLeft(slave);
                     count += 1;
                 }
+            }
+            if (SlavesCleanedUp != null)
+            {
+                SlavesCleanedUp(this, new EventArgs<int>(count));
             }
             return count;
         }

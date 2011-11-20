@@ -92,11 +92,7 @@
     <Compile Include="Computing\Enums\MasterState.cs" />
     <Compile Include="Computing\Enums\SlaveState.cs" />
     <Compile Include="Computing\Enums\ThreadState.cs" />
-    <Compile Include="Computing\Events\JoinedEventArgs.cs" />
-    <Compile Include="Computing\Events\AbstractSlaveEventArgs.cs" />
-    <Compile Include="Computing\Events\SlaveJoinedEventArgs.cs" />
-    <Compile Include="Computing\Events\SlaveLeftEventArgs.cs" />
-    <Compile Include="Computing\Events\ThreadAllocatedEventArgs.cs" />
+    <Compile Include="Helpers\EventArgs.cs" />
     <Compile Include="Computing\Exceptions\NetworkFailure.cs" />
     <Compile Include="Computing\Interfaces\IThreadWorld.cs" />
     <Compile Include="Computing\Messaging\Structures\AllocateThreadValue.cs" />
@@ -115,6 +111,7 @@
     <Compile Include="Computing\Topologies\Structures\ThreadAddress.cs" />
     <Compile Include="Computing\Topologies\TopologyFactory.cs" />
     <Compile Include="Helpers\InvokeHelper.cs" />
+    <Compile Include="Helpers\ParametrizedEventHandler.cs" />
     <Compile Include="Helpers\TimeSpanExtensions.cs" />
     <Compile Include="Messaging\Raw\StreamRawCommunicator.cs" />
     <Compile Include="Messaging\Raw\UdpClientRawCommunicator.cs" />

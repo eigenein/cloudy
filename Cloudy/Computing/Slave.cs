@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Net;
 using Cloudy.Computing.Enums;
-using Cloudy.Computing.Events;
 using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Messaging.Structures;
 using Cloudy.Computing.Topologies.Structures;
+using Cloudy.Helpers;
 using Cloudy.Messaging.Enums;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
@@ -40,12 +40,12 @@ namespace Cloudy.Computing
         /// <summary>
         /// Occurs when a slaves successfully joins the network.
         /// </summary>
-        public event EventHandler<JoinedEventArgs> Joined;
+        public event ParametrizedEventHandler<IPEndPoint> Joined;
 
         /// <summary>
         /// Occurs when a thread is allocated in the slave.
         /// </summary>
-        public event EventHandler<ThreadAllocatedEventArgs> ThreadAllocated;
+        public event ParametrizedEventHandler<ThreadAddress> ThreadAllocated;
 
         /// <summary>
         /// Runs a computation.
@@ -68,7 +68,7 @@ namespace Cloudy.Computing
             state = SlaveState.Joined;
             if (Joined != null)
             {
-                Joined(this, new JoinedEventArgs(response.ExternalEndPoint));
+                Joined(this, new EventArgs<IPEndPoint>(response.ExternalEndPoint));
             }
         }
 
@@ -86,7 +86,7 @@ namespace Cloudy.Computing
                         AllocateThreadValue value = message.Cast<AllocateThreadValue>();
                         if (ThreadAllocated != null)
                         {
-                            ThreadAllocated(this, new ThreadAllocatedEventArgs(value.ThreadAddress));
+                            ThreadAllocated(this, new EventArgs<ThreadAddress>(value.ThreadAddress));
                         }
                         break;
                 }
