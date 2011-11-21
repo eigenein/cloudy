@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using Cloudy.Computing.Enums;
+using Cloudy.Computing.Exceptions;
 using Cloudy.Computing.Messaging.Structures;
 using Cloudy.Computing.Structures;
 using Cloudy.Computing.Topologies;
@@ -22,6 +23,9 @@ namespace Cloudy.Computing
     {
         private readonly Dictionary<IPEndPoint, SlaveContext> slaves =
             new Dictionary<IPEndPoint, SlaveContext>();
+
+        private readonly Dictionary<ThreadAddress, ThreadContext> threads =
+            new Dictionary<ThreadAddress, ThreadContext>();
 
         private readonly Topology topology;
 
@@ -44,7 +48,18 @@ namespace Cloudy.Computing
 
         public MasterState State
         {
-            get { return state; }
+            get
+            { 
+                return state; 
+            }
+            private set
+            {
+                state = value;
+                if (StateChanged != null)
+                {
+                    StateChanged(this, new EventArgs<MasterState>(value));
+                }
+            }
         }
 
         /// <summary>
@@ -68,7 +83,11 @@ namespace Cloudy.Computing
 
         public event ParametrizedEventHandler<int> ThreadsAllocated;
 
+        public event ParametrizedEventHandler<int> InterconnectionsSetup;
+
         public event ParametrizedEventHandler<int> SlavesCleanedUp;
+
+        public event ParametrizedEventHandler<MasterState> StateChanged;
 
         public override int ProcessIncomingMessages(int count)
         {
@@ -92,6 +111,9 @@ namespace Cloudy.Computing
                         };
                         Dispatcher.BeginSend(remoteEndPoint, new JoinResponseValue(remoteEndPoint),
                             CommonTags.JoinResponse, JoinResponseAsyncCallback, slaveContext);
+                        break;
+                    case CommonTags.Bye:
+                        OnSlaveLeft(slaves[remoteEndPoint]);
                         break;
                 }
                 processedMessagesCount += 1;
@@ -117,6 +139,10 @@ namespace Cloudy.Computing
         protected virtual void OnSlaveLeft(SlaveContext slaveContext)
         {
             totalThreadSlotsCount -= slaveContext.SlotsCount;
+            foreach (ThreadContext thread in slaveContext.Threads)
+            {
+                threads.Remove(thread.Address);
+            }
             slaves.Remove(slaveContext.ExternalEndPoint);
             if (SlaveLeft != null)
             {
@@ -126,12 +152,12 @@ namespace Cloudy.Computing
 
         private void StartNetwork(object state)
         {
-            AssignAddresses(); // TODO: event
-            AllocateThreads(); // TODO: event
-            // SetupInterconnections(); // TODO: event
+            AssignAddresses();
+            AllocateThreads();
+            SetupInterconnections(); // TODO: event
             // RunThreads(); // TODO: event
-            CleanUpSlaves(); // TODO: event
-            this.state = MasterState.Running; // TODO: Add event to state change
+            CleanUpSlaves();
+            this.State = MasterState.Running;
         }
 
         /// <summary>
@@ -154,7 +180,9 @@ namespace Cloudy.Computing
                     ThreadContext context = new ThreadContext();
                     context.Address = addressEnumerator.Current;
                     context.State = ThreadState.Initial;
+                    context.SlaveContext = mapping.Value;
                     mapping.Value.Threads.Add(context);
+                    threads.Add(addressEnumerator.Current, context);
                     count += 1;
                 }
             }
@@ -237,7 +265,33 @@ namespace Cloudy.Computing
         /// <returns>Connections initalized count.</returns>
         protected int SetupInterconnections()
         {
-            throw new NotImplementedException();
+            int count = 0;
+            foreach (KeyValuePair<IPEndPoint, SlaveContext> mapping in slaves)
+            {
+                if (mapping.Value.State != SlaveState.Joined)
+                {
+                    continue;
+                }
+                HashSet<ThreadAddress> addresses = new HashSet<ThreadAddress>();
+                foreach (ThreadContext thread in mapping.Value.Threads)
+                {
+                    if (thread.State == ThreadState.Allocated)
+                    {
+                        addresses.UnionWith(topology.GetNeighbors(thread.Address));
+                    }
+                }
+                foreach (ThreadAddress neighbor in addresses)
+                {
+                    Dispatcher.BeginSend(mapping.Key,
+                        new NeighborValue(neighbor, threads[neighbor].SlaveContext),
+                        CommonTags.Neighbor, null, null);
+                }
+            }
+            if (InterconnectionsSetup != null)
+            {
+                InterconnectionsSetup(this, new EventArgs<int>(count));
+            }
+            return count;
         }
 
         /// <summary>
@@ -252,9 +306,10 @@ namespace Cloudy.Computing
         /// <summary>
         /// Called when the network is finally failed.
         /// </summary>
-        protected virtual void OnNetworkFailure()
+        protected virtual void OnNetworkFailure(string message)
         {
-            // TODO: Shutdown all the slaves.
+            ShutdownSlaves();
+            throw new NetworkFailure(message);
         }
 
         /// <summary>
@@ -267,6 +322,14 @@ namespace Cloudy.Computing
             SlaveContext slaveContext = (SlaveContext)ar.AsyncState;
             slaves[slaveContext.ExternalEndPoint] = slaveContext;
             OnSlaveJoined(slaveContext);
+        }
+
+        public void ShutdownSlaves()
+        {
+            foreach (KeyValuePair<IPEndPoint, SlaveContext> mapping in slaves)
+            {
+                Dispatcher.BeginSend(mapping.Key, new ByeValue(), CommonTags.Bye, null, null);
+            }
         }
     }
 }

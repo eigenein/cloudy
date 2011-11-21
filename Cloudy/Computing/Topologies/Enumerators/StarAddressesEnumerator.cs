@@ -9,7 +9,7 @@ namespace Cloudy.Computing.Topologies.Enumerators
     {
         private readonly int size;
 
-        private int current;
+        private int current = -1;
 
         public StarAddressesEnumerator(int size)
         {

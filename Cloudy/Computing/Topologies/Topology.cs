@@ -12,6 +12,8 @@ namespace Cloudy.Computing.Topologies
 
         public abstract void Allocate(int count);
 
+        public abstract IEnumerable<ThreadAddress> GetNeighbors(ThreadAddress address);
+
         #region Implementation of IEnumerable
 
         /// <summary>

@@ -23,6 +23,21 @@ namespace Cloudy.Computing.Topologies
             Interlocked.Add(ref size, count);
         }
 
+        public override IEnumerable<ThreadAddress> GetNeighbors(ThreadAddress address)
+        {
+            if (address[0] != 0)
+            {
+                yield return ThreadAddress.EmptySingleton;
+            }
+            else
+            {
+                for (int i = 1; i < size; i++)
+                {
+                    yield return new ThreadAddress(i);
+                }
+            }
+        }
+
         public override IEnumerator<ThreadAddress> GetEnumerator()
         {
             return new StarAddressesEnumerator(size);

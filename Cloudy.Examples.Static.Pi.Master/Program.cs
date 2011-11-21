@@ -31,12 +31,18 @@ namespace Cloudy.Examples.Static.Pi.Master
             master.ThreadsAllocated +=
                 (sender, e) => Logger.Info("Threads Allocated: {0}", e.Value);
             master.SlavesCleanedUp +=
-                (sender, e) => Logger.Info("Slaves Cleaned Up: {0}", e.Value);
+                (sender, e) => Logger.Warn("Slaves Cleaned Up: {0}", e.Value);
+            master.StateChanged +=
+                (sender, e) => Logger.Info("State => {0}", e.Value);
+            master.InterconnectionsSetup +=
+                (sender, e) => Logger.Info("Interconnections Setup: {0}", e.Value);
             ThreadPool.QueueUserWorkItem(RunMaster, master);
 
             Logger.Info("Press Return to quit.");
             Console.ReadLine();
             Logger.Info("Quit.");
+            master.ShutdownSlaves();
+            master.Dispose();
         }
 
         private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)

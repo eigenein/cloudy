@@ -27,8 +27,13 @@ namespace Cloudy.Computing
         protected override void OnSlaveLeft(SlaveContext slaveContext)
         {
             base.OnSlaveLeft(slaveContext);
-            // TODO: Check whether the slave has allocated slots. If no - do not throw.
-            throw new NetworkFailure("A static master doesn't support dynamic slaves."); 
+            foreach (ThreadContext thread in slaveContext.Threads)
+            {
+                if (thread.State == Enums.ThreadState.Running)
+                {
+                    OnNetworkFailure("A static master doesn't support dynamic slaves.");
+                }
+            }
         }
     }
 }

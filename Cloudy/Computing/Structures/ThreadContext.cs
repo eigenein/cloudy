@@ -9,5 +9,7 @@ namespace Cloudy.Computing.Structures
         public ThreadAddress Address { get; set; }
 
         public ThreadState State { get; set; }
+
+        public SlaveContext SlaveContext { get; set; }
     }
 }

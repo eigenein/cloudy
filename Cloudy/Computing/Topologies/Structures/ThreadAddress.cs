@@ -26,6 +26,8 @@ namespace Cloudy.Computing.Topologies.Structures
             Parts = new[] { value };
         }
 
+        public static ThreadAddress EmptySingleton = new ThreadAddress(0);
+
         [ProtobufField(1)]
         public ICollection<int> Parts
         {

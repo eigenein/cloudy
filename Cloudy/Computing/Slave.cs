@@ -34,7 +34,18 @@ namespace Cloudy.Computing
 
         public SlaveState State
         {
-            get { return state; }
+            get 
+            { 
+                return state;
+            }
+            private set
+            {
+                state = value;
+                if (StateChanged != null)
+                {
+                    StateChanged(this, new EventArgs<SlaveState>(value));
+                }
+            }
         }
 
         /// <summary>
@@ -46,6 +57,10 @@ namespace Cloudy.Computing
         /// Occurs when a thread is allocated in the slave.
         /// </summary>
         public event ParametrizedEventHandler<AllocateThreadValue> ThreadAllocated;
+
+        public event ParametrizedEventHandler<SlaveState> StateChanged;
+
+        public event ParametrizedEventHandler<NeighborValue> InterconnectionEstablishing;
 
         /// <summary>
         /// Runs a computation.
@@ -65,7 +80,7 @@ namespace Cloudy.Computing
             Dispatcher.EndSend(ar, ReceiptTimeout);
             JoinResponseValue response = Dispatcher.Receive<JoinResponseValue>(
                 ResponseTimeout);
-            state = SlaveState.Joined;
+            State = SlaveState.Joined;
             if (Joined != null)
             {
                 Joined(this, new EventArgs<IPEndPoint>(response.ExternalEndPoint));
@@ -89,9 +104,32 @@ namespace Cloudy.Computing
                             ThreadAllocated(this, new EventArgs<AllocateThreadValue>(value));
                         }
                         break;
+                    case CommonTags.Bye:
+                        OnLeft(remoteEndPoint);
+                        break;
+                    case CommonTags.Neighbor:
+                        EstablishInterconnection(message.Cast<NeighborValue>());
+                        // TODO: Send the result to the master.
+                        break;
                 }
             }
             return processedMessagesCount;
+        }
+
+        private void OnLeft(IPEndPoint recipientEndPoint)
+        {
+            State = SlaveState.Left;
+            Dispatcher.BeginSend(recipientEndPoint, new ByeValue(), CommonTags.Bye, null, null);
+        }
+
+        private bool EstablishInterconnection(NeighborValue neighbor)
+        {
+            if (InterconnectionEstablishing != null)
+            {
+                InterconnectionEstablishing(this, new EventArgs<NeighborValue>(neighbor));
+            }
+            // TODO: Establish the interconnection.
+            return false;
         }
     }
 }

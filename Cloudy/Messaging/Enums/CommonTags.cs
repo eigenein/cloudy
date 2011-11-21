@@ -32,5 +32,15 @@ namespace Cloudy.Messaging.Enums
         /// Thread allocation on a slave.
         /// </summary>
         public const int AllocateThread = -5;
+
+        /// <summary>
+        /// A shutdown notification.
+        /// </summary>
+        public const int Bye = -6;
+
+        /// <summary>
+        /// A neighbor information.
+        /// </summary>
+        public const int Neighbor = -7;
     }
 }
