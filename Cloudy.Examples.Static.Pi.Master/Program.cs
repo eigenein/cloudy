@@ -22,8 +22,16 @@ namespace Cloudy.Examples.Static.Pi.Master
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
             ExampleMaster master = new ExampleMaster(Port, SlotsCount);
-            master.SlaveJoined += (sender, e) => Logger.Info("Slave joined: {0}", e.Value);
-            master.SlaveLeft += (sender, e) => Logger.Info("Slave left: {0}", e.Value);
+            master.SlaveJoined +=
+                (sender, e) => Logger.Info("Slave joined: {0}", e.Value);
+            master.SlaveLeft += 
+                (sender, e) => Logger.Info("Slave left: {0}", e.Value);
+            master.AddressesAssigned +=
+                (sender, e) => Logger.Info("Addresses Assigned: {0}", e.Value);
+            master.ThreadsAllocated +=
+                (sender, e) => Logger.Info("Threads Allocated: {0}", e.Value);
+            master.SlavesCleanedUp +=
+                (sender, e) => Logger.Info("Slaves Cleaned Up: {0}", e.Value);
             ThreadPool.QueueUserWorkItem(RunMaster, master);
 
             Logger.Info("Press Return to quit.");

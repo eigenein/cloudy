@@ -128,6 +128,7 @@ namespace Cloudy.Computing
         {
             AssignAddresses(); // TODO: event
             AllocateThreads(); // TODO: event
+            // SetupInterconnections(); // TODO: event
             // RunThreads(); // TODO: event
             CleanUpSlaves(); // TODO: event
             this.state = MasterState.Running; // TODO: Add event to state change
@@ -185,6 +186,7 @@ namespace Cloudy.Computing
                     }
                     AllocateThreadValue value = new AllocateThreadValue();
                     value.ThreadAddress = thread.Address;
+                    value.TopologyType = topology.TopologyType;
                     MessagingAsyncResult ar = Dispatcher.BeginSend(
                         mapping.Key, value, CommonTags.AllocateThread,
                         null, null);

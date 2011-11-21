@@ -45,7 +45,7 @@ namespace Cloudy.Computing
         /// <summary>
         /// Occurs when a thread is allocated in the slave.
         /// </summary>
-        public event ParametrizedEventHandler<ThreadAddress> ThreadAllocated;
+        public event ParametrizedEventHandler<AllocateThreadValue> ThreadAllocated;
 
         /// <summary>
         /// Runs a computation.
@@ -86,7 +86,7 @@ namespace Cloudy.Computing
                         AllocateThreadValue value = message.Cast<AllocateThreadValue>();
                         if (ThreadAllocated != null)
                         {
-                            ThreadAllocated(this, new EventArgs<ThreadAddress>(value.ThreadAddress));
+                            ThreadAllocated(this, new EventArgs<AllocateThreadValue>(value));
                         }
                         break;
                 }
