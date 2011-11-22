@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Sockets;
 using System.Threading;
 using Cloudy.Examples.Shared.Configuration;
 using NLog;
@@ -55,7 +56,15 @@ namespace Cloudy.Examples.Static.Pi.Master
             Computing.Master master = (Computing.Master)state;
             while (master.State != Computing.Enums.MasterState.Left)
             {
-                master.ProcessIncomingMessages(1);
+                try
+                {
+                    master.ProcessIncomingMessages(1);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn(ex.Message);
+                    continue;
+                }
             }
         }
     }

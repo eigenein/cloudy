@@ -54,6 +54,10 @@ namespace Cloudy.Computing
             }
             private set
             {
+                if (state == value)
+                {
+                    return;
+                }
                 state = value;
                 if (StateChanged != null)
                 {
@@ -330,6 +334,12 @@ namespace Cloudy.Computing
             {
                 Dispatcher.BeginSend(mapping.Key, new ByeValue(), CommonTags.Bye, null, null);
             }
+        }
+
+        protected override void Dispose(bool dispose)
+        {
+            State = MasterState.Left;
+            base.Dispose(dispose);
         }
     }
 }

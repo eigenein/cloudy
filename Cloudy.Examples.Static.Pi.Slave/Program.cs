@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using Cloudy.Examples.Shared.Configuration;
 using Cloudy.Examples.Shared.Helpers;
@@ -62,7 +63,15 @@ namespace Cloudy.Examples.Static.Pi.Slave
             Computing.Slave slave = (Computing.Slave)state;
             while (slave.State != Computing.Enums.SlaveState.Left)
             {
-                slave.ProcessIncomingMessages(1);
+                try
+                {
+                    slave.ProcessIncomingMessages(1);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn(ex.Message);
+                    continue;
+                }
             }
         }
     }

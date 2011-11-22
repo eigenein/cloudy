@@ -22,6 +22,8 @@ namespace Cloudy.Computing
         private readonly Dictionary<ThreadAddress, IPEndPoint> neighbors =
             new Dictionary<ThreadAddress, IPEndPoint>();
 
+        private IPEndPoint masterEndPoint;
+
         private SlaveState state = SlaveState.NotJoined;
 
         protected Slave(IPEndPoint localEndPoint) 
@@ -40,6 +42,10 @@ namespace Cloudy.Computing
             }
             private set
             {
+                if (state == value)
+                {
+                    return;
+                }
                 state = value;
                 if (StateChanged != null)
                 {
@@ -74,6 +80,10 @@ namespace Cloudy.Computing
         /// <param name="metadata">The metadata that will be associated with the slave.</param>
         public void JoinNetwork(IPEndPoint remoteEndPoint, byte[] metadata)
         {
+            if (state != SlaveState.NotJoined)
+            {
+                throw new InvalidOperationException("Can join in NotJoined state only.");
+            }
             MessagingAsyncResult ar = Dispatcher.BeginSend(remoteEndPoint, 
                 new JoinRequestValue(localEndPoint, SlotsCount, metadata), 
                 CommonTags.JoinRequest, null, null);
@@ -83,6 +93,7 @@ namespace Cloudy.Computing
             State = SlaveState.Joined;
             if (Joined != null)
             {
+                masterEndPoint = remoteEndPoint;
                 Joined(this, new EventArgs<IPEndPoint>(response.ExternalEndPoint));
             }
         }
@@ -130,6 +141,15 @@ namespace Cloudy.Computing
             }
             // TODO: Establish the interconnection.
             return false;
+        }
+
+        protected override void Dispose(bool dispose)
+        {
+            if (state == SlaveState.Joined)
+            {
+                OnLeft(masterEndPoint);
+            }
+            base.Dispose(dispose);
         }
     }
 }
