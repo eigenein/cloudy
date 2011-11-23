@@ -110,6 +110,7 @@ namespace Cloudy.Computing
                 {
                     case CommonTags.AllocateThread:
                         AllocateThreadValue value = message.Cast<AllocateThreadValue>();
+                        // TODO: Actually create a thread.
                         if (ThreadAllocated != null)
                         {
                             ThreadAllocated(this, new EventArgs<AllocateThreadValue>(value));
@@ -139,7 +140,10 @@ namespace Cloudy.Computing
             {
                 InterconnectionEstablishing(this, new EventArgs<NeighborValue>(neighbor));
             }
-            // TODO: Establish the interconnection.
+            /* MessagingAsyncResult localResult = Dispatcher.BeginPing(neighbor.LocalEndPoint,
+                null, null);
+            MessagingAsyncResult externalResult = Dispatcher.BeginPing(neighbor.ExternalEndPoint,
+                null, null); */
             return false;
         }
 

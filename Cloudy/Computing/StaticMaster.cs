@@ -31,7 +31,7 @@ namespace Cloudy.Computing
             {
                 if (thread.State == Enums.ThreadState.Running)
                 {
-                    OnNetworkFailure("A static master doesn't support dynamic slaves.");
+                    OnJobCompleted(false, "A static master doesn't support dynamic slaves.");
                 }
             }
         }
