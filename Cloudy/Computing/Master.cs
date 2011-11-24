@@ -97,11 +97,11 @@ namespace Cloudy.Computing
             {
                 int? tag;
                 IPEndPoint remoteEndPoint;
-                ICastable message = Dispatcher.Receive(out remoteEndPoint, out tag);
+                IValue message = Dispatcher.Receive(out remoteEndPoint, out tag);
                 switch (tag)
                 {
                     case CommonTags.JoinRequest:
-                        JoinRequestValue joinRequestValue = message.Cast<JoinRequestValue>();
+                        JoinRequestValue joinRequestValue = message.Get<JoinRequestValue>();
                         SlaveContext slaveContext = new SlaveContext()
                         {
                             LocalEndPoint = joinRequestValue.LocalEndPoint,
@@ -189,9 +189,8 @@ namespace Cloudy.Computing
                     value.ThreadAddress = address;
                     try
                     {
-                        Dispatcher.EndSend(Dispatcher.BeginSend(
-                            mapping.Key, value, CommonTags.AllocateThread, null, null),
-                            ResponseTimeout);
+                        Dispatcher.Send(mapping.Key, value,
+                            CommonTags.AllocateThread, ReceiptTimeout);
                     }
                     catch (TimeoutException)
                     {
@@ -226,9 +225,7 @@ namespace Cloudy.Computing
                 NeighborValue value = new NeighborValue(thread.Address, slave);
                 try
                 {
-                    Dispatcher.EndSend(Dispatcher.BeginSend(
-                        endPoint, value, CommonTags.Neighbor, null, null),
-                        ResponseTimeout);
+                    Dispatcher.Send(endPoint, value, CommonTags.Neighbor, ResponseTimeout);
                 }
                 catch (TimeoutException)
                 {
@@ -299,8 +296,8 @@ namespace Cloudy.Computing
         /// </summary>
         protected virtual void OnJobCompleted(bool success, string message)
         {
-            State = MasterState.Left;
             ShutdownSlaves();
+            State = MasterState.Left;
         }
 
         /// <summary>
@@ -319,7 +316,7 @@ namespace Cloudy.Computing
         {
             foreach (KeyValuePair<IPEndPoint, SlaveContext> mapping in slaves)
             {
-                Dispatcher.BeginSend(mapping.Key, new ByeValue(), CommonTags.Bye, null, null);
+                Dispatcher.Send(mapping.Key, new ByeValue(), CommonTags.Bye);
             }
         }
 

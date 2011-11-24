@@ -90,6 +90,7 @@
   <ItemGroup>
     <Compile Include="Collections\BlockingQueue.cs" />
     <Compile Include="Computing\Enums\MasterState.cs" />
+    <Compile Include="Computing\Enums\NeighborState.cs" />
     <Compile Include="Computing\Enums\SlaveState.cs" />
     <Compile Include="Computing\Enums\ThreadState.cs" />
     <Compile Include="Computing\Messaging\Structures\ByeValue.cs" />
@@ -118,7 +119,7 @@
     <Compile Include="Messaging\Raw\StreamRawCommunicator.cs" />
     <Compile Include="Messaging\Raw\UdpClientRawCommunicator.cs" />
     <Compile Include="Messaging\Enums\CommonTags.cs" />
-    <Compile Include="Messaging\Interfaces\ICastable.cs" />
+    <Compile Include="Messaging\Interfaces\IValue.cs" />
     <Compile Include="Messaging\Interfaces\IRawCommunicator.cs" />
     <Compile Include="Messaging\Structures\Dto.cs" />
     <Compile Include="Messaging\Structures\TrackableDto.cs" />

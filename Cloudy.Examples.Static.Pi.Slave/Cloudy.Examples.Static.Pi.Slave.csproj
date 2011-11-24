@@ -57,7 +57,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>Cloudy.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\Cloudy.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NLog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL" />
@@ -84,10 +84,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Cloudy.snk">
+      <Link>Cloudy.snk</Link>
+    </None>
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Cloudy.snk" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

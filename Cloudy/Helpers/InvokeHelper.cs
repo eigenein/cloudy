@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 
 namespace Cloudy.Helpers
@@ -7,21 +8,35 @@ namespace Cloudy.Helpers
     {
         public static bool CallWithTimeout(Action action, TimeSpan timeout)
         {
+            TimeSpan timeElapsed;
+            return CallWithTimeout(action, timeout, out timeElapsed);
+        }
+
+        public static bool CallWithTimeout(Action action, TimeSpan timeout,
+            out TimeSpan timeElapsed)
+        {
             Thread threadToKill = null;
+            Stopwatch stopwatch = new Stopwatch();
             Action wrappedAction = () =>
             {
                 threadToKill = Thread.CurrentThread;
+                stopwatch.Start();
                 action();
             };
-
+            bool success = false;
             IAsyncResult result = wrappedAction.BeginInvoke(null, null);
             if (result.AsyncWaitHandle.WaitOne(timeout))
             {
                 wrappedAction.EndInvoke(result);
-                return true;
+                success = true;
             }
-            threadToKill.Abort();
-            return false;
+            else
+            {
+                threadToKill.Abort();
+            }
+            stopwatch.Stop();
+            timeElapsed = stopwatch.Elapsed;
+            return success;
         }
     }
 }

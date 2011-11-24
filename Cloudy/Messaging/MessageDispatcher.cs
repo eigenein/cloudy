@@ -159,6 +159,25 @@ namespace Cloudy.Messaging
         }
 
         /// <summary>
+        /// Sends the message asynchronously, but without tracking.
+        /// </summary>
+        public void Send<T>(TEndPoint endPoint, T message, int? tag)
+        {
+            TrackableDto<T> dto = new TrackableDto<T>(CreateTrackingId(), tag, message);
+            communicator.Send(dto, endPoint);
+        }
+
+        /// <summary>
+        /// Sends the message synchronously. This will not pause sending and receiving
+        /// of other messages until returned.
+        /// </summary>
+        public void Send<T>(TEndPoint endPoint, T message, int? tag, TimeSpan timeout)
+        {
+            MessagingAsyncResult ar = BeginSend(endPoint, message, tag, null, null);
+            EndSend(ar, timeout);
+        }
+
+        /// <summary>
         /// Starts an asynchronous ping.
         /// </summary>
         public MessagingAsyncResult BeginPing(TEndPoint endPoint,
@@ -189,7 +208,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Receives a message.
         /// </summary>
-        public ICastable Receive(out TEndPoint remoteEndPoint, out int? tag)
+        public IValue Receive(out TEndPoint remoteEndPoint, out int? tag)
         {
             return Receive(out remoteEndPoint, out tag, TimeSpanExtensions.Infinite);
         }
@@ -225,7 +244,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Receives a message.
         /// </summary>
-        public ICastable Receive(out TEndPoint remoteEndPoint, out int? tag,
+        public IValue Receive(out TEndPoint remoteEndPoint, out int? tag,
             TimeSpan timeout)
         {
             while (true)
@@ -243,7 +262,7 @@ namespace Cloudy.Messaging
         public TResult Receive<TResult>(out TEndPoint remoteEndPoint, out int? tag,
             TimeSpan timeout)
         {
-            return Receive(out remoteEndPoint, out tag, timeout).Cast<TResult>();
+            return Receive(out remoteEndPoint, out tag, timeout).Get<TResult>();
         }
 
         #endregion

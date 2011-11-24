@@ -60,7 +60,7 @@ namespace Cloudy.Messaging
         /// Reads a tagged message from the communicator. The method is thread-safe.
         /// </summary>
         /// <returns>The read message.</returns>
-        public ICastable ReceiveTagged(out int? tag)
+        public IValue ReceiveTagged(out int? tag)
         {
             Dto dto = Receive<Dto>();
             tag = dto.Tag;
@@ -196,7 +196,7 @@ namespace Cloudy.Messaging
         /// Reads a tagged message from the communicator. The method is thread-safe.
         /// </summary>
         /// <returns>The read message.</returns>
-        public ICastable ReceiveTagged(out int? tag, out TEndPoint endPoint)
+        public IValue ReceiveTagged(out int? tag, out TEndPoint endPoint)
         {
             Dto dto = Receive<Dto>(out endPoint);
             tag = dto.Tag;

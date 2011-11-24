@@ -4,11 +4,13 @@ using System.Net;
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Messaging.Structures;
+using Cloudy.Computing.Structures;
 using Cloudy.Computing.Topologies.Structures;
 using Cloudy.Helpers;
 using Cloudy.Messaging.Enums;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
+using Cloudy.Structures;
 
 namespace Cloudy.Computing
 {
@@ -84,10 +86,9 @@ namespace Cloudy.Computing
             {
                 throw new InvalidOperationException("Can join in NotJoined state only.");
             }
-            MessagingAsyncResult ar = Dispatcher.BeginSend(remoteEndPoint, 
+            Dispatcher.Send(remoteEndPoint, 
                 new JoinRequestValue(localEndPoint, SlotsCount, metadata), 
-                CommonTags.JoinRequest, null, null);
-            Dispatcher.EndSend(ar, ReceiptTimeout);
+                CommonTags.JoinRequest, ReceiptTimeout);
             JoinResponseValue response = Dispatcher.Receive<JoinResponseValue>(
                 ResponseTimeout);
             State = SlaveState.Joined;
@@ -105,11 +106,11 @@ namespace Cloudy.Computing
             {
                 int? tag;
                 IPEndPoint remoteEndPoint;
-                ICastable message = Dispatcher.Receive(out remoteEndPoint, out tag);
+                IValue message = Dispatcher.Receive(out remoteEndPoint, out tag);
                 switch (tag)
                 {
                     case CommonTags.AllocateThread:
-                        AllocateThreadValue value = message.Cast<AllocateThreadValue>();
+                        AllocateThreadValue value = message.Get<AllocateThreadValue>();
                         // TODO: Actually create a thread.
                         if (ThreadAllocated != null)
                         {
@@ -120,7 +121,7 @@ namespace Cloudy.Computing
                         OnLeft(remoteEndPoint);
                         break;
                     case CommonTags.Neighbor:
-                        EstablishInterconnection(message.Cast<NeighborValue>());
+                        EstablishInterconnection(message.Get<NeighborValue>());
                         // TODO: Send the result to the master.
                         break;
                 }
@@ -130,8 +131,8 @@ namespace Cloudy.Computing
 
         private void OnLeft(IPEndPoint recipientEndPoint)
         {
+            Dispatcher.Send(recipientEndPoint, new ByeValue(), CommonTags.Bye);
             State = SlaveState.Left;
-            Dispatcher.BeginSend(recipientEndPoint, new ByeValue(), CommonTags.Bye, null, null);
         }
 
         private bool EstablishInterconnection(NeighborValue neighbor)
@@ -140,10 +141,7 @@ namespace Cloudy.Computing
             {
                 InterconnectionEstablishing(this, new EventArgs<NeighborValue>(neighbor));
             }
-            /* MessagingAsyncResult localResult = Dispatcher.BeginPing(neighbor.LocalEndPoint,
-                null, null);
-            MessagingAsyncResult externalResult = Dispatcher.BeginPing(neighbor.ExternalEndPoint,
-                null, null); */
+            // TODO
             return false;
         }
 
