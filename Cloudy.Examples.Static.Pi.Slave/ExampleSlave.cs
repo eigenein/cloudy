@@ -15,10 +15,18 @@ namespace Cloudy.Examples.Static.Pi.Slave
             : base(localEndPoint)
         {
             this.slotsCount = slotsCount;
-            Joined += (sender, e) => Logger.Info("Joined as {0}", e.Value);
-            ThreadAllocated += (sender, e) => Logger.Info("Allocated thread {0}", e.Value);
-            StateChanged += (sender, e) => Logger.Warn("State => {0}", e.Value);
-            InterconnectionEstablishing += (sender, e) => Logger.Info("Interconnection establishing: {0}", e.Value);
+            Joined += 
+                (sender, e) => Logger.Info("Joined as {0}", e.Value);
+            ThreadAllocated
+                += (sender, e) => Logger.Info("Allocated thread {0}", e.Value);
+            StateChanged +=
+                (sender, e) => Logger.Warn("State => {0}", e.Value);
+            InterconnectionEstablishing +=
+                (sender, e) => Logger.Info("Interconnection establishing: {0}", e.Value);
+            InterconnectionEstablished += 
+                (sender, e) => Logger.Info("Interconnection established: {0} on {1}", e.Value.Item1, e.Value.Item2);
+            ConnectingFailed +=
+                (sender, e) => Logger.Warn("Connecting failed: {0}", e.Value);
         }
 
         public override int SlotsCount

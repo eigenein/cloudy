@@ -93,8 +93,8 @@
     <Compile Include="Computing\Enums\NeighborState.cs" />
     <Compile Include="Computing\Enums\SlaveState.cs" />
     <Compile Include="Computing\Enums\ThreadState.cs" />
-    <Compile Include="Computing\Messaging\Structures\ByeValue.cs" />
     <Compile Include="Computing\Messaging\Structures\NeighborValue.cs" />
+    <Compile Include="Computing\Messaging\Structures\PingRequestValue.cs" />
     <Compile Include="Helpers\EventArgs.cs" />
     <Compile Include="Computing\Exceptions\NetworkFailure.cs" />
     <Compile Include="Computing\Interfaces\IThreadWorld.cs" />
@@ -122,6 +122,7 @@
     <Compile Include="Messaging\Interfaces\IValue.cs" />
     <Compile Include="Messaging\Interfaces\IRawCommunicator.cs" />
     <Compile Include="Messaging\Structures\Dto.cs" />
+    <Compile Include="Messaging\Structures\EmptyValue.cs" />
     <Compile Include="Messaging\Structures\TrackableDto.cs" />
     <Compile Include="Messaging\MessageDispatcher.cs" />
     <Compile Include="Messaging\Communicator.cs" />

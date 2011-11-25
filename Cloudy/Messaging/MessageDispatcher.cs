@@ -183,7 +183,7 @@ namespace Cloudy.Messaging
         public MessagingAsyncResult BeginPing(TEndPoint endPoint,
             AsyncCallback callback, object state)
         {
-            return BeginSend<object>(endPoint, null, CommonTags.Ping,
+            return BeginSend(endPoint, EmptyValue.Instance, CommonTags.Ping,
                 callback, state);
         }
 
@@ -203,6 +203,15 @@ namespace Cloudy.Messaging
         public void EndPing(MessagingAsyncResult ar, TimeSpan timeout)
         {
             ar.EndInvoke(timeout);
+        }
+
+        /// <summary>
+        /// Pings the endpoint synchronously. This will not pause sending
+        /// and receiving of other messages until returned.
+        /// </summary>
+        public void Ping(TEndPoint endPoint, TimeSpan timeout)
+        {
+            EndPing(BeginPing(endPoint, null, null), timeout);
         }
 
         /// <summary>

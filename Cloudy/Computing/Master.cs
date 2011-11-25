@@ -10,6 +10,7 @@ using Cloudy.Computing.Topologies.Structures;
 using Cloudy.Helpers;
 using Cloudy.Messaging.Enums;
 using Cloudy.Messaging.Interfaces;
+using Cloudy.Messaging.Structures;
 
 namespace Cloudy.Computing
 {
@@ -84,7 +85,7 @@ namespace Cloudy.Computing
 
         public event ParametrizedEventHandler<int> ThreadsAllocated;
 
-        public event ParametrizedEventHandler<int> InterconnectionsSetUp;
+        public event EventHandler InterconnectionsSetUp;
 
         public event ParametrizedEventHandler<int> SlavesCleanedUp;
 
@@ -222,10 +223,15 @@ namespace Cloudy.Computing
                 {
                     continue;
                 }
-                NeighborValue value = new NeighborValue(thread.Address, slave);
                 try
                 {
-                    Dispatcher.Send(endPoint, value, CommonTags.Neighbor, ResponseTimeout);
+                    foreach (ThreadAddress neighborAddress in
+                        topology.GetNeighbors(thread.Address))
+                    {
+                        NeighborValue value = new NeighborValue(neighborAddress,
+                            threads[neighborAddress].SlaveContext);
+                        Dispatcher.Send(endPoint, value, CommonTags.Neighbor, ResponseTimeout);
+                    }
                 }
                 catch (TimeoutException)
                 {
@@ -237,22 +243,20 @@ namespace Cloudy.Computing
             return count;
         }
 
-        protected int SetUpInterconnections()
+        protected void SetUpInterconnections()
         {
-            int count = 0;
             foreach (KeyValuePair<IPEndPoint, SlaveContext> mapping in slaves)
             {
                 if (mapping.Value.State != SlaveState.Joined)
                 {
                     continue;
                 }
-                count += SetUpInterconnections(mapping.Key, mapping.Value);
+                SetUpInterconnections(mapping.Key, mapping.Value);
             }
             if (InterconnectionsSetUp != null)
             {
-                InterconnectionsSetUp(this, new EventArgs<int>(count));
+                InterconnectionsSetUp(this, new EventArgs());
             }
-            return count;
         }
 
         /// <summary>
@@ -316,7 +320,7 @@ namespace Cloudy.Computing
         {
             foreach (KeyValuePair<IPEndPoint, SlaveContext> mapping in slaves)
             {
-                Dispatcher.Send(mapping.Key, new ByeValue(), CommonTags.Bye);
+                Dispatcher.Send(mapping.Key, EmptyValue.Instance, CommonTags.Bye);
             }
         }
 
