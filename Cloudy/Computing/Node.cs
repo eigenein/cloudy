@@ -24,7 +24,7 @@ namespace Cloudy.Computing
         protected Node(int port)
         {
             this.ReceiptTimeout = this.ResponseTimeout = 
-                new TimeSpan(0, 0, 10);
+                new TimeSpan(0, 0, 3);
 
             IRawCommunicator<IPEndPoint> rawCommunicator =
                 new UdpClientRawCommunicator(new UdpClient(port) { DontFragment = true });
