@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Threading;
 using Cloudy.Examples.Shared.Configuration;
 using Cloudy.Examples.Shared.Helpers;
+using Cloudy.Helpers;
 using NLog;
 
 namespace Cloudy.Examples.Static.Pi.Slave
@@ -37,7 +38,8 @@ namespace Cloudy.Examples.Static.Pi.Slave
             ThreadPool.QueueUserWorkItem(RunSlave, slave);
 
             Logger.Info("Joining the network ...");
-            slave.JoinNetwork(new IPEndPoint(MasterAddress, MasterPort), null);
+            InvokeHelper.RepeatedCall(() => 
+                slave.JoinNetwork(new IPEndPoint(MasterAddress, MasterPort), null), 3);
 
             Logger.Info("Press Return to quit.");
             Console.ReadLine();

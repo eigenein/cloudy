@@ -6,6 +6,23 @@ namespace Cloudy.Helpers
 {
     public static class InvokeHelper
     {
+        public static bool RepeatedCall(Action action, int attemptsCount)
+        {
+            for (int i = 0; i < attemptsCount; i++)
+            {
+                try
+                {
+                    action();
+                    return true;
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+            }
+            return false;
+        }
+
         public static bool CallWithTimeout(Action action, TimeSpan timeout)
         {
             TimeSpan timeElapsed;
