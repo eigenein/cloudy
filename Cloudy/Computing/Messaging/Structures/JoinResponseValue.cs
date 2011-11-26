@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using Cloudy.Computing.Topologies.Enums;
 using Cloudy.Protobuf.Attributes;
 
 namespace Cloudy.Computing.Messaging.Structures
@@ -15,10 +16,11 @@ namespace Cloudy.Computing.Messaging.Structures
             // Do nothing.
         }
 
-        public JoinResponseValue(IPEndPoint externalEndPoint)
+        public JoinResponseValue(IPEndPoint externalEndPoint, TopologyType topologyType)
         {
             this.ExternalAddress = externalEndPoint.Address.GetAddressBytes();
             this.ExternalPort = externalEndPoint.Port;
+            this.TopologyType = topologyType;
         }
 
         [ProtobufField(1)]
@@ -26,6 +28,9 @@ namespace Cloudy.Computing.Messaging.Structures
 
         [ProtobufField(2)]
         public int ExternalPort { get; set; }
+
+        [ProtobufField(3)]
+        public TopologyType TopologyType { get; set; }
 
         public IPEndPoint ExternalEndPoint
         {

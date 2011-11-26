@@ -93,12 +93,11 @@
     <Compile Include="Computing\Enums\NeighborState.cs" />
     <Compile Include="Computing\Enums\SlaveState.cs" />
     <Compile Include="Computing\Enums\ThreadState.cs" />
-    <Compile Include="Computing\Messaging\Structures\NeighborValue.cs" />
+    <Compile Include="Computing\Messaging\Structures\InterconnectionValue.cs" />
     <Compile Include="Computing\Messaging\Structures\PingRequestValue.cs" />
     <Compile Include="Helpers\EventArgs.cs" />
     <Compile Include="Computing\Exceptions\NetworkFailure.cs" />
     <Compile Include="Computing\Interfaces\IThreadWorld.cs" />
-    <Compile Include="Computing\Messaging\Structures\AllocateThreadValue.cs" />
     <Compile Include="Computing\Messaging\Structures\JoinRequestValue.cs" />
     <Compile Include="Computing\Messaging\Structures\JoinResponseValue.cs" />
     <Compile Include="Computing\StaticMaster.cs" />

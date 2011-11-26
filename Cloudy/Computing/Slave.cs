@@ -65,11 +65,11 @@ namespace Cloudy.Computing
         /// <summary>
         /// Occurs when a thread is allocated in the slave.
         /// </summary>
-        public event ParametrizedEventHandler<AllocateThreadValue> ThreadAllocated;
+        public event ParametrizedEventHandler<ThreadAddress> ThreadAllocated;
 
         public event ParametrizedEventHandler<SlaveState> StateChanged;
 
-        public event ParametrizedEventHandler<NeighborValue> InterconnectionEstablishing;
+        public event ParametrizedEventHandler<InterconnectionValue> InterconnectionEstablishing;
 
         public event ParametrizedEventHandler<Tuple<ThreadAddress, IPEndPoint>>
             InterconnectionEstablished;
@@ -116,20 +116,24 @@ namespace Cloudy.Computing
                 switch (tag)
                 {
                     case CommonTags.AllocateThread:
-                        AllocateThreadValue value = message.Get<AllocateThreadValue>();
+                        ThreadAddress value = message.Get<ThreadAddress>();
                         // TODO: Actually create a thread.
                         if (ThreadAllocated != null)
                         {
-                            ThreadAllocated(this, new EventArgs<AllocateThreadValue>(value));
+                            ThreadAllocated(this, new EventArgs<ThreadAddress>(value));
                         }
                         break;
                     case CommonTags.Bye:
                         OnLeft(remoteEndPoint);
                         break;
-                    case CommonTags.Neighbor:
+                    case CommonTags.Interconnection:
                         // To prevent pausing of messages handling.
                         ThreadPool.QueueUserWorkItem(o =>
-                            EstablishInterconnection(message.Get<NeighborValue>()));
+                            EstablishInterconnection(message.Get<InterconnectionValue>()));
+                        break;
+                    case CommonTags.RememberMe:
+                        OnInterconnectionEstablished(message.Get<InterconnectionValue>(),
+                            remoteEndPoint);
                         break;
                 }
             }
@@ -150,28 +154,17 @@ namespace Cloudy.Computing
             stopwatch.Start();
             try
             {
+                // Open a hole on my side.
                 Dispatcher.Ping(endPoint, ReceiptTimeout);
+                // I'm lucky! A hole is already opened.
                 success = true;
             }
             catch (TimeoutException)
             {
-                stopwatch.Reset();
-                stopwatch.Start();
-                try
-                {
-                    Dispatcher.Ping(endPoint, ReceiptTimeout);
-                    success = true;
-                }
-                catch (TimeoutException)
-                {
-                    success = false;
-                }
+                success = false;
             }
-            finally
-            {
-                stopwatch.Stop();
-                timeElapsed = stopwatch.Elapsed;
-            }
+            stopwatch.Stop();
+            timeElapsed = stopwatch.Elapsed;
             if (!success && ConnectingFailed != null)
             {
                 ConnectingFailed(this, new EventArgs<IPEndPoint>(endPoint));
@@ -179,16 +172,17 @@ namespace Cloudy.Computing
             return success;
         }
 
-        private bool EstablishInterconnection(NeighborValue neighbor)
+        private bool EstablishInterconnection(InterconnectionValue interconnection)
         {
             if (InterconnectionEstablishing != null)
             {
-                InterconnectionEstablishing(this, new EventArgs<NeighborValue>(neighbor));
+                InterconnectionEstablishing(this, new EventArgs<InterconnectionValue>(
+                    interconnection));
             }
             TimeSpan localTimeElapsed, externalTimeElapsed;
-            bool localSucceeded = EstablishInterconnection(neighbor.LocalEndPoint,
+            bool localSucceeded = EstablishInterconnection(interconnection.LocalEndPoint,
                 out localTimeElapsed);
-            bool externalSucceeded = EstablishInterconnection(neighbor.ExternalEndPoint,
+            bool externalSucceeded = EstablishInterconnection(interconnection.ExternalEndPoint,
                 out externalTimeElapsed);
             if (!localSucceeded && !externalSucceeded)
             {
@@ -196,29 +190,45 @@ namespace Cloudy.Computing
             }
             if (localSucceeded && !externalSucceeded)
             {
-                OnInterconnectionEstablished(neighbor.ThreadAddress, neighbor.LocalEndPoint);
+                OnInterconnectionEstablished(interconnection, interconnection.LocalEndPoint);
                 return true;
             }
             if (!localSucceeded)
             {
-                OnInterconnectionEstablished(neighbor.ThreadAddress, neighbor.ExternalEndPoint);
+                OnInterconnectionEstablished(interconnection, interconnection.ExternalEndPoint);
                 return true;
             }
-            OnInterconnectionEstablished(neighbor.ThreadAddress,
+            OnInterconnectionEstablished(interconnection, 
                 localTimeElapsed < externalTimeElapsed ? 
-                neighbor.LocalEndPoint : neighbor.ExternalEndPoint);
+                interconnection.LocalEndPoint : interconnection.ExternalEndPoint);
             return true;
         }
 
-        private void OnInterconnectionEstablished(ThreadAddress threadAddress,
-            IPEndPoint endPoint)
+        private void OnInterconnectionEstablished(InterconnectionValue interconnection,
+            IPEndPoint remoteEndPoint)
         {
-            neighbors[threadAddress] = endPoint;
+            if (interconnection.LocalThreadAddress == null)
+            {
+                // It's me!
+                return;
+            }
+            IPEndPoint storedEndPoint;
+            if (neighbors.TryGetValue(interconnection.RemoteThreadAddress, out storedEndPoint) &&
+                storedEndPoint.Equals(remoteEndPoint))
+            {
+                // Oh, we already have this address!
+                return;
+            }
+            neighbors[interconnection.RemoteThreadAddress] = remoteEndPoint;
             if (InterconnectionEstablished != null)
             {
                 InterconnectionEstablished(this, new EventArgs<Tuple<ThreadAddress, IPEndPoint>>(
-                    new Tuple<ThreadAddress, IPEndPoint>(threadAddress, endPoint)));
+                    new Tuple<ThreadAddress, IPEndPoint>(interconnection.RemoteThreadAddress, remoteEndPoint)));
             }
+            // Send info back to my neighbor. For now, a hole to it is opened.
+            interconnection.RemoteThreadAddress = interconnection.LocalThreadAddress;
+            interconnection.LocalThreadAddress = null;
+            Dispatcher.Send(remoteEndPoint, interconnection, CommonTags.RememberMe);
         }
 
         protected override void Dispose(bool dispose)

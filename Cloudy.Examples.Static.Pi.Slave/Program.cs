@@ -20,6 +20,9 @@ namespace Cloudy.Examples.Static.Pi.Slave
         private static readonly IPAddress MasterAddress = ApplicationSettings.GetIPAddress(
             "MasterAddress");
 
+        private static readonly IPEndPoint MasterEndPoint = new IPEndPoint(
+            MasterAddress, MasterPort);
+
         private static readonly IPAddress LocalAddress = ApplicationSettings.GetIPAddress(
             "LocalAddress");
 
@@ -38,8 +41,13 @@ namespace Cloudy.Examples.Static.Pi.Slave
             ThreadPool.QueueUserWorkItem(RunSlave, slave);
 
             Logger.Info("Joining the network ...");
-            InvokeHelper.RepeatedCall(() => 
-                slave.JoinNetwork(new IPEndPoint(MasterAddress, MasterPort), null), 3);
+            if (!InvokeHelper.RepeatedCall(() =>
+                slave.JoinNetwork(MasterEndPoint, null), 3))
+            {
+                slave.Dispose();
+                Logger.Error("Couldn't connect to the master at {0}", MasterEndPoint);
+                return;
+            }
 
             Logger.Info("Press Return to quit.");
             Console.ReadLine();

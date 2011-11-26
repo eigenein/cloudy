@@ -111,7 +111,8 @@ namespace Cloudy.Computing
                             SlotsCount = joinRequestValue.SlotsCount,
                             State = SlaveState.Joined
                         };
-                        Dispatcher.BeginSend(remoteEndPoint, new JoinResponseValue(remoteEndPoint),
+                        Dispatcher.BeginSend(remoteEndPoint, 
+                            new JoinResponseValue(remoteEndPoint, topology.TopologyType),
                             CommonTags.JoinResponse, JoinResponseAsyncCallback, slaveContext);
                         break;
                     case CommonTags.Bye:
@@ -185,12 +186,9 @@ namespace Cloudy.Computing
                         break;
                     }
                     ThreadAddress address = addressEnumerator.Current;
-                    AllocateThreadValue value = new AllocateThreadValue();
-                    value.TopologyType = topology.TopologyType;
-                    value.ThreadAddress = address;
                     try
                     {
-                        Dispatcher.Send(mapping.Key, value,
+                        Dispatcher.Send(mapping.Key, address,
                             CommonTags.AllocateThread, ReceiptTimeout);
                     }
                     catch (TimeoutException)
@@ -228,9 +226,17 @@ namespace Cloudy.Computing
                     foreach (ThreadAddress neighborAddress in
                         topology.GetNeighbors(thread.Address))
                     {
-                        NeighborValue value = new NeighborValue(neighborAddress,
-                            threads[neighborAddress].SlaveContext);
-                        Dispatcher.Send(endPoint, value, CommonTags.Neighbor, ResponseTimeout);
+                        SlaveContext neighborContext = threads[neighborAddress].SlaveContext;
+                        InterconnectionValue value = new InterconnectionValue();
+                        // The current thread address will be local for it.
+                        value.LocalThreadAddress = thread.Address;
+                        // While the neighbor address will be remote for it.
+                        value.RemoteThreadAddress = neighborAddress;
+                        // Endpoints of the neighbor.
+                        value.LocalEndPoint = neighborContext.LocalEndPoint;
+                        value.ExternalEndPoint = neighborContext.ExternalEndPoint;
+                        Dispatcher.Send(endPoint, value, CommonTags.Interconnection, 
+                            ResponseTimeout);
                     }
                 }
                 catch (TimeoutException)

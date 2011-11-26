@@ -39,8 +39,14 @@ namespace Cloudy.Messaging.Enums
         public const int Bye = -6;
 
         /// <summary>
-        /// A neighbor information.
+        /// An interconnection information.
         /// </summary>
-        public const int Neighbor = -7;
+        public const int Interconnection = -7;
+
+        /// <summary>
+        /// Sent when one of neighbors in a topology successfully connects
+        /// to another to ensure that this another can also connect.
+        /// </summary>
+        public const int RememberMe = -8;
     }
 }

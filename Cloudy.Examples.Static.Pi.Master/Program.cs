@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net.Sockets;
 using System.Threading;
 using Cloudy.Examples.Shared.Configuration;
 using NLog;
