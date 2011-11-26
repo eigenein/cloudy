@@ -132,7 +132,7 @@ namespace Cloudy.Computing
                             EstablishInterconnection(message.Get<InterconnectionValue>()));
                         break;
                     case CommonTags.RememberMe:
-                        OnInterconnectionEstablished(message.Get<InterconnectionValue>(),
+                        OnInterconnectionEstablished(message.Get<ThreadAddress>(),
                             remoteEndPoint);
                         break;
                 }
@@ -204,14 +204,20 @@ namespace Cloudy.Computing
             return true;
         }
 
+        private void OnInterconnectionEstablished(ThreadAddress threadAddress,
+            IPEndPoint remoteEndPoint)
+        {
+            neighbors[threadAddress] = remoteEndPoint;
+            if (InterconnectionEstablished != null)
+            {
+                InterconnectionEstablished(this, new EventArgs<Tuple<ThreadAddress, IPEndPoint>>(
+                    new Tuple<ThreadAddress, IPEndPoint>(threadAddress, remoteEndPoint)));
+            }
+        }
+
         private void OnInterconnectionEstablished(InterconnectionValue interconnection,
             IPEndPoint remoteEndPoint)
         {
-            if (interconnection.LocalThreadAddress == null)
-            {
-                // It's me!
-                return;
-            }
             IPEndPoint storedEndPoint;
             if (neighbors.TryGetValue(interconnection.RemoteThreadAddress, out storedEndPoint) &&
                 storedEndPoint.Equals(remoteEndPoint))
@@ -219,16 +225,11 @@ namespace Cloudy.Computing
                 // Oh, we already have this address!
                 return;
             }
-            neighbors[interconnection.RemoteThreadAddress] = remoteEndPoint;
-            if (InterconnectionEstablished != null)
-            {
-                InterconnectionEstablished(this, new EventArgs<Tuple<ThreadAddress, IPEndPoint>>(
-                    new Tuple<ThreadAddress, IPEndPoint>(interconnection.RemoteThreadAddress, remoteEndPoint)));
-            }
+            OnInterconnectionEstablished(interconnection.RemoteThreadAddress,
+                remoteEndPoint);
             // Send info back to my neighbor. For now, a hole to it is opened.
-            interconnection.RemoteThreadAddress = interconnection.LocalThreadAddress;
-            interconnection.LocalThreadAddress = null;
-            Dispatcher.Send(remoteEndPoint, interconnection, CommonTags.RememberMe);
+            Dispatcher.Send(remoteEndPoint, interconnection.LocalThreadAddress, 
+                CommonTags.RememberMe);
         }
 
         protected override void Dispose(bool dispose)
