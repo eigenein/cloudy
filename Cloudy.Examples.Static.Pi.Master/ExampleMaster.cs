@@ -17,7 +17,7 @@ namespace Cloudy.Examples.Static.Pi.Master
             ThreadsAllocated += (sender, e) => Logger.Info("Threads Allocated: {0}", e.Value);
             SlavesCleanedUp += (sender, e) => Logger.Warn("Slaves Cleaned Up: {0}", e.Value);
             StateChanged += (sender, e) => Logger.Warn("State => {0}", e.Value);
-            InterconnectionsSetUp += (sender, e) => Logger.Info("Interconnections Set Up");
+            InterconnectionsSettingUp += (sender, e) => Logger.Info("Interconnections Setting Up");
             ThreadsRun += (sender, e) => Logger.Info("Threads run: {0}", e.Value);
         }
     }

@@ -85,7 +85,7 @@ namespace Cloudy.Computing
 
         public event ParametrizedEventHandler<int> ThreadsAllocated;
 
-        public event EventHandler InterconnectionsSetUp;
+        public event EventHandler InterconnectionsSettingUp;
 
         public event ParametrizedEventHandler<int> SlavesCleanedUp;
 
@@ -251,6 +251,10 @@ namespace Cloudy.Computing
 
         protected void SetUpInterconnections()
         {
+            if (InterconnectionsSettingUp != null)
+            {
+                InterconnectionsSettingUp(this, new EventArgs());
+            }
             foreach (KeyValuePair<IPEndPoint, SlaveContext> mapping in slaves)
             {
                 if (mapping.Value.State != SlaveState.Joined)
@@ -258,10 +262,6 @@ namespace Cloudy.Computing
                     continue;
                 }
                 SetUpInterconnections(mapping.Key, mapping.Value);
-            }
-            if (InterconnectionsSetUp != null)
-            {
-                InterconnectionsSetUp(this, new EventArgs());
             }
         }
 
