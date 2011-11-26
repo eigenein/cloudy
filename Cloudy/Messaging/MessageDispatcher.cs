@@ -217,7 +217,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Receives a message.
         /// </summary>
-        public IValue Receive(out TEndPoint remoteEndPoint, out int? tag)
+        public IMessage Receive(out TEndPoint remoteEndPoint, out int? tag)
         {
             return Receive(out remoteEndPoint, out tag, TimeSpanExtensions.Infinite);
         }
@@ -253,7 +253,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Receives a message.
         /// </summary>
-        public IValue Receive(out TEndPoint remoteEndPoint, out int? tag,
+        public IMessage Receive(out TEndPoint remoteEndPoint, out int? tag,
             TimeSpan timeout)
         {
             while (true)

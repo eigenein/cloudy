@@ -112,12 +112,11 @@ namespace Cloudy.Computing
             {
                 int? tag;
                 IPEndPoint remoteEndPoint;
-                IValue message = Dispatcher.Receive(out remoteEndPoint, out tag);
+                IMessage message = Dispatcher.Receive(out remoteEndPoint, out tag);
                 switch (tag)
                 {
                     case CommonTags.AllocateThread:
                         ThreadAddress value = message.Get<ThreadAddress>();
-                        // TODO: Actually create a thread.
                         if (ThreadAllocated != null)
                         {
                             ThreadAllocated(this, new EventArgs<ThreadAddress>(value));
@@ -213,6 +212,7 @@ namespace Cloudy.Computing
                 InterconnectionEstablished(this, new EventArgs<Tuple<ThreadAddress, IPEndPoint>>(
                     new Tuple<ThreadAddress, IPEndPoint>(threadAddress, remoteEndPoint)));
             }
+            Dispatcher.Send(masterEndPoint, threadAddress, CommonTags.ConnectedNotification);
         }
 
         private void OnInterconnectionEstablished(InterconnectionValue interconnection,

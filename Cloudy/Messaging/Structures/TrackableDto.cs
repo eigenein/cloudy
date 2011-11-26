@@ -58,7 +58,7 @@ namespace Cloudy.Messaging.Structures
     /// An untyped trackable Data Transfer Object.
     /// </summary>
     [ProtobufSerializable]
-    public class TrackableDto : IValue
+    public class TrackableDto : IMessage
     {
         /// <summary>
         /// A parameterless constructor for deserialization.

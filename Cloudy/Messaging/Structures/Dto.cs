@@ -42,7 +42,7 @@ namespace Cloudy.Messaging.Structures
     /// An untyped Data Transfer Object.
     /// </summary>
     [ProtobufSerializable]
-    public class Dto : IValue
+    public class Dto : IMessage
     {
         /// <summary>
         /// A parameterless constructor for deserialization.

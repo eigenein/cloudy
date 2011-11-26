@@ -91,6 +91,8 @@ namespace Cloudy.Computing
 
         public event ParametrizedEventHandler<MasterState> StateChanged;
 
+        public event ParametrizedEventHandler<IPEndPoint, ThreadAddress> ConnectedNotification;
+
         public override int ProcessIncomingMessages(int count)
         {
             int processedMessagesCount = Dispatcher.ProcessIncomingMessages(count);
@@ -98,7 +100,7 @@ namespace Cloudy.Computing
             {
                 int? tag;
                 IPEndPoint remoteEndPoint;
-                IValue message = Dispatcher.Receive(out remoteEndPoint, out tag);
+                IMessage message = Dispatcher.Receive(out remoteEndPoint, out tag);
                 switch (tag)
                 {
                     case CommonTags.JoinRequest:
@@ -117,6 +119,13 @@ namespace Cloudy.Computing
                         break;
                     case CommonTags.Bye:
                         OnSlaveLeft(slaves[remoteEndPoint]);
+                        break;
+                    case CommonTags.ConnectedNotification:
+                        if (ConnectedNotification != null)
+                        {
+                            ConnectedNotification(this, new EventArgs<IPEndPoint, ThreadAddress>(
+                                remoteEndPoint, message.Get<ThreadAddress>()));
+                        }
                         break;
                 }
                 processedMessagesCount += 1;

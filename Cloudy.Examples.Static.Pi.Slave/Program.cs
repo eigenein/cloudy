@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net;
-using System.Net.Sockets;
 using System.Threading;
 using Cloudy.Examples.Shared.Configuration;
 using Cloudy.Examples.Shared.Helpers;
@@ -26,8 +25,8 @@ namespace Cloudy.Examples.Static.Pi.Slave
         private static readonly IPAddress LocalAddress = ApplicationSettings.GetIPAddress(
             "LocalAddress");
 
-        private static readonly int LocalPort = 
-            ApplicationSettings.GetInteger("BaseLocalPort") + RandomExtensions.Instance.Next(100);
+        private static readonly int LocalPort = ApplicationSettings.GetInteger("BaseLocalPort") +
+            RandomExtensions.Instance.Next(100);
 
         private static readonly int SlotsCount = ApplicationSettings.GetInteger("SlotsCount");
 
@@ -71,7 +70,7 @@ namespace Cloudy.Examples.Static.Pi.Slave
                 }
                 catch (Exception ex)
                 {
-                    Logger.Warn(ex.Message);
+                    Logger.Warn(ex.ToString());
                     continue;
                 }
             }

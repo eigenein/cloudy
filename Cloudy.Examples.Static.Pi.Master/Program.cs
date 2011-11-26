@@ -47,7 +47,7 @@ namespace Cloudy.Examples.Static.Pi.Master
                 }
                 catch (Exception ex)
                 {
-                    Logger.Warn(ex.Message);
+                    Logger.Warn(ex.ToString());
                     continue;
                 }
             }

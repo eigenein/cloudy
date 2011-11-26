@@ -48,5 +48,11 @@ namespace Cloudy.Messaging.Enums
         /// to another to ensure that this another can also connect.
         /// </summary>
         public const int RememberMe = -8;
+
+        /// <summary>
+        /// A slave tells the master that the slave has connected to another
+        /// slave with the specified target thread address.
+        /// </summary>
+        public const int ConnectedNotification = -9;
     }
 }
