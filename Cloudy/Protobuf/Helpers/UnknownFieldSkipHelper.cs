@@ -25,7 +25,14 @@ namespace Cloudy.Protobuf.Helpers
         /// </summary>
         public static void Skip(Stream stream, WireType wireType)
         {
-            Cache[wireType](stream);
+            Action<Stream> skipAction;
+            if (!Cache.TryGetValue(wireType, out skipAction))
+            {
+                throw new KeyNotFoundException(String.Format(
+                    "The wire type could not be skipped, because there is no appropriate method: {0}",
+                    wireType));
+            }
+            skipAction(stream);
         }
 
         private static void SkipVarint(Stream stream)
