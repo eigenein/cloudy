@@ -19,7 +19,7 @@ namespace Cloudy.Messaging.Structures
             // Do nothing.
         }
 
-        public TrackableDto(long trackingId, int? tag, T value)
+        public TrackableDto(long trackingId, int tag, T value)
         {
             this.Tag = tag;
             this.Value = value;
@@ -30,7 +30,7 @@ namespace Cloudy.Messaging.Structures
         /// An user-specific tag. Can indicate a type of the message.
         /// </summary>
         [ProtobufField(1)]
-        public int? Tag { get; set; }
+        public int Tag { get; set; }
 
         /// <summary>
         /// Gets an underlying value.
@@ -68,7 +68,7 @@ namespace Cloudy.Messaging.Structures
             // Do nothing.
         }
 
-        public TrackableDto(long trackingId, int? tag, byte[] value)
+        public TrackableDto(long trackingId, int tag, byte[] value)
         {
             this.Tag = tag;
             this.Value = value;
@@ -79,7 +79,7 @@ namespace Cloudy.Messaging.Structures
         /// An user-specific tag. Can indicate a type of the message.
         /// </summary>
         [ProtobufField(1)]
-        public int? Tag { get; set; }
+        public int Tag { get; set; }
 
         /// <summary>
         /// Gets an underlying value.

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
+using Cloudy.Computing;
 using Cloudy.Examples.Shared.Configuration;
 using Cloudy.Examples.Shared.Helpers;
 using Cloudy.Helpers;
@@ -13,67 +15,74 @@ namespace Cloudy.Examples.Static.Pi.Slave
         private static readonly Logger Logger =
             LogManager.GetCurrentClassLogger();
 
-        private static readonly int MasterPort = ApplicationSettings.GetInteger(
-            "MasterPort");
+        private static readonly int BaseLocalPort = 
+            ApplicationSettings.GetInteger("BaseLocalPort");
 
-        private static readonly IPAddress MasterAddress = ApplicationSettings.GetIPAddress(
-            "MasterAddress");
+        private static readonly int Port = BaseLocalPort +
+            RandomExtensions.Instance.Next(1, 1000);
+
+        private static readonly IPAddress LocalAddress =
+            ApplicationSettings.GetIPAddress("LocalAddress");
 
         private static readonly IPEndPoint MasterEndPoint = new IPEndPoint(
-            MasterAddress, MasterPort);
+            ApplicationSettings.GetIPAddress("MasterAddress"),
+            ApplicationSettings.GetInteger("MasterPort"));
 
-        private static readonly IPAddress LocalAddress = ApplicationSettings.GetIPAddress(
-            "LocalAddress");
-
-        private static readonly int LocalPort = ApplicationSettings.GetInteger("BaseLocalPort") +
-            RandomExtensions.Instance.Next(100);
-
-        private static readonly int SlotsCount = ApplicationSettings.GetInteger("SlotsCount");
+        private static readonly int SlotsCount =
+            ApplicationSettings.GetInteger("SlotsCount");
 
         static void Main(string[] args)
         {
-            Logger.Info("Starting Slave ...");
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
-            ExampleSlave slave = new ExampleSlave(new IPEndPoint(
-                LocalAddress, LocalPort), SlotsCount);
-            ThreadPool.QueueUserWorkItem(RunSlave, slave);
+            Logger.Info("Starting Slave ...");
+            SlaveNode slave = new SlaveNode(Port, LocalAddress, SlotsCount);
+            ThreadPool.QueueUserWorkItem(HandleMessages, slave);
+            ThreadPool.QueueUserWorkItem(ProcessIncomingMessages, slave);
 
-            Logger.Info("Joining the network ...");
-            if (!InvokeHelper.RepeatedCall(() =>
-                slave.JoinNetwork(MasterEndPoint, null), 3))
+            Logger.Info("Joining the network at {0} ...", MasterEndPoint);
+            if (!InvokeHelper.RepeatedCall(() => slave.Join(MasterEndPoint), 3))
             {
-                slave.Dispose();
-                Logger.Error("Couldn't connect to the master at {0}", MasterEndPoint);
-                return;
+                Logger.Error("Join failed.");
             }
 
-            Logger.Info("Press Return to quit.");
+            Logger.Info("Press Enter to quit.");
             Console.ReadLine();
-            Logger.Info("Quit");
             slave.Dispose();
         }
 
-        private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        private static void HandleMessages(object state)
         {
-            Logger.Error(e.ExceptionObject.ToString());
+            AbstractSlaveNode slave = (AbstractSlaveNode)state;
+            while (slave.State != Computing.Enums.SlaveState.Left)
+            {
+                slave.HandleMessages(1);
+            }
         }
 
-        private static void RunSlave(object state)
+        private static void ProcessIncomingMessages(object state)
         {
-            Computing.Slave slave = (Computing.Slave)state;
+            AbstractSlaveNode slave = (AbstractSlaveNode)state;
             while (slave.State != Computing.Enums.SlaveState.Left)
             {
                 try
                 {
                     slave.ProcessIncomingMessages(1);
                 }
+                catch (SocketException ex)
+                {
+                    Logger.Warn(ex.Message);
+                }
                 catch (Exception ex)
                 {
                     Logger.Warn(ex.ToString());
-                    continue;
                 }
             }
+        }
+
+        private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Logger.Error(e.ExceptionObject.ToString());
         }
     }
 }

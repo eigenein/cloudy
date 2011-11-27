@@ -5,7 +5,7 @@ namespace Cloudy.Messaging.Interfaces
     /// <summary>
     /// Provides a generic interface to any entity that is able to send and receive.
     /// </summary>
-    public interface IRawCommunicator : IDisposable
+    public interface ISimpleCommunicator : IDisposable
     {
         /// <summary>
         /// Sends a byte array.
@@ -23,7 +23,7 @@ namespace Cloudy.Messaging.Interfaces
     /// Provides a generic interface to any entity that is able to send and receive.
     /// </summary>
     /// <typeparam name="TEndPoint">The endpoint type.</typeparam>
-    public interface IRawCommunicator<TEndPoint> : IRawCommunicator
+    public interface ISimpleCommunicator<TEndPoint> : ISimpleCommunicator
     {
         /// <summary>
         /// Sends a byte array.

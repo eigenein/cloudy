@@ -12,16 +12,24 @@ namespace Cloudy.Messaging.Structures
 
         private readonly AsyncCallback callback;
 
+        private readonly long trackingId;
+
         private ManualResetEvent waitHandle = new ManualResetEvent(false);
 
         private int notificationsLeftCount;
 
-        internal MessagingAsyncResult(int expectedNotificationsCount,
+        internal MessagingAsyncResult(long trackingId, int expectedNotificationsCount,
             AsyncCallback callback, object state)
         {
             this.state = state;
             this.callback = callback;
             this.notificationsLeftCount = expectedNotificationsCount;
+            this.trackingId = trackingId;
+        }
+
+        public long TrackingId
+        {
+            get { return trackingId; }
         }
 
         /// <summary>

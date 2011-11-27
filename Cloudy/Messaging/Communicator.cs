@@ -10,7 +10,7 @@ namespace Cloudy.Messaging
     /// </summary>
     public class Communicator : IDisposable
     {
-        private readonly IRawCommunicator rawCommunicator;
+        private readonly ISimpleCommunicator simpleCommunicator;
 
         protected readonly object ReceiveLock = new object();
         protected readonly object SendLock = new object();
@@ -18,18 +18,18 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="rawCommunicator">The underlying communicator.</param>
-        public Communicator(IRawCommunicator rawCommunicator)
+        /// <param name="simpleCommunicatorhe underlying communicator.</param>
+        public Communicator(ISimpleCommunicator simpleCommunicator)
         {
-            this.rawCommunicator = rawCommunicator;
+            this.simpleCommunicator = simpleCommunicator;
         }
 
         /// <summary>
         /// Gets the underlying communicator.
         /// </summary>
-        public IRawCommunicator RawCommunicator
+        public ISimpleCommunicator SimpleCommunicator
         {
-            get { return rawCommunicator; }
+            get { return simpleCommunicator; }
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Cloudy.Messaging
             lock (ReceiveLock)
             {
                 return Serializer.CreateSerializer(type).Deserialize(
-                    rawCommunicator.Receive());
+                    simpleCommunicator.Receive());
             }
         }
 
@@ -77,7 +77,7 @@ namespace Cloudy.Messaging
             {
                 byte[] dgram = Serializer.CreateSerializer(
                     typeof(T)).Serialize(message);
-                rawCommunicator.Send(dgram);
+                simpleCommunicator.Send(dgram);
             }
         }
 
@@ -90,7 +90,7 @@ namespace Cloudy.Messaging
             {
                 byte[] dgram = Serializer.CreateSerializer(
                     message.GetType()).Serialize(message);
-                rawCommunicator.Send(dgram);
+                simpleCommunicator.Send(dgram);
             }
         }
 
@@ -129,7 +129,7 @@ namespace Cloudy.Messaging
         {
             if (dispose)
             {
-                rawCommunicator.Dispose();
+                simpleCommunicator.Dispose();
             }
         }
     }
@@ -140,24 +140,24 @@ namespace Cloudy.Messaging
     /// <typeparam name="TEndPoint">The class of endpoint.</typeparam>
     public class Communicator<TEndPoint> : Communicator
     {
-        private readonly IRawCommunicator<TEndPoint> rawCommunicator;
+        private readonly ISimpleCommunicator<TEndPoint> simpleCommunicator;
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="rawCommunicator">The underlying communicator.</param>
-        public Communicator(IRawCommunicator<TEndPoint> rawCommunicator) 
-            : base(rawCommunicator)
+        /// <param name="simpleCommunicatorhe underlying communicator.</param>
+        public Communicator(ISimpleCommunicator<TEndPoint> simpleCommunicator) 
+            : base(simpleCommunicator)
         {
-            this.rawCommunicator = rawCommunicator;
+            this.simpleCommunicator = simpleCommunicator;
         }
 
         /// <summary>
         /// Gets the underlying communicator.
         /// </summary>
-        public new IRawCommunicator<TEndPoint> RawCommunicator
+        public new ISimpleCommunicator<TEndPoint> SimpleCommunicator
         {
-            get { return rawCommunicator; }
+            get { return simpleCommunicator; }
         }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace Cloudy.Messaging
             lock (ReceiveLock)
             {
                 return Serializer.CreateSerializer(type).Deserialize(
-                    rawCommunicator.Receive(out endPoint));
+                    simpleCommunicator.Receive(out endPoint));
             }
         }
 
@@ -213,7 +213,7 @@ namespace Cloudy.Messaging
             {
                 byte[] dgram = Serializer.CreateSerializer(
                     typeof(T)).Serialize(message);
-                rawCommunicator.Send(dgram, endPoint);
+                simpleCommunicator.Send(dgram, endPoint);
             }
         }
 
@@ -226,7 +226,7 @@ namespace Cloudy.Messaging
             {
                 byte[] dgram = Serializer.CreateSerializer(
                     message.GetType()).Serialize(message);
-                rawCommunicator.Send(dgram, endPoint);
+                simpleCommunicator.Send(dgram, endPoint);
             }
         }
 

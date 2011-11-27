@@ -7,9 +7,9 @@ namespace Cloudy.Messaging.Raw
 {
     /// <summary>
     /// A helper class that adapts the <see cref="UdpClient"/> class
-    /// to the <see cref="IRawCommunicator"/> interface.
+    /// to the <see cref="ISimpleCommunicator"/> interface.
     /// </summary>
-    public class UdpClientRawCommunicator : IRawCommunicator<IPEndPoint>
+    public class UdpClientSimpleCommunicator : ISimpleCommunicator<IPEndPoint>
     {
         private readonly UdpClient udpClient;
 
@@ -17,7 +17,7 @@ namespace Cloudy.Messaging.Raw
         /// Initializes a new instance.
         /// </summary>
         /// <param name="udpClient">The underlying UDP client.</param>
-        public UdpClientRawCommunicator(UdpClient udpClient)
+        public UdpClientSimpleCommunicator(UdpClient udpClient)
         {
             this.udpClient = udpClient;
         }

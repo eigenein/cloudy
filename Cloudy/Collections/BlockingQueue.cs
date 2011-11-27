@@ -55,7 +55,7 @@ namespace Cloudy.Collections
                 if (!queueWaitHandle.WaitOne(timeout))
                 {
                     throw new TimeoutException(
-                        "No elements were enqueued during the timeout interval.");
+                        "No elements were enqueued during the last timeout interval.");
                 }
             }
         }

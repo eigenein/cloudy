@@ -122,11 +122,12 @@ namespace Cloudy.Messaging
         /// Starts an asynchronous sending of the message.
         /// </summary>
         public MessagingAsyncResult BeginSend<T>(TEndPoint endPoint,
-            T message, int? tag, AsyncCallback callback, object state)
+            T message, int tag, AsyncCallback callback, object state)
         {
             TrackableDto<T> dto = new TrackableDto<T>(CreateTrackingId(), tag, message);
             communicator.Send(dto, endPoint);
-            MessagingAsyncResult ar = new MessagingAsyncResult(1, callback, state);
+            MessagingAsyncResult ar = new MessagingAsyncResult(dto.TrackingId,
+                1, callback, state);
             sendQueue.Add(dto.TrackingId, ar);
             return ar;
         }
@@ -135,17 +136,17 @@ namespace Cloudy.Messaging
         /// Starts an asynchronous sending of the message.
         /// </summary>
         public MessagingAsyncResult BeginSend<T>(TEndPoint[] endPoints, 
-            T message, int? tag, AsyncCallback callback, object state)
+            T message, int tag, AsyncCallback callback, object state)
         {
             // Pre-serialize the DTO to improve performance.
             long trackingId = CreateTrackingId();
             byte[] bytes = new TrackableDto<T>(trackingId, tag, message).Serialize();
             foreach (TEndPoint endPoint in endPoints)
             {
-                communicator.RawCommunicator.Send(bytes, endPoint);
+                communicator.SimpleCommunicator.Send(bytes, endPoint);
             }
-            MessagingAsyncResult ar = new MessagingAsyncResult(endPoints.Length,
-                callback, state);
+            MessagingAsyncResult ar = new MessagingAsyncResult(trackingId,
+                endPoints.Length, callback, state);
             sendQueue.Add(trackingId, ar);
             return ar;
         }
@@ -155,13 +156,22 @@ namespace Cloudy.Messaging
         /// </summary>
         public void EndSend(MessagingAsyncResult ar, TimeSpan timeout)
         {
-            ar.EndInvoke(timeout);
+            try
+            {
+                ar.EndInvoke(timeout);
+            }
+            catch (TimeoutException)
+            {
+                sendQueue.Remove(ar.TrackingId);
+                ar.Dispose();
+                throw;
+            }
         }
 
         /// <summary>
         /// Sends the message asynchronously, but without tracking.
         /// </summary>
-        public void Send<T>(TEndPoint endPoint, T message, int? tag)
+        public void SendAsync<T>(TEndPoint endPoint, T message, int tag)
         {
             TrackableDto<T> dto = new TrackableDto<T>(CreateTrackingId(), tag, message);
             communicator.Send(dto, endPoint);
@@ -171,7 +181,7 @@ namespace Cloudy.Messaging
         /// Sends the message synchronously. This will not pause sending and receiving
         /// of other messages until returned.
         /// </summary>
-        public void Send<T>(TEndPoint endPoint, T message, int? tag, TimeSpan timeout)
+        public void Send<T>(TEndPoint endPoint, T message, int tag, TimeSpan timeout)
         {
             MessagingAsyncResult ar = BeginSend(endPoint, message, tag, null, null);
             EndSend(ar, timeout);
@@ -217,7 +227,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Receives a message.
         /// </summary>
-        public IMessage Receive(out TEndPoint remoteEndPoint, out int? tag)
+        public IMessage Receive(out TEndPoint remoteEndPoint, out int tag)
         {
             return Receive(out remoteEndPoint, out tag, TimeSpanExtensions.Infinite);
         }
@@ -228,7 +238,7 @@ namespace Cloudy.Messaging
         public TResult Receive<TResult>()
         {
             TEndPoint remoteEndPoint;
-            int? tag;
+            int tag;
             return Receive<TResult>(out remoteEndPoint, out tag, TimeSpanExtensions.Infinite);
         }
 
@@ -238,14 +248,14 @@ namespace Cloudy.Messaging
         public TResult Receive<TResult>(TimeSpan timeout)
         {
             TEndPoint remoteEndPoint;
-            int? tag;
+            int tag;
             return Receive<TResult>(out remoteEndPoint, out tag, timeout);
         }
 
         /// <summary>
         /// Receives a message.
         /// </summary>
-        public TResult Receive<TResult>(out TEndPoint remoteEndPoint, out int? tag)
+        public TResult Receive<TResult>(out TEndPoint remoteEndPoint, out int tag)
         {
             return Receive<TResult>(out remoteEndPoint, out tag, TimeSpanExtensions.Infinite);
         }
@@ -253,7 +263,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Receives a message.
         /// </summary>
-        public IMessage Receive(out TEndPoint remoteEndPoint, out int? tag,
+        public IMessage Receive(out TEndPoint remoteEndPoint, out int tag,
             TimeSpan timeout)
         {
             while (true)
@@ -268,7 +278,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Receives a message.
         /// </summary>
-        public TResult Receive<TResult>(out TEndPoint remoteEndPoint, out int? tag,
+        public TResult Receive<TResult>(out TEndPoint remoteEndPoint, out int tag,
             TimeSpan timeout)
         {
             return Receive(out remoteEndPoint, out tag, timeout).Get<TResult>();

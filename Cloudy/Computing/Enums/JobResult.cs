@@ -2,9 +2,9 @@
 
 namespace Cloudy.Computing.Enums
 {
-    public enum ThreadState
+    public enum JobResult
     {
-        NotRunning,
-        Running
+        Failed,
+        Succeeded
     }
 }

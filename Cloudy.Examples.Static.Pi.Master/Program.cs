@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Net.Sockets;
 using System.Threading;
+using Cloudy.Computing;
 using Cloudy.Examples.Shared.Configuration;
 using NLog;
 
@@ -10,47 +12,58 @@ namespace Cloudy.Examples.Static.Pi.Master
         private static readonly Logger Logger =
             LogManager.GetCurrentClassLogger();
 
-        private static readonly int Port = ApplicationSettings.GetInteger(
-            "Port");
+        private static readonly int Port =
+            ApplicationSettings.GetInteger("Port");
 
-        private static readonly int SlotsCount = ApplicationSettings.GetInteger(
-            "SlotsCount");
+        private static readonly int StartUpThreadsCount =
+            ApplicationSettings.GetInteger("StartUpThreadsCount");
 
         static void Main(string[] args)
         {
-            Logger.Info("Starting Master on port {0} ...", Port);
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
-            ExampleMaster master = new ExampleMaster(Port, SlotsCount);
-            ThreadPool.QueueUserWorkItem(RunMaster, master);
+            Logger.Info("Starting master on port {0} ...", Port);
+            MasterNode master = new MasterNode(Port, StartUpThreadsCount, new MasterRepository());
+            ThreadPool.QueueUserWorkItem(HandleMessages, master);
+            ThreadPool.QueueUserWorkItem(ProcessIncomingMessages, master);
 
-            Logger.Info("Press Return to quit.");
+            Logger.Info("Press Enter to quit.");
             Console.ReadLine();
-            Logger.Info("Quit.");
-            master.ShutdownSlaves();
             master.Dispose();
         }
 
-        private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        private static void ProcessIncomingMessages(object state)
         {
-            Logger.Error(e.ExceptionObject.ToString());
-        }
-
-        private static void RunMaster(object state)
-        {
-            Computing.Master master = (Computing.Master)state;
+            AbstractMasterNode master = (AbstractMasterNode)state;
             while (master.State != Computing.Enums.MasterState.Left)
             {
                 try
                 {
                     master.ProcessIncomingMessages(1);
                 }
+                catch (SocketException ex)
+                {
+                    Logger.Warn(ex.Message);
+                }
                 catch (Exception ex)
                 {
                     Logger.Warn(ex.ToString());
-                    continue;
                 }
             }
+        }
+
+        private static void HandleMessages(object state)
+        {
+            AbstractMasterNode master = (AbstractMasterNode)state;
+            while (master.State != Computing.Enums.MasterState.Left)
+            {
+                master.HandleMessages(1);
+            }
+        }
+
+        private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Logger.Error(e.ExceptionObject.ToString());
         }
     }
 }

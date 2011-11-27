@@ -17,7 +17,7 @@ namespace Cloudy.Test.Messaging
             using (MemoryStream stream = new MemoryStream())
             {
                 Communicator communicator = new Communicator(
-                    new StreamRawCommunicator<object>(stream, null));
+                    new StreamSimpleCommunicator<object>(stream, null));
                 foreach (object message in 
                     new object[] { new A { UIntValue = 1 }, new A { UIntValue = 2 } })
                 {
@@ -37,7 +37,7 @@ namespace Cloudy.Test.Messaging
             using (MemoryStream stream = new MemoryStream())
             {
                 using (Communicator communicator = new Communicator(
-                    new StreamRawCommunicator<object>(stream, null)))
+                    new StreamSimpleCommunicator<object>(stream, null)))
                 {
                     for (int i = 0; i < 3; i++)
                     {

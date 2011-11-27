@@ -7,9 +7,9 @@ namespace Cloudy.Messaging.Raw
 {
     /// <summary>
     /// A helper class that adapts any stream
-    /// to the <see cref="IRawCommunicator"/> interface.
+    /// to the <see cref="ISimpleCommunicator"/> interface.
     /// </summary>
-    public class StreamRawCommunicator<TEndPoint> : IRawCommunicator<TEndPoint>
+    public class StreamSimpleCommunicator<TEndPoint> : ISimpleCommunicator<TEndPoint>
     {
         private readonly Stream stream;
 
@@ -20,7 +20,7 @@ namespace Cloudy.Messaging.Raw
         /// </summary>
         /// <param name="stream">The underlying stream.</param>
         /// <param name="defaultEndPoint">The fake endpoint for the stream.</param>
-        public StreamRawCommunicator(Stream stream, TEndPoint defaultEndPoint)
+        public StreamSimpleCommunicator(Stream stream, TEndPoint defaultEndPoint)
         {
             this.stream = stream;
             this.defaultEndPoint = defaultEndPoint;
