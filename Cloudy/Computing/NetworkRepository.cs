@@ -7,7 +7,7 @@ using Cloudy.Computing.Structures;
 
 namespace Cloudy.Computing
 {
-    public class MasterRepository : IMasterRepository
+    public class NetworkRepository : INetworkRepository
     {
         private readonly object locker = new object();
 

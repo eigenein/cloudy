@@ -6,7 +6,7 @@ using Cloudy.Computing.Structures;
 
 namespace Cloudy.Computing.Interfaces
 {
-    public interface IMasterRepository
+    public interface INetworkRepository
     {
         void AddToTotalSlotsCount(int count);
 

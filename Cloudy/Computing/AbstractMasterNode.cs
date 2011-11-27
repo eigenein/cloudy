@@ -13,12 +13,12 @@ namespace Cloudy.Computing
     {
         private MasterState state;
 
-        protected readonly IMasterRepository MasterRepository;
+        protected readonly INetworkRepository NetworkRepository;
 
-        protected AbstractMasterNode(int port, IMasterRepository masterRepository) 
+        protected AbstractMasterNode(int port, INetworkRepository networkRepository) 
             : base(port)
         {
-            this.MasterRepository = masterRepository;
+            this.NetworkRepository = networkRepository;
             AddHandler(Tags.JoinRequest, OnJoinRequest);
             AddHandler(Tags.Bye, OnBye);
             State = MasterState.Joined;
@@ -70,15 +70,15 @@ namespace Cloudy.Computing
                 return true;
             }
             SlaveContext slave;
-            if (!MasterRepository.TryGetSlave(slaveId, out slave))
+            if (!NetworkRepository.TryGetSlave(slaveId, out slave))
             {
-                MasterRepository.AddToTotalSlotsCount(request.SlotsCount);
+                NetworkRepository.AddToTotalSlotsCount(request.SlotsCount);
                 slave = new SlaveContext();
                 slave.SlaveId = slaveId;
                 slave.SlotsCount = request.SlotsCount;
                 slave.LocalEndPoint = request.LocalEndPoint.Value;
                 slave.ExternalEndPoint = remoteEndPoint;
-                MasterRepository.AddSlave(remoteEndPoint, slave);
+                NetworkRepository.AddSlave(remoteEndPoint, slave);
             }
             OnSlaveJoined(slave);
             if (SlaveJoined != null)
@@ -92,9 +92,9 @@ namespace Cloudy.Computing
 
         private bool OnBye(IPEndPoint remoteEndPoint, IMessage message)
         {
-            SlaveContext slave = MasterRepository.GetSlave(remoteEndPoint);
-            MasterRepository.RemoveFromTotalSlotsCount(slave.SlotsCount);
-            MasterRepository.RemoveSlave(remoteEndPoint);
+            SlaveContext slave = NetworkRepository.GetSlave(remoteEndPoint);
+            NetworkRepository.RemoveFromTotalSlotsCount(slave.SlotsCount);
+            NetworkRepository.RemoveSlave(remoteEndPoint);
             OnSlaveLeft(slave);
             if (SlaveLeft != null)
             {
@@ -107,13 +107,13 @@ namespace Cloudy.Computing
 
         protected void CreateThreads(SlaveContext slave)
         {
-            int count = slave.SlotsCount - MasterRepository.GetThreadsCount(slave.SlaveId);
+            int count = slave.SlotsCount - NetworkRepository.GetThreadsCount(slave.SlaveId);
             while (count-- > 0)
             {
                 ThreadContext thread = new ThreadContext();
                 thread.State = ThreadState.NotRunning;
                 thread.ThreadId = Guid.NewGuid();
-                MasterRepository.AddThread(slave.SlaveId, thread);
+                NetworkRepository.AddThread(slave.SlaveId, thread);
             }
         }
 
@@ -122,9 +122,9 @@ namespace Cloudy.Computing
         protected bool Start()
         {
             bool atLeastOneStarted = false;
-            foreach (SlaveContext slave in MasterRepository.GetAllSlaves())
+            foreach (SlaveContext slave in NetworkRepository.GetAllSlaves())
             {
-                foreach (ThreadContext thread in MasterRepository.GetThreads(slave.SlaveId))
+                foreach (ThreadContext thread in NetworkRepository.GetThreads(slave.SlaveId))
                 {
                     if (StartingThread != null)
                     {
@@ -134,7 +134,7 @@ namespace Cloudy.Computing
                     {
                         Send(slave.ExternalEndPoint, new GuidValue { Value = thread.ThreadId }, 
                             Tags.StartThread);
-                        MasterRepository.SetThreadState(thread.ThreadId, ThreadState.Running);
+                        NetworkRepository.SetThreadState(thread.ThreadId, ThreadState.Running);
                         atLeastOneStarted = true;
                     }
                     catch (TimeoutException)
@@ -185,9 +185,9 @@ namespace Cloudy.Computing
 
         private void StopAllThreads()
         {
-            foreach (SlaveContext slave in MasterRepository.GetAllSlaves())
+            foreach (SlaveContext slave in NetworkRepository.GetAllSlaves())
             {
-                foreach (ThreadContext thread in MasterRepository.GetThreads(slave.SlaveId))
+                foreach (ThreadContext thread in NetworkRepository.GetThreads(slave.SlaveId))
                 {
                     if (thread.State == ThreadState.Running)
                     {
@@ -195,7 +195,7 @@ namespace Cloudy.Computing
                         {
                             Send(slave.ExternalEndPoint, new GuidValue { Value = thread.ThreadId },
                                 Tags.StopThread);
-                            MasterRepository.SetThreadState(thread.ThreadId, ThreadState.NotRunning);
+                            NetworkRepository.SetThreadState(thread.ThreadId, ThreadState.NotRunning);
                         }
                         catch (TimeoutException)
                         {
@@ -208,7 +208,7 @@ namespace Cloudy.Computing
 
         public void Close()
         {
-            foreach (IPEndPoint endPoint in MasterRepository.GetSlavesEndPoints())
+            foreach (IPEndPoint endPoint in NetworkRepository.GetSlavesEndPoints())
             {
                 SendAsync(endPoint, EmptyValue.Instance, Tags.Bye);
             }

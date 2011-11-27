@@ -23,7 +23,7 @@ namespace Cloudy.Examples.Static.Pi.Master
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
             Logger.Info("Starting master on port {0} ...", Port);
-            MasterNode master = new MasterNode(Port, StartUpThreadsCount, new MasterRepository());
+            MasterNode master = new MasterNode(Port, StartUpThreadsCount, new NetworkRepository());
             ThreadPool.QueueUserWorkItem(HandleMessages, master);
             ThreadPool.QueueUserWorkItem(ProcessIncomingMessages, master);
 

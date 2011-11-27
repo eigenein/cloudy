@@ -10,8 +10,8 @@ namespace Cloudy.Examples.Static.Pi.Master
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public MasterNode(int port, int startUpThreadsCount, IMasterRepository masterRepository) 
-            : base(port, startUpThreadsCount, masterRepository)
+        public MasterNode(int port, int startUpThreadsCount, INetworkRepository networkRepository) 
+            : base(port, startUpThreadsCount, networkRepository)
         {
             SlaveJoined += (sender, e) =>
                 Logger.Info("Slave joined: {0}{2}{1}", e.Value1, e.Value2, Environment.NewLine);

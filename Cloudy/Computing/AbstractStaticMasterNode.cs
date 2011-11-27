@@ -10,8 +10,8 @@ namespace Cloudy.Computing
         private readonly int startUpThreadsCount;
 
         public AbstractStaticMasterNode(int port, int startUpThreadsCount, 
-            IMasterRepository masterRepository) 
-            : base(port, masterRepository)
+            INetworkRepository networkRepository) 
+            : base(port, networkRepository)
         {
             this.startUpThreadsCount = startUpThreadsCount;
         }
@@ -23,7 +23,7 @@ namespace Cloudy.Computing
             if (State != MasterState.Running)
             {
                 CreateThreads(slave);
-                if (MasterRepository.GetTotalSlotsCount() >= startUpThreadsCount)
+                if (NetworkRepository.GetTotalSlotsCount() >= startUpThreadsCount)
                 {
                     Start();
                 }
@@ -32,7 +32,7 @@ namespace Cloudy.Computing
 
         protected override void OnSlaveLeft(SlaveContext slave)
         {
-            foreach (ThreadContext thread in MasterRepository.GetThreads(slave.SlaveId))
+            foreach (ThreadContext thread in NetworkRepository.GetThreads(slave.SlaveId))
             {
                 if (thread.State == ThreadState.Running)
                 {
