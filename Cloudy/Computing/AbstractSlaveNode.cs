@@ -94,7 +94,7 @@ namespace Cloudy.Computing
         {
             if (thread.IsAlive)
             {
-                Send(masterEndPoint, new GuidValue { Value = threadId }, Tags.ThreadFailed);
+                SendAsync(masterEndPoint, new GuidValue { Value = threadId }, Tags.ThreadFailed);
                 thread.Abort();
             }
         }
@@ -116,9 +116,9 @@ namespace Cloudy.Computing
             return true;
         }
 
-        private void RunClientCode(object state)
+        private void RunClientCode(object o)
         {
-            Guid threadId = (Guid)state;
+            Guid threadId = (Guid)o;
             try
             {
                 Run(null);

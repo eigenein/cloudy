@@ -135,10 +135,13 @@ namespace Cloudy.Computing
         private bool OnThreadCompleted(IPEndPoint remoteEndPoint, IMessage message)
         {
             Guid threadId = message.Get<GuidValue>().Value;
-            // TODO: Complete job on completion of all threads.
             if (ThreadCompleted != null)
             {
                 ThreadCompleted(this, new EventArgs<Guid>(threadId));
+            }
+            if (NetworkRepository.RemoveFromRunningThreadsCount(1) == 0)
+            {
+                StopJob(JobResult.Succeeded);
             }
             return true;
         }
@@ -159,6 +162,7 @@ namespace Cloudy.Computing
         protected bool Start()
         {
             bool atLeastOneStarted = false;
+            NetworkRepository.ResetRunningThreadsCount();
             foreach (SlaveContext slave in NetworkRepository.GetAllSlaves())
             {
                 foreach (ThreadContext thread in NetworkRepository.GetThreads(slave.SlaveId))
@@ -176,6 +180,7 @@ namespace Cloudy.Computing
                         Send(slave.ExternalEndPoint, new GuidValue { Value = thread.ThreadId }, 
                             Tags.StartThread);
                         NetworkRepository.SetThreadState(thread.ThreadId, ThreadState.Running);
+                        NetworkRepository.AddToRunningThreadsCount(1);
                         atLeastOneStarted = true;
                     }
                     catch (TimeoutException)

@@ -12,6 +12,12 @@ namespace Cloudy.Computing.Interfaces
 
         void RemoveFromTotalSlotsCount(int count);
 
+        void ResetRunningThreadsCount();
+
+        void AddToRunningThreadsCount(int count);
+
+        int RemoveFromRunningThreadsCount(int count);
+
         int GetTotalSlotsCount();
 
         void AddSlave(IPEndPoint endPoint, SlaveContext slave);
@@ -27,8 +33,6 @@ namespace Cloudy.Computing.Interfaces
         int GetThreadsCount(Guid slaveId);
 
         void AddThread(Guid slaveId, ThreadContext thread);
-
-        void RemoveThread(Guid slaveId, Guid threadId);
 
         IEnumerable<ThreadContext> GetThreads(Guid slaveId);
 

@@ -25,6 +25,8 @@ namespace Cloudy.Computing
 
         private int totalSlotsCount;
 
+        private int runningThreadsCount;
+
         #region Implementation of IMasterRepository
 
         public void AddToTotalSlotsCount(int count)
@@ -40,6 +42,32 @@ namespace Cloudy.Computing
             lock (locker)
             {
                 totalSlotsCount -= count;
+            }
+        }
+
+        public void ResetRunningThreadsCount()
+        {
+            runningThreadsCount = 0;
+        }
+
+        public void AddToRunningThreadsCount(int count)
+        {
+            lock (locker)
+            {
+                runningThreadsCount += count;
+            }
+        }
+
+        public int RemoveFromRunningThreadsCount(int count)
+        {
+            lock (locker)
+            {
+                runningThreadsCount -= count;
+                if (runningThreadsCount < 0)
+                {
+                    runningThreadsCount = 0;
+                }
+                return runningThreadsCount;
             }
         }
 
@@ -115,18 +143,6 @@ namespace Cloudy.Computing
                 }
                 list.Add(thread.ThreadId, thread);
                 threadIdToThread[thread.ThreadId] = thread;
-            }
-        }
-
-        public void RemoveThread(Guid slaveId, Guid threadId)
-        {
-            lock (locker)
-            {
-                Dictionary<Guid, ThreadContext> list;
-                if (slaveIdToThreads.TryGetValue(slaveId, out list))
-                {
-                    list.Remove(threadId);
-                }
             }
         }
 
