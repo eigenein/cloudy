@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using Cloudy.Computing.Enums;
-using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Structures.Values;
 using Cloudy.Helpers;
 using Cloudy.Messaging.Interfaces;
@@ -14,6 +13,8 @@ namespace Cloudy.Computing
     {
         private readonly IPAddress localAddress;
 
+        private readonly Func<ComputingThread> createThread;
+
         private readonly Dictionary<Guid, Thread> threads =
             new Dictionary<Guid, Thread>();
 
@@ -21,10 +22,12 @@ namespace Cloudy.Computing
 
         private SlaveState state;
 
-        protected AbstractSlaveNode(int port, IPAddress localAddress)
+        protected AbstractSlaveNode(int port, IPAddress localAddress, 
+            Func<ComputingThread> createThread)
             : base(port)
         {
             this.localAddress = localAddress;
+            this.createThread = createThread;
             AddHandler(Tags.Bye, OnBye);
             AddHandler(Tags.StartThread, OnStartThread);
             AddHandler(Tags.StopThread, OnStopThread);
@@ -64,8 +67,6 @@ namespace Cloudy.Computing
         public event ParametrizedEventHandler<Guid> ThreadStopped;
 
         public event ParametrizedEventHandler<Exception> ExceptionUnhandled;
-
-        protected abstract void Run(IEnvironment environment);
 
         public bool Join(IPEndPoint endPoint)
         {
@@ -108,7 +109,7 @@ namespace Cloudy.Computing
                 AbortThread(threadId, thread);
             }
             thread = threads[threadId] = new Thread(RunClientCode);
-            thread.Start(threadId); // TODO: Pass IEnvironment with the Thread ID here.
+            thread.Start(threadId);
             if (ThreadStarted != null)
             {
                 ThreadStarted(this, new EventArgs<Guid>(threadId));
@@ -121,7 +122,7 @@ namespace Cloudy.Computing
             Guid threadId = (Guid)o;
             try
             {
-                Run(null);
+                createThread().Run(threadId);
                 Send(masterEndPoint, new GuidValue { Value = threadId }, Tags.ThreadCompleted);
             }
             catch (Exception ex)

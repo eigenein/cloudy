@@ -13,7 +13,7 @@ namespace Cloudy.Examples.Static.Pi.Slave
         private readonly int slotsCount;
 
         public SlaveNode(int port, IPAddress localAddress, int slotsCount) 
-            : base(port, localAddress)
+            : base(port, localAddress, () => new ComputingThread(Run))
         {
             this.slotsCount = slotsCount;
 
@@ -29,17 +29,17 @@ namespace Cloudy.Examples.Static.Pi.Slave
                 Logger.Error("Unhandled Exception: {0}", e.Value.ToString());
         }
 
+        private static void Run(IEnvironment environment)
+        {
+            // TODO: Implement.
+            Logger.Info("RUNNING");
+        }
+
         #region Overrides of AbstractSlaveNode
 
         public override int SlotsCount
         {
             get { return slotsCount; }
-        }
-
-        protected override void Run(IEnvironment environment)
-        {
-            // TODO: Implement.
-            Logger.Info("RUNNING");
         }
 
         #endregion

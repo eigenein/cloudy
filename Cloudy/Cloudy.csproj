@@ -95,6 +95,7 @@
     <Compile Include="Computing\AbstractNode.cs" />
     <Compile Include="Computing\AbstractSlaveNode.cs" />
     <Compile Include="Computing\AbstractStaticMasterNode.cs" />
+    <Compile Include="Computing\ComputingThread.cs" />
     <Compile Include="Computing\Enums\JobResult.cs" />
     <Compile Include="Computing\Enums\MasterState.cs" />
     <Compile Include="Computing\Enums\SlaveState.cs" />
