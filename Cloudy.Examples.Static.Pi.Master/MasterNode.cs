@@ -27,7 +27,7 @@ namespace Cloudy.Examples.Static.Pi.Master
             JobStopped += (sender, e) =>
                 Logger.Info("Job stopped: {0}", e.Value);
             ThreadFailedToStart += (sender, e) =>
-                Logger.Info("Thread failed to start: {1}", e.Value2);
+                Logger.Info("Thread failed to start: {0}", e.Value2);
             FailedToStart += (sender, e) =>
                 Logger.Error("Failed to start.");
             Started += (sender, e) =>

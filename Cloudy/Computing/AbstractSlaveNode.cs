@@ -15,8 +15,8 @@ namespace Cloudy.Computing
 
         private readonly Func<ComputingThread> createThread;
 
-        private readonly Dictionary<Guid, Thread> threads =
-            new Dictionary<Guid, Thread>();
+        private readonly Dictionary<Guid, ComputingThreadWrapper> threads =
+            new Dictionary<Guid, ComputingThreadWrapper>();
 
         private IPEndPoint masterEndPoint;
 
@@ -91,25 +91,19 @@ namespace Cloudy.Computing
             return true;
         }
 
-        private void AbortThread(Guid threadId, Thread thread)
-        {
-            if (thread.IsAlive)
-            {
-                SendAsync(masterEndPoint, new GuidValue { Value = threadId }, Tags.ThreadFailed);
-                thread.Abort();
-            }
-        }
-
         private bool OnStartThread(IPEndPoint remoteEndPoint, IMessage message)
         {
             Guid threadId = message.Get<GuidValue>().Value;
-            Thread thread;
-            if (threads.TryGetValue(threadId, out thread))
+            ComputingThreadWrapper thread;
+            if (!threads.TryGetValue(threadId, out thread))
             {
-                AbortThread(threadId, thread);
+                thread = threads[threadId] = new ComputingThreadWrapper(
+                    threadId, createThread);
+                thread.ThreadCompleted += OnThreadCompleted;
+                thread.ThreadFailed += OnThreadFailed;
+                thread.ThreadStopped += OnThreadStopped;
             }
-            thread = threads[threadId] = new Thread(RunClientCode);
-            thread.Start(threadId);
+            thread.Restart();
             if (ThreadStarted != null)
             {
                 ThreadStarted(this, new EventArgs<Guid>(threadId));
@@ -117,35 +111,36 @@ namespace Cloudy.Computing
             return true;
         }
 
-        private void RunClientCode(object o)
+        private void OnThreadCompleted(object sender, EventArgs e)
         {
-            Guid threadId = (Guid)o;
-            try
+            Guid threadId = ((ComputingThreadWrapper)sender).ThreadId;
+            Send(masterEndPoint, new GuidValue { Value = threadId }, Tags.ThreadCompleted);
+        }
+
+        private void OnThreadFailed(object sender, EventArgs<Exception> e)
+        {
+            Guid threadId = ((ComputingThreadWrapper)sender).ThreadId;
+            Send(masterEndPoint, new GuidValue { Value = threadId }, Tags.ThreadFailed);
+            if (e.Value != null && ExceptionUnhandled != null)
             {
-                createThread().Run(threadId);
-                Send(masterEndPoint, new GuidValue { Value = threadId }, Tags.ThreadCompleted);
+                ExceptionUnhandled(this, new EventArgs<Exception>(e.Value));
             }
-            catch (Exception ex)
-            {
-                if (ExceptionUnhandled != null)
-                {
-                    ExceptionUnhandled(this, new EventArgs<Exception>(ex));
-                }
-                Send(masterEndPoint, new GuidValue { Value = threadId }, Tags.ThreadFailed);
-            }
-            OnThreadStopped(threadId);
         }
 
         private bool OnStopThread(IPEndPoint remoteEndPoint, IMessage message)
         {
             Guid threadId = message.Get<GuidValue>().Value;
-            Thread thread;
-            if (threads.TryGetValue(threadId, out thread) && thread.IsAlive)
+            ComputingThreadWrapper thread;
+            if (threads.TryGetValue(threadId, out thread))
             {
                 thread.Abort();
-                OnThreadStopped(threadId);
             }
             return true;
+        }
+
+        private void OnThreadStopped(object sender, EventArgs e)
+        {
+            OnThreadStopped(((ComputingThreadWrapper)sender).ThreadId);
         }
 
         private void OnThreadStopped(Guid threadId)
@@ -158,9 +153,9 @@ namespace Cloudy.Computing
 
         public void Close()
         {
-            foreach (KeyValuePair<Guid, Thread> pair in threads)
+            foreach (ComputingThreadWrapper thread in threads.Values)
             {
-                AbortThread(pair.Key, pair.Value);
+                thread.Abort();
             }
             SendAsync(masterEndPoint, EmptyValue.Instance, Tags.Bye);
             State = SlaveState.Left;

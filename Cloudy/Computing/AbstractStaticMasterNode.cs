@@ -19,6 +19,11 @@ namespace Cloudy.Computing
 
         #region Overrides of AbstractMasterNode
 
+        protected override bool Start()
+        {
+            return NetworkRepository.GetTotalSlotsCount() >= startUpThreadsCount && base.Start();
+        }
+
         protected override void OnSlaveJoined(SlaveContext slave)
         {
             if (State != MasterState.Running)
@@ -42,9 +47,9 @@ namespace Cloudy.Computing
             }
         }
 
-        protected override void OnThreadFailedToStart(Guid slaveId, Guid threadId)
+        protected override bool OnThreadFailedToStart(Guid slaveId, Guid threadId)
         {
-            StopJob(JobResult.Failed);
+            return false;
         }
 
         #endregion

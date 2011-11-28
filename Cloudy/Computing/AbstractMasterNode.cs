@@ -28,6 +28,7 @@ namespace Cloudy.Computing
             AddHandler(Tags.Bye, OnBye);
             AddHandler(Tags.ThreadCompleted, OnThreadCompleted);
             AddHandler(Tags.ThreadFailed, OnThreadFailed);
+            MessageHandled += OnMessageHandled;
             State = MasterState.Joined;
         }
 
@@ -70,7 +71,7 @@ namespace Cloudy.Computing
 
         protected abstract void OnSlaveLeft(SlaveContext slave);
 
-        protected abstract void OnThreadFailedToStart(Guid slaveId, Guid threadId);
+        protected abstract bool OnThreadFailedToStart(Guid slaveId, Guid threadId);
 
         protected abstract bool OnJobStopped(JobResult result);
 
@@ -139,7 +140,8 @@ namespace Cloudy.Computing
             {
                 ThreadCompleted(this, new EventArgs<Guid>(threadId));
             }
-            if (NetworkRepository.RemoveFromRunningThreadsCount(1) == 0)
+            if (state == MasterState.Running &&
+                NetworkRepository.RemoveFromRunningThreadsCount(1) == 0)
             {
                 StopJob(JobResult.Succeeded);
             }
@@ -159,7 +161,18 @@ namespace Cloudy.Computing
             }
         }
 
-        protected bool Start()
+        private void OnMessageHandled(object sender, EventArgs e)
+        {
+            if (state == MasterState.RestartPending)
+            {
+                if (!Start())
+                {
+                    State = MasterState.Joined;
+                }
+            }
+        }
+
+        protected virtual bool Start()
         {
             bool atLeastOneStarted = false;
             NetworkRepository.ResetRunningThreadsCount();
@@ -185,7 +198,12 @@ namespace Cloudy.Computing
                     }
                     catch (TimeoutException)
                     {
-                        OnThreadFailedToStart(slave.SlaveId, thread.ThreadId);
+                        if (!OnThreadFailedToStart(slave.SlaveId, thread.ThreadId))
+                        {
+                            StopAllThreads();
+                            OnFailedToStart();
+                            return false;
+                        }
                         if (ThreadFailedToStart != null)
                         {
                             ThreadFailedToStart(this, new EventArgs<Guid, Guid>(
@@ -202,11 +220,19 @@ namespace Cloudy.Computing
                     Started(this, new EventArgs());
                 }
             }
-            else if (FailedToStart != null)
+            else
+            {
+                OnFailedToStart();
+            }
+            return atLeastOneStarted;
+        }
+
+        private void OnFailedToStart()
+        {
+            if (FailedToStart != null)
             {
                 FailedToStart(this, new EventArgs());
             }
-            return atLeastOneStarted;
         }
 
         protected void StopJob(JobResult result)
@@ -218,8 +244,7 @@ namespace Cloudy.Computing
             }
             if (OnJobStopped(result))
             {
-                State = MasterState.Joined;
-                Start();
+                State = MasterState.RestartPending;
             }
             else
             {

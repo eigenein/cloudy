@@ -36,6 +36,8 @@ namespace Cloudy.Computing
 
         public TimeSpan SendTimeout { get; set; }
 
+        public event EventHandler MessageHandled;
+
         public void AddHandler(int tag, Func<IPEndPoint, IMessage, bool> handler)
         {
             handlers[tag] = handler;
@@ -60,6 +62,10 @@ namespace Cloudy.Computing
                     unhandledMessages.Enqueue(remoteEndPoint, message);
                 }
                 count -= 1;
+                if (MessageHandled != null)
+                {
+                    MessageHandled(this, new EventArgs());
+                }
             }
         }
 
