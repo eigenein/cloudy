@@ -13,5 +13,9 @@ namespace Cloudy.Computing.Enums
         public const int StartThread = -6;
 
         public const int StopThread = -7;
+
+        public const int ThreadCompleted = -8;
+
+        public const int ThreadFailed = -9;
     }
 }

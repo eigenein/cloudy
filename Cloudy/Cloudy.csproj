@@ -100,6 +100,7 @@
     <Compile Include="Computing\Enums\SlaveState.cs" />
     <Compile Include="Computing\Enums\Tags.cs" />
     <Compile Include="Computing\Enums\ThreadState.cs" />
+    <Compile Include="Computing\Interfaces\IEnvironment.cs" />
     <Compile Include="Computing\Interfaces\INetworkRepository.cs" />
     <Compile Include="Computing\NetworkRepository.cs" />
     <Compile Include="Computing\Structures\SlaveContext.cs" />
@@ -109,8 +110,11 @@
     <Compile Include="Computing\Structures\Values\GuidValue.cs" />
     <Compile Include="Computing\Structures\Values\JoinRequestValue.cs" />
     <Compile Include="Computing\Structures\Values\JoinResponseValue.cs" />
-    <Compile Include="Computing\Topologies\Topology.cs" />
+    <Compile Include="Computing\Topologies\Interfaces\ITopology.cs" />
     <Compile Include="Computing\Topologies\Interfaces\ITopologyRepository.cs" />
+    <Compile Include="Computing\Topologies\Shortcuts\StarShortcuts.cs" />
+    <Compile Include="Computing\Topologies\StarTopology.cs" />
+    <Compile Include="Computing\Topologies\TopologyRepository.cs" />
     <Compile Include="Helpers\EventArgs.cs" />
     <Compile Include="Helpers\InvokeHelper.cs" />
     <Compile Include="Helpers\ParametrizedEventHandler.cs" />

@@ -17,8 +17,8 @@ namespace Cloudy.Computing
         private readonly Dictionary<Guid, SlaveContext> slaveIdToSlaveContext =
             new Dictionary<Guid, SlaveContext>();
 
-        private readonly Dictionary<Guid, List<ThreadContext>> slaveIdToThreads =
-            new Dictionary<Guid, List<ThreadContext>>();
+        private readonly Dictionary<Guid, Dictionary<Guid, ThreadContext>> slaveIdToThreads =
+            new Dictionary<Guid, Dictionary<Guid, ThreadContext>>();
 
         private readonly Dictionary<Guid, ThreadContext> threadIdToThread =
             new Dictionary<Guid, ThreadContext>();
@@ -70,7 +70,7 @@ namespace Cloudy.Computing
             return slaveIdToSlaveContext.TryGetValue(slaveId, out slave);
         }
 
-        public IEnumerable<EndPoint> GetSlavesEndPoints()
+        public IEnumerable<IPEndPoint> GetSlavesEndPoints()
         {
             lock (locker)
             {
@@ -95,7 +95,7 @@ namespace Cloudy.Computing
         {
             lock (locker)
             {
-                List<ThreadContext> list;
+                Dictionary<Guid, ThreadContext> list;
                 if (!slaveIdToThreads.TryGetValue(slaveId, out list))
                 {
                     return 0;
@@ -108,13 +108,25 @@ namespace Cloudy.Computing
         {
             lock (locker)
             {
-                List<ThreadContext> list;
+                Dictionary<Guid, ThreadContext> list;
                 if (!slaveIdToThreads.TryGetValue(slaveId, out list))
                 {
-                    list = slaveIdToThreads[slaveId] = new List<ThreadContext>();
+                    list = slaveIdToThreads[slaveId] = new Dictionary<Guid, ThreadContext>();
                 }
-                list.Add(thread);
+                list.Add(thread.ThreadId, thread);
                 threadIdToThread[thread.ThreadId] = thread;
+            }
+        }
+
+        public void RemoveThread(Guid slaveId, Guid threadId)
+        {
+            lock (locker)
+            {
+                Dictionary<Guid, ThreadContext> list;
+                if (slaveIdToThreads.TryGetValue(slaveId, out list))
+                {
+                    list.Remove(threadId);
+                }
             }
         }
 
@@ -122,12 +134,14 @@ namespace Cloudy.Computing
         {
             lock (locker)
             {
-                List<ThreadContext> list;
+                Dictionary<Guid, ThreadContext> list;
                 if (slaveIdToThreads.TryGetValue(slaveId, out list))
                 {
-                    return list;
+                    foreach (ThreadContext thread in list.Values)
+                    {
+                        yield return thread;
+                    }
                 }
-                return new List<ThreadContext>();
             }
         }
 

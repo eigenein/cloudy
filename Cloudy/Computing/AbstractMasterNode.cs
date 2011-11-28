@@ -4,6 +4,7 @@ using Cloudy.Computing.Enums;
 using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Structures;
 using Cloudy.Computing.Structures.Values;
+using Cloudy.Computing.Topologies.Interfaces;
 using Cloudy.Helpers;
 using Cloudy.Messaging.Interfaces;
 
@@ -13,14 +14,20 @@ namespace Cloudy.Computing
     {
         private MasterState state;
 
+        private readonly ITopologyRepository topologyRepository;
+
         protected readonly INetworkRepository NetworkRepository;
 
-        protected AbstractMasterNode(int port, INetworkRepository networkRepository) 
+        protected AbstractMasterNode(int port, INetworkRepository networkRepository,
+            ITopologyRepository topologyRepository) 
             : base(port)
         {
             this.NetworkRepository = networkRepository;
+            this.topologyRepository = topologyRepository;
             AddHandler(Tags.JoinRequest, OnJoinRequest);
             AddHandler(Tags.Bye, OnBye);
+            AddHandler(Tags.ThreadCompleted, OnThreadCompleted);
+            AddHandler(Tags.ThreadFailed, OnThreadFailed);
             State = MasterState.Joined;
         }
 
@@ -53,6 +60,20 @@ namespace Cloudy.Computing
 
         public event ParametrizedEventHandler<Guid> StartingThread;
 
+        public event ParametrizedEventHandler<Guid> ThreadCompleted;
+
+        public event ParametrizedEventHandler<Guid> ThreadFailed;
+
+        protected abstract ITopology Topology { get; }
+
+        protected abstract void OnSlaveJoined(SlaveContext slave);
+
+        protected abstract void OnSlaveLeft(SlaveContext slave);
+
+        protected abstract void OnThreadFailedToStart(Guid slaveId, Guid threadId);
+
+        protected abstract bool OnJobStopped(JobResult result);
+
         private bool OnJoinRequest(IPEndPoint remoteEndPoint, IMessage message)
         {
             JoinRequestValue request = message.Get<JoinRequestValue>();
@@ -80,15 +101,13 @@ namespace Cloudy.Computing
                 slave.ExternalEndPoint = remoteEndPoint;
                 NetworkRepository.AddSlave(remoteEndPoint, slave);
             }
-            OnSlaveJoined(slave);
             if (SlaveJoined != null)
             {
                 SlaveJoined(this, new EventArgs<IPEndPoint, Guid>(remoteEndPoint, slaveId));
             }
+            OnSlaveJoined(slave);
             return true;
         }
-
-        protected abstract void OnSlaveJoined(SlaveContext slave);
 
         private bool OnBye(IPEndPoint remoteEndPoint, IMessage message)
         {
@@ -103,7 +122,26 @@ namespace Cloudy.Computing
             return true;
         }
 
-        protected abstract void OnSlaveLeft(SlaveContext slave);
+        private bool OnThreadFailed(IPEndPoint remoteEndPoint, IMessage message)
+        {
+            Guid threadId = message.Get<GuidValue>().Value;
+            if (ThreadFailed != null)
+            {
+                ThreadFailed(this, new EventArgs<Guid>(threadId));
+            }
+            return true;
+        }
+
+        private bool OnThreadCompleted(IPEndPoint remoteEndPoint, IMessage message)
+        {
+            Guid threadId = message.Get<GuidValue>().Value;
+            // TODO: Complete job on completion of all threads.
+            if (ThreadCompleted != null)
+            {
+                ThreadCompleted(this, new EventArgs<Guid>(threadId));
+            }
+            return true;
+        }
 
         protected void CreateThreads(SlaveContext slave)
         {
@@ -111,13 +149,12 @@ namespace Cloudy.Computing
             while (count-- > 0)
             {
                 ThreadContext thread = new ThreadContext();
-                thread.State = ThreadState.NotRunning;
                 thread.ThreadId = Guid.NewGuid();
+                thread.State = Topology.TryAddThread(thread.ThreadId, topologyRepository) ?
+                    ThreadState.NotRunning : ThreadState.Reserved;
                 NetworkRepository.AddThread(slave.SlaveId, thread);
             }
         }
-
-        protected abstract void OnThreadFailedToStart(Guid slaveId, Guid threadId);
 
         protected bool Start()
         {
@@ -126,6 +163,10 @@ namespace Cloudy.Computing
             {
                 foreach (ThreadContext thread in NetworkRepository.GetThreads(slave.SlaveId))
                 {
+                    if (thread.State == ThreadState.Reserved)
+                    {
+                        continue;
+                    }
                     if (StartingThread != null)
                     {
                         StartingThread(this, new EventArgs<Guid>(thread.ThreadId));
@@ -163,18 +204,16 @@ namespace Cloudy.Computing
             return atLeastOneStarted;
         }
 
-        protected abstract bool OnJobStopped(JobResult result);
-
         protected void StopJob(JobResult result)
         {
             StopAllThreads();
-            State = MasterState.Joined;
             if (JobStopped != null)
             {
                 JobStopped(this, new EventArgs<JobResult>(result));
             }
             if (OnJobStopped(result))
             {
+                State = MasterState.Joined;
                 Start();
             }
             else
@@ -195,7 +234,8 @@ namespace Cloudy.Computing
                         {
                             Send(slave.ExternalEndPoint, new GuidValue { Value = thread.ThreadId },
                                 Tags.StopThread);
-                            NetworkRepository.SetThreadState(thread.ThreadId, ThreadState.NotRunning);
+                            NetworkRepository.SetThreadState(thread.ThreadId,
+                                ThreadState.NotRunning);
                         }
                         catch (TimeoutException)
                         {

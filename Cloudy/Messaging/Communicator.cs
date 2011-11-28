@@ -18,7 +18,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="simpleCommunicatorhe underlying communicator.</param>
+        /// <param name="simpleCommunicator">The underlying communicator.</param>
         public Communicator(ISimpleCommunicator simpleCommunicator)
         {
             this.simpleCommunicator = simpleCommunicator;
@@ -60,7 +60,7 @@ namespace Cloudy.Messaging
         /// Reads a tagged message from the communicator. The method is thread-safe.
         /// </summary>
         /// <returns>The read message.</returns>
-        public IMessage ReceiveTagged(out int? tag)
+        public IMessage ReceiveTagged(out int tag)
         {
             Dto dto = Receive<Dto>();
             tag = dto.Tag;
@@ -97,7 +97,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Writes the tagged message to the communicator. The method is thread-safe.
         /// </summary>
-        public void SendTagged(int? tag, object message)
+        public void SendTagged(int tag, object message)
         {
             Send(new Dto(tag, Serializer.CreateSerializer(
                 message.GetType()).Serialize(message)));
@@ -106,7 +106,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Writes the tagged message to the communicator. The method is thread-safe.
         /// </summary>
-        public void SendTagged<T>(int? tag, T message)
+        public void SendTagged<T>(int tag, T message)
         {
             Send(new Dto<T>(tag, message));
         }
@@ -145,7 +145,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="simpleCommunicatorhe underlying communicator.</param>
+        /// <param name="simpleCommunicator">The underlying communicator.</param>
         public Communicator(ISimpleCommunicator<TEndPoint> simpleCommunicator) 
             : base(simpleCommunicator)
         {
@@ -196,7 +196,7 @@ namespace Cloudy.Messaging
         /// Reads a tagged message from the communicator. The method is thread-safe.
         /// </summary>
         /// <returns>The read message.</returns>
-        public IMessage ReceiveTagged(out int? tag, out TEndPoint endPoint)
+        public IMessage ReceiveTagged(out int tag, out TEndPoint endPoint)
         {
             Dto dto = Receive<Dto>(out endPoint);
             tag = dto.Tag;
@@ -233,7 +233,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Writes the tagged message to the communicator. The method is thread-safe.
         /// </summary>
-        public void SendTagged(int? tag, object message, TEndPoint endPoint)
+        public void SendTagged(int tag, object message, TEndPoint endPoint)
         {
             Send(new Dto(tag, Serializer.CreateSerializer(
                 message.GetType()).Serialize(message)), endPoint);
@@ -242,7 +242,7 @@ namespace Cloudy.Messaging
         /// <summary>
         /// Writes the tagged message to the communicator. The method is thread-safe.
         /// </summary>
-        public void SendTagged<T>(int? tag, T message, TEndPoint endPoint)
+        public void SendTagged<T>(int tag, T message, TEndPoint endPoint)
         {
             Send(new Dto<T>(tag, message), endPoint);
         }

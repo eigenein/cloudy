@@ -2,6 +2,7 @@
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Structures;
+using Cloudy.Computing.Topologies.Interfaces;
 
 namespace Cloudy.Computing
 {
@@ -10,8 +11,8 @@ namespace Cloudy.Computing
         private readonly int startUpThreadsCount;
 
         public AbstractStaticMasterNode(int port, int startUpThreadsCount, 
-            INetworkRepository networkRepository) 
-            : base(port, networkRepository)
+            INetworkRepository networkRepository, ITopologyRepository topologyRepository) 
+            : base(port, networkRepository, topologyRepository)
         {
             this.startUpThreadsCount = startUpThreadsCount;
         }

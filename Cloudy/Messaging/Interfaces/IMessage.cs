@@ -8,6 +8,11 @@ namespace Cloudy.Messaging.Interfaces
     public interface IMessage
     {
         /// <summary>
+        /// Gets the tag of the message.
+        /// </summary>
+        int Tag { get; }
+
+        /// <summary>
         /// Gets the value attached.
         /// </summary>
         T Get<T>();

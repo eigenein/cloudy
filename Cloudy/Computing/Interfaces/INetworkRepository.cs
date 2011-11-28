@@ -20,13 +20,15 @@ namespace Cloudy.Computing.Interfaces
 
         bool TryGetSlave(Guid slaveId, out SlaveContext slave);
 
-        IEnumerable<EndPoint> GetSlavesEndPoints();
+        IEnumerable<IPEndPoint> GetSlavesEndPoints();
 
         void RemoveSlave(IPEndPoint endPoint);
 
         int GetThreadsCount(Guid slaveId);
 
         void AddThread(Guid slaveId, ThreadContext thread);
+
+        void RemoveThread(Guid slaveId, Guid threadId);
 
         IEnumerable<ThreadContext> GetThreads(Guid slaveId);
 

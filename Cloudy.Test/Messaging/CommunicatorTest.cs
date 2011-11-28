@@ -46,7 +46,7 @@ namespace Cloudy.Test.Messaging
                     stream.Position = 0;
                     for (int i = 0; i < 3; i++)
                     {
-                        int? tag;
+                        int tag;
                         uint value = communicator.ReceiveTagged(out tag).Get<A>().UIntValue;
                         Assert.AreEqual(tags[i], tag);
                         Assert.AreEqual(values[i], value);

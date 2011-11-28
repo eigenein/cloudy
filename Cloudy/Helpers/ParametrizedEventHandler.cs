@@ -1,4 +1,5 @@
 ﻿using System;
+using Cloudy.Computing.Structures;
 
 namespace Cloudy.Helpers
 {

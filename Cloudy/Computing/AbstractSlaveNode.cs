@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using Cloudy.Computing.Enums;
-using Cloudy.Computing.Structures;
+using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Structures.Values;
 using Cloudy.Helpers;
 using Cloudy.Messaging.Interfaces;
@@ -11,6 +13,9 @@ namespace Cloudy.Computing
     public abstract class AbstractSlaveNode : AbstractNode
     {
         private readonly IPAddress localAddress;
+
+        private readonly Dictionary<Guid, Thread> threads =
+            new Dictionary<Guid, Thread>();
 
         private IPEndPoint masterEndPoint;
 
@@ -58,6 +63,10 @@ namespace Cloudy.Computing
 
         public event ParametrizedEventHandler<Guid> ThreadStopped;
 
+        public event ParametrizedEventHandler<Exception> ExceptionUnhandled;
+
+        protected abstract void Run(IEnvironment environment);
+
         public bool Join(IPEndPoint endPoint)
         {
             JoinRequestValue request = 
@@ -81,29 +90,77 @@ namespace Cloudy.Computing
             return true;
         }
 
+        private void AbortThread(Guid threadId, Thread thread)
+        {
+            if (thread.IsAlive)
+            {
+                Send(masterEndPoint, new GuidValue { Value = threadId }, Tags.ThreadFailed);
+                thread.Abort();
+            }
+        }
+
         private bool OnStartThread(IPEndPoint remoteEndPoint, IMessage message)
         {
-            GuidValue threadId = message.Get<GuidValue>();
+            Guid threadId = message.Get<GuidValue>().Value;
+            Thread thread;
+            if (threads.TryGetValue(threadId, out thread))
+            {
+                AbortThread(threadId, thread);
+            }
+            thread = threads[threadId] = new Thread(RunClientCode);
+            thread.Start(threadId); // TODO: Pass IEnvironment with the Thread ID here.
             if (ThreadStarted != null)
             {
-                ThreadStarted(this, new EventArgs<Guid>(threadId.Value));
+                ThreadStarted(this, new EventArgs<Guid>(threadId));
             }
             return true;
+        }
+
+        private void RunClientCode(object state)
+        {
+            Guid threadId = (Guid)state;
+            try
+            {
+                Run(null);
+                Send(masterEndPoint, new GuidValue { Value = threadId }, Tags.ThreadCompleted);
+            }
+            catch (Exception ex)
+            {
+                if (ExceptionUnhandled != null)
+                {
+                    ExceptionUnhandled(this, new EventArgs<Exception>(ex));
+                }
+                Send(masterEndPoint, new GuidValue { Value = threadId }, Tags.ThreadFailed);
+            }
+            OnThreadStopped(threadId);
         }
 
         private bool OnStopThread(IPEndPoint remoteEndPoint, IMessage message)
         {
-            GuidValue threadId = message.Get<GuidValue>();
-            if (ThreadStopped != null)
+            Guid threadId = message.Get<GuidValue>().Value;
+            Thread thread;
+            if (threads.TryGetValue(threadId, out thread) && thread.IsAlive)
             {
-                ThreadStopped(this, new EventArgs<Guid>(threadId.Value));
+                thread.Abort();
+                OnThreadStopped(threadId);
             }
             return true;
         }
 
+        private void OnThreadStopped(Guid threadId)
+        {
+            if (ThreadStopped != null)
+            {
+                ThreadStopped(this, new EventArgs<Guid>(threadId));
+            }
+        }
+
         public void Close()
         {
-            // TODO: Stop all threads if any.
+            foreach (KeyValuePair<Guid, Thread> pair in threads)
+            {
+                AbortThread(pair.Key, pair.Value);
+            }
             SendAsync(masterEndPoint, EmptyValue.Instance, Tags.Bye);
             State = SlaveState.Left;
         }

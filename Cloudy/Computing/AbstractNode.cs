@@ -68,7 +68,7 @@ namespace Cloudy.Computing
             dispatcher.SendAsync(endPoint, message, tag);
         }
 
-        protected void Send<T>(IPEndPoint endPoint, T message, int tag)
+        protected virtual void Send<T>(IPEndPoint endPoint, T message, int tag)
         {
             dispatcher.Send(endPoint, message, tag, SendTimeout);
         }

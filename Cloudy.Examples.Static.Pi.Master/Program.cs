@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using System.Threading;
 using Cloudy.Computing;
+using Cloudy.Computing.Topologies;
 using Cloudy.Examples.Shared.Configuration;
 using NLog;
 
@@ -23,7 +24,8 @@ namespace Cloudy.Examples.Static.Pi.Master
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
             Logger.Info("Starting master on port {0} ...", Port);
-            MasterNode master = new MasterNode(Port, StartUpThreadsCount, new NetworkRepository());
+            MasterNode master = new MasterNode(Port, StartUpThreadsCount, 
+                new NetworkRepository(), new TopologyRepository());
             ThreadPool.QueueUserWorkItem(HandleMessages, master);
             ThreadPool.QueueUserWorkItem(ProcessIncomingMessages, master);
 
