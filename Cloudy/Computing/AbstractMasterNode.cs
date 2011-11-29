@@ -69,10 +69,28 @@ namespace Cloudy.Computing
 
         protected abstract void OnSlaveJoined(SlaveContext slave);
 
-        protected abstract void OnSlaveLeft(SlaveContext slave);
+        /// <summary>
+        /// Notifies that a slave has left.
+        /// </summary>
+        /// <returns>
+        /// Whether a master should attempt to continue the job (failed otherwise).
+        /// </returns>
+        protected abstract bool OnSlaveLeft(SlaveContext slave);
 
+        /// <summary>
+        /// Notifies that the thread could not be started.
+        /// </summary>
+        /// <returns>
+        /// Whether starting of a job should be continued (failed otherwise).
+        /// </returns>
         protected abstract bool OnThreadFailedToStart(Guid slaveId, Guid threadId);
 
+        /// <summary>
+        /// Notifies that the job is stopped.
+        /// </summary>
+        /// <returns>
+        /// Whether a master should continue with a new job (closing otherwise).
+        /// </returns>
         protected abstract bool OnJobStopped(JobResult result);
 
         private bool OnJoinRequest(IPEndPoint remoteEndPoint, IMessage message)
@@ -115,10 +133,13 @@ namespace Cloudy.Computing
             SlaveContext slave = NetworkRepository.GetSlave(remoteEndPoint);
             NetworkRepository.RemoveFromTotalSlotsCount(slave.SlotsCount);
             NetworkRepository.RemoveSlave(remoteEndPoint);
-            OnSlaveLeft(slave);
             if (SlaveLeft != null)
             {
                 SlaveLeft(this, new EventArgs<IPEndPoint, Guid>(remoteEndPoint, slave.SlaveId));
+            }
+            if (!OnSlaveLeft(slave))
+            {
+                StopJob(JobResult.Failed);
             }
             return true;
         }

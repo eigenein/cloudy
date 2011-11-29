@@ -49,7 +49,7 @@ namespace Cloudy.Examples.Static.Pi.Master
 
         protected override bool OnJobStopped(JobResult result)
         {
-            return false;
+            return true;
         }
 
         #endregion

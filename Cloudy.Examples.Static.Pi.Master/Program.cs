@@ -28,6 +28,8 @@ namespace Cloudy.Examples.Static.Pi.Master
                 new NetworkRepository(), new TopologyRepository());
             ThreadPool.QueueUserWorkItem(HandleMessages, master);
             ThreadPool.QueueUserWorkItem(ProcessIncomingMessages, master);
+            Logger.Info("Awaiting for at least {0} slaves ...",
+                StartUpThreadsCount);
 
             Logger.Info("Press Enter to quit.");
             Console.ReadLine();

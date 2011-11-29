@@ -36,15 +36,16 @@ namespace Cloudy.Computing
             }
         }
 
-        protected override void OnSlaveLeft(SlaveContext slave)
+        protected override bool OnSlaveLeft(SlaveContext slave)
         {
             foreach (ThreadContext thread in NetworkRepository.GetThreads(slave.SlaveId))
             {
                 if (thread.State == ThreadState.Running)
                 {
-                    StopJob(JobResult.Failed);
+                    return false;
                 }
             }
+            return true;
         }
 
         protected override bool OnThreadFailedToStart(Guid slaveId, Guid threadId)
