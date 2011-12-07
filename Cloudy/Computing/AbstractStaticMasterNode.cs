@@ -10,7 +10,7 @@ namespace Cloudy.Computing
     {
         private readonly int startUpThreadsCount;
 
-        public AbstractStaticMasterNode(int port, int startUpThreadsCount, 
+        protected AbstractStaticMasterNode(int port, int startUpThreadsCount, 
             INetworkRepository networkRepository, ITopologyRepository topologyRepository) 
             : base(port, networkRepository, topologyRepository)
         {

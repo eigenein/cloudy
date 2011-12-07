@@ -102,6 +102,8 @@
     <Compile Include="Computing\Enums\SlaveState.cs" />
     <Compile Include="Computing\Enums\Tags.cs" />
     <Compile Include="Computing\Enums\ThreadState.cs" />
+    <Compile Include="Computing\Environment.cs" />
+    <Compile Include="Computing\Interfaces\IComputingThread.cs" />
     <Compile Include="Computing\Interfaces\IEnvironment.cs" />
     <Compile Include="Computing\Interfaces\INetworkRepository.cs" />
     <Compile Include="Computing\NetworkRepository.cs" />

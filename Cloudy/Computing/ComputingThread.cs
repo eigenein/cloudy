@@ -1,43 +1,27 @@
 ﻿using System;
-using System.Threading;
 using Cloudy.Computing.Interfaces;
 
 namespace Cloudy.Computing
 {
-    public class ComputingThread : IEnvironment
+    /// <summary>
+    /// Default implementation of the <see cref="IComputingThread"/> interface
+    /// that accepts an action delegate.
+    /// </summary>
+    public class ComputingThread : IComputingThread
     {
-        private readonly Action<IEnvironment> threadRun;
+        private readonly Action<Guid, IEnvironment> run;
 
-        public ComputingThread()
+        public ComputingThread(Action<Guid, IEnvironment> run)
         {
-            // Do nothing.
+            this.run = run;
         }
 
-        public ComputingThread(Action<IEnvironment> threadRun)
-            : this()
+        #region Implementation of IComputingThread
+
+        public void Run(Guid threadId, IEnvironment environment)
         {
-            this.threadRun = threadRun;
+            run(threadId, environment);
         }
-
-        protected virtual void Run(IEnvironment environment)
-        {
-            threadRun(environment);
-        }
-
-        protected virtual void Run()
-        {
-            Run(this);
-        }
-
-        internal void Run(Guid threadId)
-        {
-            this.ThreadId = threadId;
-            Run();
-        }
-
-        #region Implementation of IEnvironment
-
-        public Guid ThreadId { get; private set; }
 
         #endregion
     }

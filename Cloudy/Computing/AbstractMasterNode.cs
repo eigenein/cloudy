@@ -93,6 +93,9 @@ namespace Cloudy.Computing
         /// </returns>
         protected abstract bool OnJobStopped(JobResult result);
 
+        /// <summary>
+        /// Called when the master receives a join request from a slave.
+        /// </summary>
         private bool OnJoinRequest(IPEndPoint remoteEndPoint, IMessage message)
         {
             JoinRequestValue request = message.Get<JoinRequestValue>();
@@ -297,6 +300,9 @@ namespace Cloudy.Computing
             }
         }
 
+        /// <summary>
+        /// Silently shuts down the whole network.
+        /// </summary>
         public void Close()
         {
             foreach (IPEndPoint endPoint in NetworkRepository.GetSlavesEndPoints())

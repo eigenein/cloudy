@@ -1,14 +1,20 @@
 ﻿using System;
 using System.Threading;
+using Cloudy.Computing.Interfaces;
 using Cloudy.Helpers;
 
 namespace Cloudy.Computing
 {
+    /// <summary>
+    /// Takes care about (re)starting of an underlying thread object.
+    /// </summary>
     internal class ComputingThreadWrapper
     {
         private readonly Guid threadId;
 
-        private readonly Func<ComputingThread> createThread;
+        private readonly IEnvironment environment;
+
+        private readonly Func<IComputingThread> createThread;
 
         private Thread thread;
 
@@ -18,9 +24,11 @@ namespace Cloudy.Computing
 
         public event EventHandler ThreadStopped;
 
-        public ComputingThreadWrapper(Guid threadId, Func<ComputingThread> createThread)
+        public ComputingThreadWrapper(Guid threadId, IEnvironment environment,
+            Func<IComputingThread> createThread)
         {
             this.threadId = threadId;
+            this.environment = environment;
             this.createThread = createThread;
         }
 
@@ -56,10 +64,10 @@ namespace Cloudy.Computing
 
         private void Run(object state)
         {
-            ComputingThread computingThread = createThread();
+            IComputingThread computingThread = createThread();
             try
             {
-                computingThread.Run(threadId);
+                computingThread.Run(threadId, environment);
                 if (ThreadCompleted != null)
                 {
                     ThreadCompleted(this, new EventArgs());

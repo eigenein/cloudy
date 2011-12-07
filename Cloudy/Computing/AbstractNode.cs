@@ -69,6 +69,9 @@ namespace Cloudy.Computing
             }
         }
 
+        /// <summary>
+        /// Sends the message asynchronously, but without tracking.
+        /// </summary>
         protected void SendAsync<T>(IPEndPoint endPoint, T message, int tag)
         {
             dispatcher.SendAsync(endPoint, message, tag);

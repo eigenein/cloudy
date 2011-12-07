@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Threading;
 using Cloudy.Computing.Enums;
+using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Structures.Values;
 using Cloudy.Helpers;
 using Cloudy.Messaging.Interfaces;
@@ -13,21 +13,19 @@ namespace Cloudy.Computing
     {
         private readonly IPAddress localAddress;
 
-        private readonly Func<ComputingThread> createThread;
-
         private readonly Dictionary<Guid, ComputingThreadWrapper> threads =
             new Dictionary<Guid, ComputingThreadWrapper>();
+
+        private readonly Environment environment = new Environment();
 
         private IPEndPoint masterEndPoint;
 
         private SlaveState state;
 
-        protected AbstractSlaveNode(int port, IPAddress localAddress, 
-            Func<ComputingThread> createThread)
+        protected AbstractSlaveNode(int port, IPAddress localAddress)
             : base(port)
         {
             this.localAddress = localAddress;
-            this.createThread = createThread;
             AddHandler(Tags.Bye, OnBye);
             AddHandler(Tags.StartThread, OnStartThread);
             AddHandler(Tags.StopThread, OnStopThread);
@@ -68,6 +66,8 @@ namespace Cloudy.Computing
 
         public event ParametrizedEventHandler<Exception> ExceptionUnhandled;
 
+        protected abstract IComputingThread CreateThread();
+
         public bool Join(IPEndPoint endPoint)
         {
             JoinRequestValue request = 
@@ -79,9 +79,9 @@ namespace Cloudy.Computing
                 };
             Send(endPoint, request, Tags.JoinRequest);
             JoinResponseValue response = ReceiveFrom<JoinResponseValue>(endPoint);
-            this.SlaveId = response.SlaveId;
-            this.ExternalEndPoint = response.ExternalEndPoint.Value;
-            this.masterEndPoint = endPoint;
+            SlaveId = response.SlaveId;
+            ExternalEndPoint = response.ExternalEndPoint.Value;
+            masterEndPoint = endPoint;
             State = SlaveState.Joined;
             if (Joined != null)
             {
@@ -98,7 +98,7 @@ namespace Cloudy.Computing
             if (!threads.TryGetValue(threadId, out thread))
             {
                 thread = threads[threadId] = new ComputingThreadWrapper(
-                    threadId, createThread);
+                    threadId, environment, CreateThread);
                 thread.ThreadCompleted += OnThreadCompleted;
                 thread.ThreadFailed += OnThreadFailed;
                 thread.ThreadStopped += OnThreadStopped;

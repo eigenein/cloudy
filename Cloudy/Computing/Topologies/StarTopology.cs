@@ -5,11 +5,19 @@ using Cloudy.Computing.Topologies.Shortcuts;
 
 namespace Cloudy.Computing.Topologies
 {
+    /// <summary>
+    /// Implements the Star topology.
+    /// </summary>
     public class StarTopology : ITopology
     {
         private readonly object locker = new object();
 
         #region Implementation of ITopology
+
+        public bool IsShortcut(Guid id)
+        {
+            return id == StarShortcuts.Center || id == StarShortcuts.Peripheral;
+        }
 
         public bool IsWellKnownShortcut(Guid shortcutId)
         {
