@@ -29,7 +29,7 @@ namespace Cloudy.Examples.Static.Pi.Slave
                 Logger.Error("Unhandled Exception: {0}", e.Value.ToString());
         }
 
-        private static void Run(Guid threadId, IEnvironment environment)
+        private static void Run(IEnvironment environment)
         {
             // TODO: Implement.
             Logger.Info("RUNNING");

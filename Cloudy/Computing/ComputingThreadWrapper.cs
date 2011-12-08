@@ -37,6 +37,11 @@ namespace Cloudy.Computing
             get { return threadId; }
         }
 
+        public IEnvironment Environment
+        {
+            get { return environment; }
+        }
+
         public void Abort()
         {
             if (thread != null && thread.IsAlive)
@@ -67,7 +72,7 @@ namespace Cloudy.Computing
             IComputingThread computingThread = createThread();
             try
             {
-                computingThread.Run(threadId, environment);
+                computingThread.Run(environment);
                 if (ThreadCompleted != null)
                 {
                     ThreadCompleted(this, new EventArgs());

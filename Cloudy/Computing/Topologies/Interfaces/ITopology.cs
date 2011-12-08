@@ -14,12 +14,6 @@ namespace Cloudy.Computing.Topologies.Interfaces
         /// <returns></returns>
         bool IsShortcut(Guid id);
 
-        /// <summary>
-        /// Gets whether the shortcut is well-known (i.e. a mapped thread ID doesn't depend
-        /// on a current thread ID).
-        /// </summary>
-        bool IsWellKnownShortcut(Guid shortcutId);
-
         bool TryAddThread(Guid threadId, ITopologyRepository repository);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using Cloudy.Computing.Structures.Values;
 
 namespace Cloudy.Computing.Interfaces
 {
@@ -7,6 +8,8 @@ namespace Cloudy.Computing.Interfaces
     /// </summary>
     public interface IEnvironment
     {
-        
+        Guid ThreadId { get; }
+
+        void NotifyValueReceived(EnvironmentOperationValue value);
     }
 }

@@ -9,14 +9,12 @@ using Cloudy.Messaging.Interfaces;
 
 namespace Cloudy.Computing
 {
-    public abstract class AbstractSlaveNode : AbstractNode
+    public abstract class AbstractSlaveNode : AbstractNode, IEnvironmentTransport
     {
         private readonly IPAddress localAddress;
 
         private readonly Dictionary<Guid, ComputingThreadWrapper> threads =
             new Dictionary<Guid, ComputingThreadWrapper>();
-
-        private readonly Environment environment = new Environment();
 
         private IPEndPoint masterEndPoint;
 
@@ -29,6 +27,7 @@ namespace Cloudy.Computing
             AddHandler(Tags.Bye, OnBye);
             AddHandler(Tags.StartThread, OnStartThread);
             AddHandler(Tags.StopThread, OnStopThread);
+            AddHandler(Tags.EnvironmentOperation, OnEnvironmentOperation);
             State = SlaveState.NotJoined;
         }
 
@@ -91,6 +90,12 @@ namespace Cloudy.Computing
             return true;
         }
 
+        private void SendEnvironmentOperation(IEnumerable<Guid> recipients,
+            EnvironmentOperationValue value)
+        {
+            throw new NotImplementedException("SendEnvironmentOperation");
+        }
+
         private bool OnStartThread(IPEndPoint remoteEndPoint, IMessage message)
         {
             Guid threadId = message.Get<GuidValue>().Value;
@@ -98,7 +103,7 @@ namespace Cloudy.Computing
             if (!threads.TryGetValue(threadId, out thread))
             {
                 thread = threads[threadId] = new ComputingThreadWrapper(
-                    threadId, environment, CreateThread);
+                    threadId, new Environment(this, threadId), CreateThread);
                 thread.ThreadCompleted += OnThreadCompleted;
                 thread.ThreadFailed += OnThreadFailed;
                 thread.ThreadStopped += OnThreadStopped;
@@ -149,6 +154,14 @@ namespace Cloudy.Computing
             {
                 ThreadStopped(this, new EventArgs<Guid>(threadId));
             }
+        }
+
+        private bool OnEnvironmentOperation(IPEndPoint remoteEndPoint, IMessage message)
+        {
+            EnvironmentOperationValue value = message.Get<EnvironmentOperationValue>();
+            threads[value.SenderId].Environment.NotifyValueReceived(value);
+            throw new NotImplementedException("Route the message to the recipients left");
+            // TODO: return true;
         }
 
         public void Close()

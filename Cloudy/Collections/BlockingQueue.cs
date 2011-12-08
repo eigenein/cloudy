@@ -10,21 +10,21 @@ namespace Cloudy.Collections
     /// </summary>
     public class BlockingQueue<T> : IDisposable
     {
-        private readonly Queue<T> queue = new Queue<T>();
+        protected readonly LinkedList<T> List = new LinkedList<T>();
 
-        private readonly object queueLocker = new object();
+        protected readonly object SynchronizationRoot = new object();
 
-        private readonly AutoResetEvent queueWaitHandle = new AutoResetEvent(false);
+        protected readonly AutoResetEvent WaitHandle = new AutoResetEvent(false);
 
         /// <summary>
         /// Adds the object to the end of the queue.
         /// </summary>
         public void Enqueue(T item)
         {
-            lock (queueLocker)
+            lock (SynchronizationRoot)
             {
-                queue.Enqueue(item);
-                queueWaitHandle.Set();
+                List.AddLast(item);
+                WaitHandle.Set();
             }
         }
 
@@ -45,14 +45,16 @@ namespace Cloudy.Collections
         {
             while (true)
             {
-                lock (queueLocker)
+                lock (SynchronizationRoot)
                 {
-                    if (queue.Count != 0)
+                    LinkedListNode<T> node = List.First;
+                    if (node != null)
                     {
-                        return queue.Dequeue();
+                        List.Remove(node);
+                        return node.Value;
                     }
                 }
-                if (!queueWaitHandle.WaitOne(timeout))
+                if (!WaitHandle.WaitOne(timeout))
                 {
                     throw new TimeoutException(
                         "No elements were enqueued during the last timeout interval.");
@@ -67,9 +69,9 @@ namespace Cloudy.Collections
         {
             get
             {
-                lock (queueLocker)
+                lock (SynchronizationRoot)
                 {
-                    return queue.Count;
+                    return List.Count;
                 }
             }
         }
@@ -92,7 +94,7 @@ namespace Cloudy.Collections
         {
             if (dispose)
             {
-                queueWaitHandle.Close();
+                WaitHandle.Close();
             }
         }
     }

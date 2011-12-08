@@ -9,18 +9,18 @@ namespace Cloudy.Computing
     /// </summary>
     public class ComputingThread : IComputingThread
     {
-        private readonly Action<Guid, IEnvironment> run;
+        private readonly Action<IEnvironment> run;
 
-        public ComputingThread(Action<Guid, IEnvironment> run)
+        public ComputingThread(Action<IEnvironment> run)
         {
             this.run = run;
         }
 
         #region Implementation of IComputingThread
 
-        public void Run(Guid threadId, IEnvironment environment)
+        public void Run(IEnvironment environment)
         {
-            run(threadId, environment);
+            run(environment);
         }
 
         #endregion

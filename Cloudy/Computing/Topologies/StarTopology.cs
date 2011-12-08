@@ -10,36 +10,24 @@ namespace Cloudy.Computing.Topologies
     /// </summary>
     public class StarTopology : ITopology
     {
-        private readonly object locker = new object();
+        private readonly object synchronizationRoot = new object();
 
         #region Implementation of ITopology
 
         public bool IsShortcut(Guid id)
         {
-            return id == StarShortcuts.Center || id == StarShortcuts.Peripheral;
-        }
-
-        public bool IsWellKnownShortcut(Guid shortcutId)
-        {
-            return shortcutId == StarShortcuts.Center;
+            return id == StarShortcuts.Center 
+                || id == StarShortcuts.Peripheral;
         }
 
         public bool TryAddThread(Guid threadId, ITopologyRepository repository)
         {
-            lock (locker)
+            lock (synchronizationRoot)
             {
-                ICollection<Guid> centersIds;
-                if (repository.TryGetThreadsByShortcut(StarShortcuts.Center, out centersIds))
-                {
-                    foreach (Guid centerId in centersIds)
-                    {
-                        repository.AddThread(centerId, StarShortcuts.Peripheral, threadId);
-                    }
-                }
-                else
-                {
-                    repository.AddWellKnownThread(threadId, StarShortcuts.Center);
-                }
+                repository.AddWellKnownThread(threadId,
+                    repository.IsAssigned(threadId, StarShortcuts.Center)
+                        ? StarShortcuts.Peripheral
+                        : StarShortcuts.Center);
             }
             return true;
         }

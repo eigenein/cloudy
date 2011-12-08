@@ -27,16 +27,16 @@ namespace Cloudy.Messaging.Structures
         }
 
         /// <summary>
-        /// An user-specific tag. Can indicate a type of the message.
-        /// </summary>
-        [ProtobufField(1)]
-        public int Tag { get; set; }
-
-        /// <summary>
         /// Gets an underlying value.
         /// </summary>
-        [ProtobufField(2)]
+        [ProtobufField(1)]
         public T Value { get; set; }
+
+        /// <summary>
+        /// An user-specific tag. Can indicate a type of the message.
+        /// </summary>
+        [ProtobufField(2)]
+        public int Tag { get; set; }
 
         /// <summary>
         /// An ID that should be unique within the set of currently
@@ -58,7 +58,7 @@ namespace Cloudy.Messaging.Structures
     /// An untyped trackable Data Transfer Object.
     /// </summary>
     [ProtobufSerializable]
-    public class TrackableDto : IMessage
+    public class TrackableDto : ByteArrayValue, IMessage
     {
         /// <summary>
         /// A parameterless constructor for deserialization.
@@ -78,14 +78,8 @@ namespace Cloudy.Messaging.Structures
         /// <summary>
         /// An user-specific tag. Can indicate a type of the message.
         /// </summary>
-        [ProtobufField(1)]
-        public int Tag { get; set; }
-
-        /// <summary>
-        /// Gets an underlying value.
-        /// </summary>
         [ProtobufField(2)]
-        public byte[] Value { get; set; }
+        public int Tag { get; set; }
 
         /// <summary>
         /// An ID that should be unique within the set of currently
@@ -93,23 +87,5 @@ namespace Cloudy.Messaging.Structures
         /// </summary>
         [ProtobufField(3)]
         public long TrackingId { get; set; }
-
-        /// <summary>
-        /// Deserializes the underlying byte-array value into
-        /// a value of the specified type.
-        /// </summary>
-        public T Get<T>()
-        {
-            return (T)Get(typeof(T));
-        }
-
-        /// <summary>
-        /// Deserializes the underlying byte-array value into
-        /// a value of the specified type.
-        /// </summary>
-        public object Get(Type type)
-        {
-            return Serializer.CreateSerializer(type).Deserialize(Value);
-        }
     }
 }

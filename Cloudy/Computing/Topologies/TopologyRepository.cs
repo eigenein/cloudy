@@ -18,15 +18,28 @@ namespace Cloudy.Computing.Topologies
 
         #region Implementation of ITopologyRepository
 
-        public bool TryGetThreadsByShortcut(Guid wellKnownShortcutId, 
+        public bool TryGetThreadsByShortcut(Guid currentThreadId, Guid shortcutId, 
             out ICollection<Guid> targetThreadsIds)
         {
+            HashSet<Guid> threadsIds;
             lock (wellKnownLocker)
             {
-                HashSet<Guid> threadsIds;
-                if (!wellKnownThreads.TryGetValue(wellKnownShortcutId, out threadsIds))
+                if (wellKnownThreads.TryGetValue(shortcutId, out threadsIds))
                 {
-                    targetThreadsIds = null;
+                    targetThreadsIds = threadsIds;
+                    return true;
+                }
+            }
+            lock (locker)
+            {
+                targetThreadsIds = null;
+                Dictionary<Guid, HashSet<Guid>> shortcuts;
+                if (!threads.TryGetValue(currentThreadId, out shortcuts))
+                {
+                    return false;
+                }
+                if (!shortcuts.TryGetValue(shortcutId, out threadsIds))
+                {
                     return false;
                 }
                 targetThreadsIds = threadsIds;
@@ -63,6 +76,26 @@ namespace Cloudy.Computing.Topologies
                         new HashSet<Guid>();
                 }
                 threadsIds.Add(threadId);
+            }
+        }
+
+        public bool IsAssigned(Guid currentThreadId, Guid shortcutId)
+        {
+            lock (wellKnownLocker)
+            {
+                if (wellKnownThreads.ContainsKey(shortcutId))
+                {
+                    return true;
+                }
+            }
+            lock (locker)
+            {
+                Dictionary<Guid, HashSet<Guid>> shortcuts;
+                if (!threads.TryGetValue(currentThreadId, out shortcuts))
+                {
+                    return false;
+                }
+                return shortcuts.ContainsKey(shortcutId);
             }
         }
 

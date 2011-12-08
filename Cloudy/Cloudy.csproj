@@ -88,15 +88,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Collections\BlockingFilteredQueue.cs" />
     <Compile Include="Collections\BlockingMultiDictionary.cs" />
     <Compile Include="Collections\BlockingQueue.cs" />
-    <Compile Include="Collections\CachedFactory.cs" />
     <Compile Include="Computing\AbstractMasterNode.cs" />
     <Compile Include="Computing\AbstractNode.cs" />
     <Compile Include="Computing\AbstractSlaveNode.cs" />
     <Compile Include="Computing\AbstractStaticMasterNode.cs" />
     <Compile Include="Computing\ComputingThread.cs" />
     <Compile Include="Computing\ComputingThreadWrapper.cs" />
+    <Compile Include="Computing\Enums\EnvironmentOperationType.cs" />
     <Compile Include="Computing\Enums\JobResult.cs" />
     <Compile Include="Computing\Enums\MasterState.cs" />
     <Compile Include="Computing\Enums\SlaveState.cs" />
@@ -105,10 +106,12 @@
     <Compile Include="Computing\Environment.cs" />
     <Compile Include="Computing\Interfaces\IComputingThread.cs" />
     <Compile Include="Computing\Interfaces\IEnvironment.cs" />
+    <Compile Include="Computing\Interfaces\IEnvironmentTransport.cs" />
     <Compile Include="Computing\Interfaces\INetworkRepository.cs" />
     <Compile Include="Computing\NetworkRepository.cs" />
     <Compile Include="Computing\Structures\SlaveContext.cs" />
     <Compile Include="Computing\Structures\ThreadContext.cs" />
+    <Compile Include="Computing\Structures\Values\EnvironmentOperationValue.cs" />
     <Compile Include="Computing\Structures\Values\EmptyValue.cs" />
     <Compile Include="Computing\Structures\Values\EndPointValue.cs" />
     <Compile Include="Computing\Structures\Values\GuidValue.cs" />
@@ -121,6 +124,7 @@
     <Compile Include="Computing\Topologies\TopologyRepository.cs" />
     <Compile Include="Helpers\EventArgs.cs" />
     <Compile Include="Helpers\InvokeHelper.cs" />
+    <Compile Include="Helpers\LinkedListExtensions.cs" />
     <Compile Include="Helpers\ParametrizedEventHandler.cs" />
     <Compile Include="Helpers\TimeSpanExtensions.cs" />
     <Compile Include="Messaging\Raw\StreamSimpleCommunicator.cs" />
@@ -130,6 +134,7 @@
     <Compile Include="Messaging\Interfaces\ISimpleCommunicator.cs" />
     <Compile Include="Messaging\Structures\Dto.cs" />
     <Compile Include="Messaging\Structures\EmptyValue.cs" />
+    <Compile Include="Messaging\Structures\ByteArrayValue.cs" />
     <Compile Include="Messaging\Structures\TrackableDto.cs" />
     <Compile Include="Messaging\MessageDispatcher.cs" />
     <Compile Include="Messaging\Communicator.cs" />
@@ -180,7 +185,9 @@
       <Link>Cloudy.snk</Link>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Computing\Structures\Values\Environment\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

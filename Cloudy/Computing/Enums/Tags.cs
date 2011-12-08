@@ -17,5 +17,10 @@ namespace Cloudy.Computing.Enums
         public const int ThreadCompleted = -8;
 
         public const int ThreadFailed = -9;
+
+        /// <summary>
+        /// Computing environment operation data.
+        /// </summary>
+        public const int EnvironmentOperation = -10;
     }
 }
