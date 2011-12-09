@@ -11,7 +11,7 @@ namespace Cloudy.Computing
     /// <summary>
     /// A default implementation of the <see cref="IEnvironment"/> interface.
     /// </summary>
-    internal class Environment : IEnvironment
+    internal class Environment : IInternalEnvironment, IDisposable
     {
         private readonly Guid threadId;
 
@@ -31,6 +31,11 @@ namespace Cloudy.Computing
         public Guid ThreadId
         {
             get { return threadId; }
+        }
+
+        public ICollection<Guid> ResolveId(Guid id)
+        {
+            return transport.ResolveId(threadId, id);
         }
 
         public void NotifyValueReceived(EnvironmentOperationValue value)
@@ -63,8 +68,7 @@ namespace Cloudy.Computing
             operationValue.UserTag = tag;
             operationValue.RecipientsIds = recipientsIds;
             operationValue.Set(value);
-            throw new NotImplementedException("transport.Send is not available.");
-            // TODO: transport.Send(recipientsIds, operationValue);
+            transport.Send(operationValue);
         }
 
         /// <summary>
@@ -111,6 +115,23 @@ namespace Cloudy.Computing
                     v.OperationType == EnvironmentOperationType.PeerToPeer);
             value = operationValue.Get<T>();
             tag = operationValue.UserTag;
+        }
+
+        #region Implementation of IDisposable
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        #endregion
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                queue.Dispose();
+            }
         }
     }
 }

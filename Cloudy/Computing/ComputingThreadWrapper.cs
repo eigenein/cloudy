@@ -12,7 +12,7 @@ namespace Cloudy.Computing
     {
         private readonly Guid threadId;
 
-        private readonly IEnvironment environment;
+        private readonly IInternalEnvironment environment;
 
         private readonly Func<IComputingThread> createThread;
 
@@ -24,7 +24,7 @@ namespace Cloudy.Computing
 
         public event EventHandler ThreadStopped;
 
-        public ComputingThreadWrapper(Guid threadId, IEnvironment environment,
+        public ComputingThreadWrapper(Guid threadId, IInternalEnvironment environment,
             Func<IComputingThread> createThread)
         {
             this.threadId = threadId;
@@ -37,7 +37,7 @@ namespace Cloudy.Computing
             get { return threadId; }
         }
 
-        public IEnvironment Environment
+        public IInternalEnvironment Environment
         {
             get { return environment; }
         }

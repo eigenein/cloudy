@@ -15,6 +15,6 @@ namespace Cloudy.Computing.Topologies.Interfaces
 
         void AddWellKnownThread(Guid threadId, Guid wellKnownShortcutId);
 
-        bool IsAssigned(Guid currentThreadId, Guid shortcutId);
+        bool IsDefined(Guid wellKnownShortcutId);
     }
 }

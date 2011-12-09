@@ -79,24 +79,9 @@ namespace Cloudy.Computing.Topologies
             }
         }
 
-        public bool IsAssigned(Guid currentThreadId, Guid shortcutId)
+        public bool IsDefined(Guid wellKnownShortcutId)
         {
-            lock (wellKnownLocker)
-            {
-                if (wellKnownThreads.ContainsKey(shortcutId))
-                {
-                    return true;
-                }
-            }
-            lock (locker)
-            {
-                Dictionary<Guid, HashSet<Guid>> shortcuts;
-                if (!threads.TryGetValue(currentThreadId, out shortcuts))
-                {
-                    return false;
-                }
-                return shortcuts.ContainsKey(shortcutId);
-            }
+            return wellKnownThreads.ContainsKey(wellKnownShortcutId);
         }
 
         #endregion

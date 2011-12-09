@@ -2,6 +2,7 @@
 using System.Net;
 using Cloudy.Computing;
 using Cloudy.Computing.Interfaces;
+using Cloudy.Computing.Topologies.Shortcuts;
 using NLog;
 
 namespace Cloudy.Examples.Static.Pi.Slave
@@ -33,6 +34,10 @@ namespace Cloudy.Examples.Static.Pi.Slave
         {
             // TODO: Implement.
             Logger.Info("RUNNING");
+            Logger.Info("Am I center? {0}",
+                environment.ResolveId(StarShortcuts.Center).Contains(environment.ThreadId));
+            Logger.Info("Am I peripheral? {0}",
+                environment.ResolveId(StarShortcuts.Peripherals).Contains(environment.ThreadId));
         }
 
         #region Overrides of AbstractSlaveNode

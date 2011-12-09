@@ -1,5 +1,5 @@
 ﻿using System;
-using Cloudy.Computing.Structures.Values;
+using System.Collections.Generic;
 
 namespace Cloudy.Computing.Interfaces
 {
@@ -8,8 +8,14 @@ namespace Cloudy.Computing.Interfaces
     /// </summary>
     public interface IEnvironment
     {
+        /// <summary>
+        /// Gets the ID of the current thread.
+        /// </summary>
         Guid ThreadId { get; }
 
-        void NotifyValueReceived(EnvironmentOperationValue value);
+        /// <summary>
+        /// Resolves a shortcut identifier to the corresponding threads identifiers.
+        /// </summary>
+        ICollection<Guid> ResolveId(Guid id);
     }
 }

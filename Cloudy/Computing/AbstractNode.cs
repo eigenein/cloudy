@@ -69,6 +69,11 @@ namespace Cloudy.Computing
             }
         }
 
+        protected void Ping(IPEndPoint endPoint)
+        {
+            dispatcher.Ping(endPoint, SendTimeout);
+        }
+
         /// <summary>
         /// Sends the message asynchronously, but without tracking.
         /// </summary>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Cloudy.Computing.Topologies.Interfaces
 {
@@ -15,5 +16,8 @@ namespace Cloudy.Computing.Topologies.Interfaces
         bool IsShortcut(Guid id);
 
         bool TryAddThread(Guid threadId, ITopologyRepository repository);
+
+        bool TryGetRoute(Guid currentThreadId, Guid destinationThreadId,
+            ITopologyRepository repository, out Guid nextThreadId);
     }
 }

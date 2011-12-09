@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Interfaces;
@@ -28,6 +29,8 @@ namespace Cloudy.Computing
             AddHandler(Tags.Bye, OnBye);
             AddHandler(Tags.ThreadCompleted, OnThreadCompleted);
             AddHandler(Tags.ThreadFailed, OnThreadFailed);
+            AddHandler(Tags.RouteRequest, OnRouteRequest);
+            AddHandler(Tags.ResolveRecipientRequest, OnResolveRecipient);
             MessageHandled += OnMessageHandled;
             State = MasterState.Joined;
         }
@@ -153,6 +156,58 @@ namespace Cloudy.Computing
             if (ThreadFailed != null)
             {
                 ThreadFailed(this, new EventArgs<Guid>(threadId));
+            }
+            return true;
+        }
+
+        private void StopThread(IPEndPoint remoteEndPoint, Guid threadId)
+        {
+            SendAsync(remoteEndPoint, new GuidValue { Value = threadId },
+                Tags.StopThread);
+        }
+
+        private bool OnRouteRequest(IPEndPoint remoteEndPoint, IMessage message)
+        {
+            RouteRequestValue value = message.Get<RouteRequestValue>();
+            Guid nextThreadId;
+            if (!Topology.TryGetRoute(value.CurrentThreadId, value.DestinationThreadId,
+                topologyRepository, out nextThreadId))
+            {
+                // We don't know this destination, thus terminate the thread.
+                StopThread(remoteEndPoint, value.CurrentThreadId);
+                return true;
+            }
+            // Ok, send the next thread ID back.
+            SendAsync(remoteEndPoint, new GuidValue { Value = nextThreadId },
+                Tags.RouteResponse);
+            return true;
+        }
+
+        private bool OnResolveRecipient(IPEndPoint remoteEndPoint, IMessage message)
+        {
+            ResolveRecipientRequestValue request =
+                message.Get<ResolveRecipientRequestValue>();
+            ResolveRecipientResponseValue response = new ResolveRecipientResponseValue();
+            if (request.RecipientId == Guid.Empty)
+            {
+                // Resolve the loopback ID to the thread itself.
+                response.ResolvedTo = new[] { request.CurrentThreadId };
+            }
+            if (!Topology.IsShortcut(request.RecipientId))
+            {
+                response.ResolvedTo = new[] { request.RecipientId };
+            }
+            ICollection<Guid> resolvedTo;
+            if (topologyRepository.TryGetThreadsByShortcut(request.CurrentThreadId, 
+                request.RecipientId, out resolvedTo))
+            {
+                // HashSet couldn't be cast to ICollection in runtime.
+                response.ResolvedTo = new List<Guid>(resolvedTo);
+                SendAsync(remoteEndPoint, response, Tags.ResolveRecipientResponse);
+            }
+            else
+            {
+                StopThread(remoteEndPoint, request.CurrentThreadId);
             }
             return true;
         }
