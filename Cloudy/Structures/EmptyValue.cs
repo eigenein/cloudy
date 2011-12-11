@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using Cloudy.Protobuf.Attributes;
 
-namespace Cloudy.Computing.Structures.Values
+namespace Cloudy.Structures
 {
     [ProtobufSerializable]
     public class EmptyValue

@@ -9,6 +9,7 @@ using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Structures.Values;
 using Cloudy.Helpers;
 using Cloudy.Messaging.Interfaces;
+using Cloudy.Structures;
 
 namespace Cloudy.Computing
 {
@@ -93,6 +94,8 @@ namespace Cloudy.Computing
         public event ParametrizedEventHandler<Guid, IPEndPoint> CreatingWormHole;
 
         public event ParametrizedEventHandler<IPEndPoint, IPEndPoint> PortScanning;
+
+        public event ParametrizedEventHandler<IPEndPoint, IPEndPoint> SignedPingRequested;
 
         /// <summary>
         /// Creates a thread within this slave node.
@@ -225,14 +228,21 @@ namespace Cloudy.Computing
         {
             SignedPingResponse response = new SignedPingResponse();
             response.SenderExternalEndPoint = request.SenderExternalEndPoint;
-            if (MakeSignedPing(request.TargetId, request.SenderLocalEndPoint.Value))
+            IPEndPoint senderLocalEndPoint = request.SenderLocalEndPoint.Value;
+            IPEndPoint senderExternalEndPoint = request.SenderExternalEndPoint.Value;
+            if (SignedPingRequested != null)
             {
-                endPoints[request.SenderId] = request.SenderExternalEndPoint.Value;
+                SignedPingRequested(this, new EventArgs<IPEndPoint, IPEndPoint>(
+                    senderLocalEndPoint, senderExternalEndPoint));
+            }
+            if (MakeSignedPing(request.TargetId, senderLocalEndPoint))
+            {
+                endPoints[request.SenderId] = senderLocalEndPoint;
                 response.Success = true;
             }
-            else if (MakeSignedPing(request.TargetId, request.SenderExternalEndPoint.Value))
+            else if (MakeSignedPing(request.TargetId, senderExternalEndPoint))
             {
-                endPoints[request.SenderId] = request.SenderExternalEndPoint.Value;
+                endPoints[request.SenderId] = senderExternalEndPoint;
                 response.Success = true;
             }
             SendAsync(remoteEndPoint, response, Tags.SignedPingResponse);

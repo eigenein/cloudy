@@ -114,7 +114,6 @@
     <Compile Include="Computing\Structures\ThreadContext.cs" />
     <Compile Include="Computing\Structures\Values\EndPointResponseValue.cs" />
     <Compile Include="Computing\Structures\Values\EnvironmentOperationValue.cs" />
-    <Compile Include="Computing\Structures\Values\EmptyValue.cs" />
     <Compile Include="Computing\Structures\Values\EndPointValue.cs" />
     <Compile Include="Computing\Structures\Values\GuidValue.cs" />
     <Compile Include="Computing\Structures\Values\JoinRequestValue.cs" />
@@ -187,6 +186,7 @@
     <Compile Include="Protobuf\ValueBuilders\RepeatedValueBuilder.cs" />
     <Compile Include="Protobuf\ValueBuilders\RequiredValueBuilder.cs" />
     <Compile Include="Protobuf\ValueBuilders\SingleValueBuilder.cs" />
+    <Compile Include="Structures\EmptyValue.cs" />
     <Compile Include="Structures\Tuple.cs" />
   </ItemGroup>
   <ItemGroup>

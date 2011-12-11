@@ -8,6 +8,7 @@ using Cloudy.Computing.Structures.Values;
 using Cloudy.Computing.Topologies.Interfaces;
 using Cloudy.Helpers;
 using Cloudy.Messaging.Interfaces;
+using Cloudy.Structures;
 
 namespace Cloudy.Computing
 {

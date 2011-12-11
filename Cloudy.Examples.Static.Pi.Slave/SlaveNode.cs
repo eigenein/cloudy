@@ -33,9 +33,9 @@ namespace Cloudy.Examples.Static.Pi.Slave
                 Logger.Info("Creating a wormhole to {0} using {1}", e.Value1, e.Value2);
             PortScanning += (sender, e) =>
                 Logger.Info("Trying {0} as {1}", e.Value1, e.Value2);
-
-            SendTimeout = TimeSpanExtensions.Infinite;
-            ReceiveTimeout = TimeSpanExtensions.Infinite;
+            SignedPingRequested += (sender, e) =>
+                Logger.Info("Signed ping request to local {0}, external {1}",
+                e.Value1, e.Value2);
         }
 
         private static void Run(IEnvironment environment)

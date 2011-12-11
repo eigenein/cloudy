@@ -7,6 +7,7 @@ using Cloudy.Messaging.Enums;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Structures;
 using Cloudy.Structures;
+using EmptyValue = Cloudy.Messaging.Structures.EmptyValue;
 
 namespace Cloudy.Messaging
 {
@@ -35,6 +36,7 @@ namespace Cloudy.Messaging
         public MessageDispatcher(Communicator<TEndPoint> communicator)
         {
             this.communicator = communicator;
+            this.SendAttemptsCount = 2;
         }
 
         #region ID creating
@@ -52,6 +54,8 @@ namespace Cloudy.Messaging
         #endregion
 
         #region Properties
+
+        public int SendAttemptsCount { get; set; }
 
         /// <summary>
         /// Gets the underlying input message stream.
@@ -183,8 +187,19 @@ namespace Cloudy.Messaging
         /// </summary>
         public void Send<T>(TEndPoint endPoint, T message, int tag, TimeSpan timeout)
         {
-            MessagingAsyncResult ar = BeginSend(endPoint, message, tag, null, null);
-            EndSend(ar, timeout);
+            for (int i = 0; i < SendAttemptsCount; i++)
+            {
+                MessagingAsyncResult ar = BeginSend(endPoint, message, tag, null, null);
+                try
+                {
+                    EndSend(ar, timeout);
+                    break;
+                }
+                catch (TimeoutException)
+                {
+                    continue;
+                }
+            }
         }
 
         /// <summary>
@@ -203,7 +218,7 @@ namespace Cloudy.Messaging
         public MessagingAsyncResult BeginPing(TEndPoint[] endPoints,
             AsyncCallback callback, object state)
         {
-            return BeginSend<object>(endPoints, null, CommonTags.Ping,
+            return BeginSend(endPoints, EmptyValue.Instance, CommonTags.Ping,
                 callback, state);
         }
 
@@ -221,7 +236,7 @@ namespace Cloudy.Messaging
         /// </summary>
         public void Ping(TEndPoint endPoint, TimeSpan timeout)
         {
-            EndPing(BeginPing(endPoint, null, null), timeout);
+            Send(endPoint, EmptyValue.Instance, CommonTags.Ping, timeout);
         }
 
         /// <summary>
