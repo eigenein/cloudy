@@ -100,6 +100,11 @@ namespace Cloudy.Computing
             return unhandledMessages.Dequeue(endPoint, ReceiveTimeout).Get<T>();
         }
 
+        protected T ReceiveFrom<T>(IPEndPoint endPoint, TimeSpan timeout)
+        {
+            return unhandledMessages.Dequeue(endPoint, timeout).Get<T>();
+        }
+
         #region Implementation of IDisposable
 
         public void Dispose()

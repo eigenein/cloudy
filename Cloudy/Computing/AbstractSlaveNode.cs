@@ -46,6 +46,7 @@ namespace Cloudy.Computing
             AddHandler(Tags.SignedPingRequest, OnSignedPingRequest);
             State = SlaveState.NotJoined;
             MaxPortScanOffset = 3;
+            SignedPingResponseTimeout = new TimeSpan(0, 0, 7);
         }
 
         public Guid? SlaveId { get; protected set; }
@@ -80,6 +81,8 @@ namespace Cloudy.Computing
         /// when performing port scanning during UDP hole punching.
         /// </summary>
         public int MaxPortScanOffset { get; set; }
+
+        public TimeSpan SignedPingResponseTimeout { get; set; }
 
         public event ParameterizedEventHandler<IPEndPoint, Guid> Joined;
 
@@ -259,12 +262,12 @@ namespace Cloudy.Computing
                 endPoints[request.SenderId] = senderExternalEndPoint;
                 response.Success = true;
             }
-            SendAsync(remoteEndPoint, response, Tags.SignedPingResponse);
             if (SignedPingFinished != null)
             {
                 SignedPingFinished(this, new EventArgs<Guid, bool>(
                     request.SenderId, response.Success == true));
             }
+            Send(remoteEndPoint, response, Tags.SignedPingResponse);
         }
 
         private bool MakeSignedPing(Guid currentThreadId, IPEndPoint targetEndPoint)
@@ -499,7 +502,7 @@ namespace Cloudy.Computing
                 request.SenderExternalEndPoint.Value = ExternalEndPoint;
                 Send(masterEndPoint, request, Tags.SignedPingRequest);
                 SignedPingResponse response = ReceiveFrom<SignedPingResponse>(
-                    masterEndPoint);
+                    masterEndPoint, SignedPingResponseTimeout);
                 return response.Success == true ||
                     DoPortScan(currentThreadId, targetEndPoint, out succeededEndPoint);
             }
