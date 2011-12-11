@@ -81,21 +81,23 @@ namespace Cloudy.Computing
         /// </summary>
         public int MaxPortScanOffset { get; set; }
 
-        public event ParametrizedEventHandler<IPEndPoint, Guid> Joined;
+        public event ParameterizedEventHandler<IPEndPoint, Guid> Joined;
 
-        public event ParametrizedEventHandler<SlaveState> StateChanged;
+        public event ParameterizedEventHandler<SlaveState> StateChanged;
 
-        public event ParametrizedEventHandler<Guid> ThreadStarted;
+        public event ParameterizedEventHandler<Guid> ThreadStarted;
 
-        public event ParametrizedEventHandler<Guid> ThreadStopped;
+        public event ParameterizedEventHandler<Guid> ThreadStopped;
 
-        public event ParametrizedEventHandler<Exception> ExceptionUnhandled;
+        public event ParameterizedEventHandler<Exception> ExceptionUnhandled;
 
-        public event ParametrizedEventHandler<Guid, IPEndPoint> CreatingWormHole;
+        public event ParameterizedEventHandler<Guid, IPEndPoint> CreatingWormHole;
 
-        public event ParametrizedEventHandler<IPEndPoint, IPEndPoint> PortScanning;
+        public event ParameterizedEventHandler<IPEndPoint, IPEndPoint> PortScanning;
 
-        public event ParametrizedEventHandler<IPEndPoint, IPEndPoint> SignedPingRequested;
+        public event ParameterizedEventHandler<IPEndPoint, IPEndPoint> SignedPingRequested;
+
+        public event ParameterizedEventHandler<Guid, IPEndPoint> EndPointResolved;
 
         /// <summary>
         /// Creates a thread within this slave node.
@@ -211,10 +213,20 @@ namespace Cloudy.Computing
             SendEnvironmentOperation(value); // Send further to the recipients left.
         }
 
+        private void OnEndPointResolved(Guid threadId, IPEndPoint endPoint)
+        {
+            if (EndPointResolved != null)
+            {
+                EndPointResolved(this, new EventArgs<Guid, IPEndPoint>(
+                    threadId, endPoint));
+            }
+        }
+
         private void OnSignedPing(IPEndPoint remoteEndPoint, IMessage message)
         {
             Guid threadId = message.Get<GuidValue>().Value;
             endPoints[threadId] = remoteEndPoint;
+            OnEndPointResolved(threadId, remoteEndPoint);
         }
 
         private void OnSignedPingRequest(IPEndPoint remoteEndPoint, IMessage message)
@@ -441,6 +453,7 @@ namespace Cloudy.Computing
                     CreateWormhole(currentThreadId, threadId, response.ExternalEndPoint.Value,
                     out succeededEndPoint))
                 {
+                    OnEndPointResolved(threadId, succeededEndPoint);
                     return endPoints[threadId] = succeededEndPoint;
                 }
                 // TODO: Handle this case more smartly:

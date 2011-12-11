@@ -18,7 +18,7 @@ namespace Cloudy.Computing
 
         private Thread thread;
 
-        public event ParametrizedEventHandler<Exception> ThreadFailed;
+        public event ParameterizedEventHandler<Exception> ThreadFailed;
 
         public event EventHandler ThreadCompleted;
 

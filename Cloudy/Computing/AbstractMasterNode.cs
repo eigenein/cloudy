@@ -52,27 +52,27 @@ namespace Cloudy.Computing
             }
         }
 
-        public event ParametrizedEventHandler<IPEndPoint, Guid> SlaveJoined;
+        public event ParameterizedEventHandler<IPEndPoint, Guid> SlaveJoined;
 
-        public event ParametrizedEventHandler<MasterState> StateChanged;
+        public event ParameterizedEventHandler<MasterState> StateChanged;
 
-        public event ParametrizedEventHandler<IPEndPoint, Guid> SlaveLeft;
+        public event ParameterizedEventHandler<IPEndPoint, Guid> SlaveLeft;
 
-        public event ParametrizedEventHandler<JobResult> JobStopped;
+        public event ParameterizedEventHandler<JobResult> JobStopped;
 
-        public event ParametrizedEventHandler<Guid, Guid> ThreadFailedToStart;
+        public event ParameterizedEventHandler<Guid, Guid> ThreadFailedToStart;
 
         public event EventHandler Started;
 
         public event EventHandler FailedToStart;
 
-        public event ParametrizedEventHandler<Guid> StartingThread;
+        public event ParameterizedEventHandler<Guid> StartingThread;
 
-        public event ParametrizedEventHandler<Guid> ThreadCompleted;
+        public event ParameterizedEventHandler<Guid> ThreadCompleted;
 
-        public event ParametrizedEventHandler<Guid> ThreadFailed;
+        public event ParameterizedEventHandler<Guid> ThreadFailed;
 
-        public event ParametrizedEventHandler<Guid, Guid> ResolvingRecipient;
+        public event ParameterizedEventHandler<Guid, Guid> ResolvingRecipient;
 
         protected abstract ITopology Topology { get; }
 

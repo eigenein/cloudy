@@ -133,7 +133,7 @@
     <Compile Include="Helpers\InvokeHelper.cs" />
     <Compile Include="Helpers\IPEndPointExtensions.cs" />
     <Compile Include="Helpers\LinkedListExtensions.cs" />
-    <Compile Include="Helpers\ParametrizedEventHandler.cs" />
+    <Compile Include="Helpers\ParameterizedEventHandler.cs" />
     <Compile Include="Helpers\TimeSpanExtensions.cs" />
     <Compile Include="Messaging\Raw\StreamSimpleCommunicator.cs" />
     <Compile Include="Messaging\Raw\UdpClientSimpleCommunicator.cs" />

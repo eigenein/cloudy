@@ -3,7 +3,6 @@ using System.Net;
 using Cloudy.Computing;
 using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Topologies.Shortcuts;
-using Cloudy.Helpers;
 using NLog;
 
 namespace Cloudy.Examples.Static.Pi.Slave
@@ -36,6 +35,8 @@ namespace Cloudy.Examples.Static.Pi.Slave
             SignedPingRequested += (sender, e) =>
                 Logger.Info("Signed ping request to local {0}, external {1}",
                 e.Value1, e.Value2);
+            EndPointResolved += (sender, e) =>
+                Logger.Info("{0} is resolved to {1}", e.Value1, e.Value2);
         }
 
         private static void Run(IEnvironment environment)
