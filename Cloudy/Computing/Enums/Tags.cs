@@ -48,6 +48,9 @@ namespace Cloudy.Computing.Enums
         /// </summary>
         public const int RouteResponse = -12;
 
+        /// <summary>
+        /// Resolve recipients and shortcuts request.
+        /// </summary>
         public const int ResolveRecipientRequest = -13;
 
         public const int ResolveRecipientResponse = -14;
@@ -58,5 +61,17 @@ namespace Cloudy.Computing.Enums
         public const int EndPointRequest = -15;
 
         public const int EndPointResponse = -16;
+
+        /// <summary>
+        /// Same as <c>Ping</c> but with a sender ID.
+        /// </summary>
+        public const int SignedPing = -17;
+
+        /// <summary>
+        /// Request for a ping by another thread.
+        /// </summary>
+        public const int SignedPingRequest = -18;
+
+        public const int SignedPingResponse = -19;
     }
 }

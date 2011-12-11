@@ -31,6 +31,9 @@ namespace Cloudy.Computing
             AddHandler(Tags.ThreadFailed, OnThreadFailed);
             AddHandler(Tags.RouteRequest, OnRouteRequest);
             AddHandler(Tags.ResolveRecipientRequest, OnResolveRecipient);
+            AddHandler(Tags.EndPointRequest, OnEndPointRequest);
+            AddHandler(Tags.SignedPingRequest, OnSignedPingRequest);
+            AddHandler(Tags.SignedPingResponse, OnSignedPingResponse);
             MessageHandled += OnMessageHandled;
             State = MasterState.Joined;
         }
@@ -68,6 +71,8 @@ namespace Cloudy.Computing
 
         public event ParametrizedEventHandler<Guid> ThreadFailed;
 
+        public event ParametrizedEventHandler<Guid, Guid> ResolvingRecipient;
+
         protected abstract ITopology Topology { get; }
 
         protected abstract void OnSlaveJoined(SlaveContext slave);
@@ -99,7 +104,7 @@ namespace Cloudy.Computing
         /// <summary>
         /// Called when the master receives a join request from a slave.
         /// </summary>
-        private bool OnJoinRequest(IPEndPoint remoteEndPoint, IMessage message)
+        private void OnJoinRequest(IPEndPoint remoteEndPoint, IMessage message)
         {
             JoinRequestValue request = message.Get<JoinRequestValue>();
             Guid slaveId = request.SlaveId ?? Guid.NewGuid();
@@ -113,7 +118,7 @@ namespace Cloudy.Computing
             catch (TimeoutException)
             {
                 SendAsync(remoteEndPoint, EmptyValue.Instance, Tags.Bye);
-                return true;
+                return;
             }
             SlaveContext slave;
             if (!NetworkRepository.TryGetSlave(slaveId, out slave))
@@ -131,10 +136,9 @@ namespace Cloudy.Computing
                 SlaveJoined(this, new EventArgs<IPEndPoint, Guid>(remoteEndPoint, slaveId));
             }
             OnSlaveJoined(slave);
-            return true;
         }
 
-        private bool OnBye(IPEndPoint remoteEndPoint, IMessage message)
+        private void OnBye(IPEndPoint remoteEndPoint, IMessage message)
         {
             SlaveContext slave = NetworkRepository.GetSlave(remoteEndPoint);
             NetworkRepository.RemoveFromTotalSlotsCount(slave.SlotsCount);
@@ -147,17 +151,15 @@ namespace Cloudy.Computing
             {
                 StopJob(JobResult.Failed);
             }
-            return true;
         }
 
-        private bool OnThreadFailed(IPEndPoint remoteEndPoint, IMessage message)
+        private void OnThreadFailed(IPEndPoint remoteEndPoint, IMessage message)
         {
             Guid threadId = message.Get<GuidValue>().Value;
             if (ThreadFailed != null)
             {
                 ThreadFailed(this, new EventArgs<Guid>(threadId));
             }
-            return true;
         }
 
         private void StopThread(IPEndPoint remoteEndPoint, Guid threadId)
@@ -166,7 +168,7 @@ namespace Cloudy.Computing
                 Tags.StopThread);
         }
 
-        private bool OnRouteRequest(IPEndPoint remoteEndPoint, IMessage message)
+        private void OnRouteRequest(IPEndPoint remoteEndPoint, IMessage message)
         {
             RouteRequestValue value = message.Get<RouteRequestValue>();
             Guid nextThreadId;
@@ -175,18 +177,22 @@ namespace Cloudy.Computing
             {
                 // We don't know this destination, thus terminate the thread.
                 StopThread(remoteEndPoint, value.CurrentThreadId);
-                return true;
+                return;
             }
             // Ok, send the next thread ID back.
             SendAsync(remoteEndPoint, new GuidValue { Value = nextThreadId },
                 Tags.RouteResponse);
-            return true;
         }
 
-        private bool OnResolveRecipient(IPEndPoint remoteEndPoint, IMessage message)
+        private void OnResolveRecipient(IPEndPoint remoteEndPoint, IMessage message)
         {
             ResolveRecipientRequestValue request =
                 message.Get<ResolveRecipientRequestValue>();
+            if (ResolvingRecipient != null)
+            {
+                ResolvingRecipient(this, new EventArgs<Guid, Guid>(
+                    request.CurrentThreadId, request.RecipientId));
+            }
             ResolveRecipientResponseValue response = new ResolveRecipientResponseValue();
             if (request.RecipientId == Guid.Empty)
             {
@@ -201,7 +207,7 @@ namespace Cloudy.Computing
             if (topologyRepository.TryGetThreadsByShortcut(request.CurrentThreadId, 
                 request.RecipientId, out resolvedTo))
             {
-                // HashSet couldn't be cast to ICollection in runtime.
+                // HashSet couldn't be cast to ICollection at runtime.
                 response.ResolvedTo = new List<Guid>(resolvedTo);
                 SendAsync(remoteEndPoint, response, Tags.ResolveRecipientResponse);
             }
@@ -209,10 +215,40 @@ namespace Cloudy.Computing
             {
                 StopThread(remoteEndPoint, request.CurrentThreadId);
             }
-            return true;
         }
 
-        private bool OnThreadCompleted(IPEndPoint remoteEndPoint, IMessage message)
+        private void OnEndPointRequest(IPEndPoint remoteEndPoint, IMessage message)
+        {
+            Guid targetThreadId = message.Get<GuidValue>().Value;
+            SlaveContext slave;
+            if (NetworkRepository.TryGetSlaveByThreadId(targetThreadId, out slave))
+            {
+                EndPointResponseValue response = new EndPointResponseValue();
+                response.ExternalEndPoint.Value = slave.ExternalEndPoint;
+                response.LocalEndPoint.Value = slave.LocalEndPoint;
+                Send(remoteEndPoint, response, Tags.EndPointResponse);
+            }
+        }
+
+        private void OnSignedPingRequest(IPEndPoint remoteEndPoint, IMessage message)
+        {
+            SignedPingRequest request = message.Get<SignedPingRequest>();
+            SlaveContext targetSlave;
+            if (NetworkRepository.TryGetSlaveByThreadId(request.TargetId, out targetSlave))
+            {
+                SendAsync(targetSlave.ExternalEndPoint, request, Tags.SignedPingRequest);
+            }
+        }
+
+        private void OnSignedPingResponse(IPEndPoint remoteEndPoint, IMessage message)
+        {
+            SignedPingResponse response = message.Get<SignedPingResponse>();
+            IPEndPoint targetEndPoint = response.SenderExternalEndPoint.Value;
+            response.SenderExternalEndPoint = null;
+            SendAsync(targetEndPoint, response, Tags.SignedPingResponse);
+        }
+
+        private void OnThreadCompleted(IPEndPoint remoteEndPoint, IMessage message)
         {
             Guid threadId = message.Get<GuidValue>().Value;
             if (ThreadCompleted != null)
@@ -224,7 +260,6 @@ namespace Cloudy.Computing
             {
                 StopJob(JobResult.Succeeded);
             }
-            return true;
         }
 
         protected void CreateThreads(SlaveContext slave)

@@ -51,7 +51,7 @@ namespace Cloudy.Computing
         /// <summary>
         /// Performs a blocking send.
         /// </summary>
-        public void Send<T>(Guid recipientId, int tag, T value)
+        public void Send<T>(int tag, T value, Guid recipientId)
         {
             Send(tag, value, new[] { recipientId });
         }
@@ -67,7 +67,7 @@ namespace Cloudy.Computing
             operationValue.OperationType = EnvironmentOperationType.PeerToPeer;
             operationValue.UserTag = tag;
             operationValue.RecipientsIds = recipientsIds;
-            operationValue.Set(value);
+            operationValue.Set(new WrappedValue<T>(value));
             transport.Send(operationValue);
         }
 
@@ -78,7 +78,7 @@ namespace Cloudy.Computing
         {
             EnvironmentOperationValue operationValue = queue.Dequeue(
                 v => v.UserTag == tag && v.OperationType == EnvironmentOperationType.PeerToPeer);
-            value = operationValue.Get<T>();
+            value = operationValue.Get<WrappedValue<T>>().Value;
             senderId = operationValue.SenderId;
         }
 
@@ -89,7 +89,7 @@ namespace Cloudy.Computing
         {
             EnvironmentOperationValue operationValue = queue.Dequeue(
                 v => v.OperationType == EnvironmentOperationType.PeerToPeer);
-            value = operationValue.Get<T>();
+            value = operationValue.Get<WrappedValue<T>>().Value;
             senderId = operationValue.SenderId;
             tag = operationValue.UserTag;
         }
@@ -102,7 +102,7 @@ namespace Cloudy.Computing
             EnvironmentOperationValue operationValue = queue.Dequeue(
                 v =>v.SenderId == senderId && v.UserTag == tag && 
                     v.OperationType == EnvironmentOperationType.PeerToPeer);
-            value = operationValue.Get<T>();
+            value = operationValue.Get<WrappedValue<T>>().Value;
         }
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace Cloudy.Computing
             EnvironmentOperationValue operationValue = queue.Dequeue(
                 v => v.SenderId == senderId && 
                     v.OperationType == EnvironmentOperationType.PeerToPeer);
-            value = operationValue.Get<T>();
+            value = operationValue.Get<WrappedValue<T>>().Value;
             tag = operationValue.UserTag;
         }
 

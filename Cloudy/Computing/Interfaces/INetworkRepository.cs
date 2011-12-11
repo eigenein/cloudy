@@ -26,6 +26,8 @@ namespace Cloudy.Computing.Interfaces
 
         bool TryGetSlave(Guid slaveId, out SlaveContext slave);
 
+        bool TryGetSlaveByThreadId(Guid threadId, out SlaveContext slave);
+
         IEnumerable<IPEndPoint> GetSlavesEndPoints();
 
         void RemoveSlave(IPEndPoint endPoint);

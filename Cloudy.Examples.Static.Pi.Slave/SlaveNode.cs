@@ -3,6 +3,7 @@ using System.Net;
 using Cloudy.Computing;
 using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Topologies.Shortcuts;
+using Cloudy.Helpers;
 using NLog;
 
 namespace Cloudy.Examples.Static.Pi.Slave
@@ -28,16 +29,34 @@ namespace Cloudy.Examples.Static.Pi.Slave
                 Logger.Info("Thread Stopped: {0}", e.Value);
             ExceptionUnhandled += (sender, e) =>
                 Logger.Error("Unhandled Exception: {0}", e.Value.ToString());
+            CreatingWormHole += (sender, e) =>
+                Logger.Info("Creating a wormhole to {0} using {1}", e.Value1, e.Value2);
+
+            SendTimeout = TimeSpanExtensions.Infinite;
+            ReceiveTimeout = TimeSpanExtensions.Infinite;
         }
 
         private static void Run(IEnvironment environment)
         {
             // TODO: Implement.
             Logger.Info("RUNNING");
-            Logger.Info("Am I center? {0}",
+            bool isCenter;
+            Logger.Info("Am I center? {0}", isCenter =
                 environment.ResolveId(StarShortcuts.Center).Contains(environment.ThreadId));
-            Logger.Info("Am I peripheral? {0}",
+            bool isPeripheral;
+            Logger.Info("Am I peripheral? {0}", isPeripheral =
                 environment.ResolveId(StarShortcuts.Peripherals).Contains(environment.ThreadId));
+            if (isPeripheral)
+            {
+                environment.Send(0, "Hello", StarShortcuts.Center);
+            }
+            if (isCenter)
+            {
+                Guid senderId;
+                string value;
+                environment.Receive(0, out value, out senderId);
+                Logger.Info("{0} from {1}", value, senderId);
+            }
         }
 
         #region Overrides of AbstractSlaveNode

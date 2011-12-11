@@ -11,8 +11,8 @@ namespace Cloudy.Computing
 {
     public abstract class AbstractNode : IDisposable
     {
-        private readonly Dictionary<int, Func<IPEndPoint, IMessage, bool>> handlers =
-            new Dictionary<int, Func<IPEndPoint, IMessage, bool>>();
+        private readonly Dictionary<int, Action<IPEndPoint, IMessage>> handlers =
+            new Dictionary<int, Action<IPEndPoint, IMessage>>();
 
         private readonly BlockingMultiDictionary<IPEndPoint, IMessage> unhandledMessages =
             new BlockingMultiDictionary<IPEndPoint, IMessage>();
@@ -38,7 +38,7 @@ namespace Cloudy.Computing
 
         public event EventHandler MessageHandled;
 
-        public void AddHandler(int tag, Func<IPEndPoint, IMessage, bool> handler)
+        public void AddHandler(int tag, Action<IPEndPoint, IMessage> handler)
         {
             handlers[tag] = handler;
         }
@@ -55,9 +55,12 @@ namespace Cloudy.Computing
                 IPEndPoint remoteEndPoint;
                 int tag;
                 IMessage message = dispatcher.Receive(out remoteEndPoint, out tag);
-                Func<IPEndPoint, IMessage, bool> handler;
-                if (!handlers.TryGetValue(tag, out handler) ||
-                    !handler(remoteEndPoint, message))
+                Action<IPEndPoint, IMessage> handler;
+                if (handlers.TryGetValue(tag, out handler))
+                {
+                    handler(remoteEndPoint, message);
+                }
+                else
                 {
                     unhandledMessages.Enqueue(remoteEndPoint, message);
                 }

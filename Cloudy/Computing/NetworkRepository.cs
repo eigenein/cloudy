@@ -23,6 +23,9 @@ namespace Cloudy.Computing
         private readonly Dictionary<Guid, ThreadContext> threadIdToThread =
             new Dictionary<Guid, ThreadContext>();
 
+        private readonly Dictionary<Guid, SlaveContext> threadIdToSlave =
+            new Dictionary<Guid, SlaveContext>();
+
         private int totalSlotsCount;
 
         private int runningThreadsCount;
@@ -98,6 +101,11 @@ namespace Cloudy.Computing
             return slaveIdToSlaveContext.TryGetValue(slaveId, out slave);
         }
 
+        public bool TryGetSlaveByThreadId(Guid threadId, out SlaveContext slave)
+        {
+            return threadIdToSlave.TryGetValue(threadId, out slave);
+        }
+
         public IEnumerable<IPEndPoint> GetSlavesEndPoints()
         {
             lock (locker)
@@ -116,6 +124,7 @@ namespace Cloudy.Computing
                 SlaveContext slave = endPointToSlaveContext[endPoint];
                 endPointToSlaveContext.Remove(endPoint);
                 slaveIdToSlaveContext.Remove(slave.SlaveId);
+                slaveIdToThreads.Remove(slave.SlaveId);
             }
         }
 
@@ -143,6 +152,7 @@ namespace Cloudy.Computing
                 }
                 list.Add(thread.ThreadId, thread);
                 threadIdToThread[thread.ThreadId] = thread;
+                threadIdToSlave[thread.ThreadId] = slaveIdToSlaveContext[slaveId];
             }
         }
 

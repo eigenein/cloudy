@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Threading;
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Structures.Values;
@@ -39,6 +41,8 @@ namespace Cloudy.Computing
             AddHandler(Tags.StartThread, OnStartThread);
             AddHandler(Tags.StopThread, OnStopThread);
             AddHandler(Tags.EnvironmentOperation, OnEnvironmentOperation);
+            AddHandler(Tags.SignedPing, OnSignedPing);
+            AddHandler(Tags.SignedPingRequest, OnSignedPingRequest);
             State = SlaveState.NotJoined;
         }
 
@@ -79,6 +83,8 @@ namespace Cloudy.Computing
 
         public event ParametrizedEventHandler<Exception> ExceptionUnhandled;
 
+        public event ParametrizedEventHandler<Guid, IPEndPoint> CreatingWormHole;
+
         /// <summary>
         /// Creates a thread within this slave node.
         /// </summary>
@@ -111,7 +117,7 @@ namespace Cloudy.Computing
             return true;
         }
 
-        private bool OnStartThread(IPEndPoint remoteEndPoint, IMessage message)
+        private void OnStartThread(IPEndPoint remoteEndPoint, IMessage message)
         {
             Guid threadId = message.Get<GuidValue>().Value;
             ComputingThreadWrapper thread;
@@ -128,7 +134,6 @@ namespace Cloudy.Computing
             {
                 ThreadStarted(this, new EventArgs<Guid>(threadId));
             }
-            return true;
         }
 
         private void OnThreadCompleted(object sender, EventArgs e)
@@ -151,7 +156,7 @@ namespace Cloudy.Computing
             }
         }
 
-        private bool OnStopThread(IPEndPoint remoteEndPoint, IMessage message)
+        private void OnStopThread(IPEndPoint remoteEndPoint, IMessage message)
         {
             Guid threadId = message.Get<GuidValue>().Value;
             ComputingThreadWrapper thread;
@@ -159,7 +164,6 @@ namespace Cloudy.Computing
             {
                 thread.Abort();
             }
-            return true;
         }
 
         private void OnThreadStopped(object sender, EventArgs e)
@@ -175,7 +179,7 @@ namespace Cloudy.Computing
             }
         }
 
-        private bool OnEnvironmentOperation(IPEndPoint remoteEndPoint, IMessage message)
+        private void OnEnvironmentOperation(IPEndPoint remoteEndPoint, IMessage message)
         {
             EnvironmentOperationValue value = message.Get<EnvironmentOperationValue>();
             HashSet<Guid> nextRecipientsIds = new HashSet<Guid>();
@@ -193,7 +197,51 @@ namespace Cloudy.Computing
             }
             value.RecipientsIds = nextRecipientsIds;
             SendEnvironmentOperation(value); // Send further to the recipients left.
-            return true;
+        }
+
+        private void OnSignedPing(IPEndPoint remoteEndPoint, IMessage message)
+        {
+            Guid threadId = message.Get<GuidValue>().Value;
+            endPoints[threadId] = remoteEndPoint;
+        }
+
+        private void OnSignedPingRequest(IPEndPoint remoteEndPoint, IMessage message)
+        {
+            SignedPingRequest request = message.Get<SignedPingRequest>();
+            ThreadPool.UnsafeQueueUserWorkItem(
+                o => MakeSignedPingRequest(remoteEndPoint, request), null);
+        }
+
+        private void MakeSignedPingRequest(IPEndPoint remoteEndPoint, SignedPingRequest request)
+        {
+            SignedPingResponse response = new SignedPingResponse();
+            response.SenderExternalEndPoint = request.SenderExternalEndPoint;
+            if (MakeSignedPing(request.TargetId, request.SenderLocalEndPoint.Value))
+            {
+                endPoints[request.SenderId] = request.SenderExternalEndPoint.Value;
+                response.Success = true;
+            }
+            else if (MakeSignedPing(request.TargetId, request.SenderExternalEndPoint.Value))
+            {
+                endPoints[request.SenderId] = request.SenderExternalEndPoint.Value;
+                response.Success = true;
+            }
+            SendAsync(remoteEndPoint, response, Tags.SignedPingResponse);
+        }
+
+        private bool MakeSignedPing(Guid currentThreadId, IPEndPoint targetEndPoint)
+        {
+            GuidValue value = new GuidValue();
+            value.Value = currentThreadId;
+            try
+            {
+                Send(targetEndPoint, value, Tags.SignedPing);
+                return true;
+            }
+            catch (TimeoutException)
+            {
+                return false;
+            }
         }
 
         public void Close()
@@ -206,10 +254,9 @@ namespace Cloudy.Computing
             State = SlaveState.Left;
         }
 
-        private bool OnBye(IPEndPoint remoteEndPoint, IMessage message)
+        private void OnBye(IPEndPoint remoteEndPoint, IMessage message)
         {
             Close();
-            return true;
         }
 
         #region Implementation of IEnvironmentTransport
@@ -320,12 +367,19 @@ namespace Cloudy.Computing
             {
                 return;
             }
-            HashSet<Guid> resolvedRecipientsIds = new HashSet<Guid>();
-            foreach (Guid recipientId in operationValue.RecipientsIds)
+            ICollection<Guid> resolvedRecipientsIds = operationValue.RecipientsIds;
+            if (operationValue.RecipientsResolved != true)
             {
-                // First, we should resolve all the shortcuts.
-                resolvedRecipientsIds.UnionWith(ResolveRecipient(
-                    operationValue.SenderId, recipientId));
+                HashSet<Guid> resolvedRecipientsIdsSet = new HashSet<Guid>();
+                foreach (Guid recipientId in operationValue.RecipientsIds)
+                {
+                    // First, we should resolve all the shortcuts.
+                    resolvedRecipientsIdsSet.UnionWith(ResolveRecipient(
+                        operationValue.SenderId, recipientId));
+                }
+                operationValue.RecipientsIds = resolvedRecipientsIds =
+                    resolvedRecipientsIdsSet.ToList();
+                operationValue.RecipientsResolved = true;
             }
             HashSet<Guid> nextThreadsIds = new HashSet<Guid>();
             foreach (Guid recipientId in resolvedRecipientsIds)
@@ -341,7 +395,7 @@ namespace Cloudy.Computing
             }
         }
 
-        private IPEndPoint ResolveThreadToEndPoint(Guid threadId)
+        private IPEndPoint ResolveThreadToEndPoint(Guid currentThreadId, Guid threadId)
         {
             if (threadId == Guid.Empty)
             {
@@ -355,21 +409,26 @@ namespace Cloudy.Computing
                 {
                     return targetEndPoint;
                 }
+                EndPointResponseValue response;
                 lock (masterConversationLock)
                 {
                     Send(masterEndPoint, new GuidValue { Value = threadId },
                         Tags.EndPointRequest);
-                    targetEndPoint = ReceiveFrom<EndPointValue>(masterEndPoint).Value;
+                    response = ReceiveFrom<EndPointResponseValue>(masterEndPoint);
                 }
-                if (CreateWormhole(targetEndPoint))
+                if (CreateWormhole(currentThreadId, threadId, response.LocalEndPoint.Value))
                 {
-                    return endPoints[threadId] = targetEndPoint;
+                    return endPoints[threadId] = response.LocalEndPoint.Value;
+                }
+                if (CreateWormhole(currentThreadId, threadId, response.ExternalEndPoint.Value))
+                {
+                    return endPoints[threadId] = response.ExternalEndPoint.Value;
                 }
                 // TODO: Handle this case more smartly:
                 // TODO: re-resolve, create a bridge through master etc ...
                 throw new IOException(String.Format(
                     "Cannot create a wormhole to the thread {0} at {1}",
-                    threadId, targetEndPoint));
+                    threadId, response));
             }
         }
 
@@ -377,24 +436,39 @@ namespace Cloudy.Computing
         /// Performs the UDP hole punching.
         /// </summary>
         /// <returns>Whether the method call was succedded.</returns>
-        private bool CreateWormhole(IPEndPoint targetEndPoint)
+        private bool CreateWormhole(Guid currentThreadId, Guid targetThreadId,
+            IPEndPoint targetEndPoint)
         {
-            try
+            if (CreatingWormHole != null)
             {
-                Ping(targetEndPoint);
+                CreatingWormHole(this, new EventArgs<Guid, IPEndPoint>(
+                    targetThreadId, targetEndPoint));
+            }
+            if (MakeSignedPing(currentThreadId, targetEndPoint))
+            {
                 // Hooray! We've established a connection!
                 return true;
             }
-            catch (TimeoutException)
+            // No, ping me, please.
+            lock (masterConversationLock)
             {
-                // No, ping me, please.
-                lock (masterConversationLock)
-                {
-                    // TODO: Request for an external ping.
-                    throw new NotImplementedException();
-                }
-                // TODO: Handle more smartly: port scan etc ...
+                SignedPingRequest request = new SignedPingRequest();
+                request.SenderId = currentThreadId;
+                request.TargetId = targetThreadId;
+                request.SenderLocalEndPoint.Value = LocalEndPoint;
+                request.SenderExternalEndPoint.Value = ExternalEndPoint;
+                Send(masterEndPoint, request, Tags.SignedPingRequest);
+                SignedPingResponse response = ReceiveFrom<SignedPingResponse>(
+                    masterEndPoint);
+                return response.Success == true;
+                // TODO: return DoPortScan(currentThreadId, targetEndPoint);
             }
+        }
+
+        private bool DoPortScan(Guid currentThreadId, IPEndPoint initialEndPoint,
+            out IPEndPoint succeededEndPoint)
+        {
+            throw new NotImplementedException();
         }
 
         private void SendEnvironmentOperation(Guid recipientId, 
@@ -409,8 +483,8 @@ namespace Cloudy.Computing
             {
                 // TODO: Handle the case of timeout smartly:
                 // TODO: re-resolve, re-connect etc ...
-                Send(ResolveThreadToEndPoint(recipientId), operationValue,
-                    Tags.EnvironmentOperation);
+                Send(ResolveThreadToEndPoint(operationValue.SenderId, recipientId), 
+                    operationValue, Tags.EnvironmentOperation);
             }
         }
 

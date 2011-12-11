@@ -38,6 +38,8 @@ namespace Cloudy.Examples.Static.Pi.Master
                 Logger.Info("Thread Completed: {0}", e.Value);
             ThreadFailed += (sender, e) =>
                 Logger.Error("Thread Failed: {0}", e.Value);
+            ResolvingRecipient += (sender, e) =>
+                Logger.Info("{0} tries to resolve {1}", e.Value1, e.Value2);
         }
 
         #region Overrides of AbstractMasterNode
@@ -49,7 +51,7 @@ namespace Cloudy.Examples.Static.Pi.Master
 
         protected override bool OnJobStopped(JobResult result)
         {
-            return true;
+            return false;
         }
 
         #endregion
