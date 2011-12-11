@@ -97,6 +97,8 @@ namespace Cloudy.Computing
 
         public event ParameterizedEventHandler<IPEndPoint, IPEndPoint> SignedPingRequested;
 
+        public event ParameterizedEventHandler<Guid, bool> SignedPingFinished;
+
         public event ParameterizedEventHandler<Guid, IPEndPoint> EndPointResolved;
 
         /// <summary>
@@ -258,6 +260,11 @@ namespace Cloudy.Computing
                 response.Success = true;
             }
             SendAsync(remoteEndPoint, response, Tags.SignedPingResponse);
+            if (SignedPingFinished != null)
+            {
+                SignedPingFinished(this, new EventArgs<Guid, bool>(
+                    request.SenderId, response.Success == true));
+            }
         }
 
         private bool MakeSignedPing(Guid currentThreadId, IPEndPoint targetEndPoint)

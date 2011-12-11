@@ -35,6 +35,9 @@ namespace Cloudy.Examples.Static.Pi.Slave
             SignedPingRequested += (sender, e) =>
                 Logger.Info("Signed ping request to local {0}, external {1}",
                 e.Value1, e.Value2);
+            SignedPingFinished += (sender, e) =>
+                Logger.Info("Signed ping to {0} has finished. Success: {1}",
+                e.Value1, e.Value2);
             EndPointResolved += (sender, e) =>
                 Logger.Info("{0} is resolved to {1}", e.Value1, e.Value2);
         }
