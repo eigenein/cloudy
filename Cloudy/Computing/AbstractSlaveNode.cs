@@ -463,8 +463,12 @@ namespace Cloudy.Computing
                     CreateWormhole(currentThreadId, threadId, response.ExternalEndPoint.Value,
                     out succeededEndPoint))
                 {
-                    OnEndPointResolved(threadId, succeededEndPoint);
-                    return endPoints[threadId] = succeededEndPoint;
+                    if (succeededEndPoint != null)
+                    {
+                        OnEndPointResolved(threadId, succeededEndPoint);
+                        return endPoints[threadId] = succeededEndPoint;
+                    }
+                    return endPoints[threadId];
                 }
                 // TODO: Handle this case more smartly:
                 // TODO: re-resolve, create a bridge through master etc ...
@@ -503,8 +507,18 @@ namespace Cloudy.Computing
                 Send(masterEndPoint, request, Tags.SignedPingRequest);
                 SignedPingResponse response = ReceiveFrom<SignedPingResponse>(
                     masterEndPoint, SignedPingResponseTimeout);
-                return response.Success == true ||
-                    DoPortScan(currentThreadId, targetEndPoint, out succeededEndPoint);
+                if (response.Success == true)
+                {
+                    /* 
+                     * This means that we've already cached the endpoint when
+                     * handling an incoming SignedPing. Also, the method
+                     * doesn't know the actual endpoint, thus it will leave
+                     * the succeededEndPoint null.
+                     */
+                    succeededEndPoint = null;
+                    return true;
+                }
+                return DoPortScan(currentThreadId, targetEndPoint, out succeededEndPoint);
             }
         }
 

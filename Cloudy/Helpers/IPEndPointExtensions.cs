@@ -11,7 +11,7 @@ namespace Cloudy.Helpers
         {
             IPEndPoint current = initialEndPoint;
             int nextPortOffset = 0;
-            while (Math.Abs(nextPortOffset) <= maxOffset)
+            while (Math.Abs(nextPortOffset) <= 2 * maxOffset)
             {
                 current.Port += nextPortOffset;
                 yield return current;
