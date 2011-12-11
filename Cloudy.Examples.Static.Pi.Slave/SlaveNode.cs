@@ -31,6 +31,8 @@ namespace Cloudy.Examples.Static.Pi.Slave
                 Logger.Error("Unhandled Exception: {0}", e.Value.ToString());
             CreatingWormHole += (sender, e) =>
                 Logger.Info("Creating a wormhole to {0} using {1}", e.Value1, e.Value2);
+            PortScanning += (sender, e) =>
+                Logger.Info("Trying {0} as {1}", e.Value1, e.Value2);
 
             SendTimeout = TimeSpanExtensions.Infinite;
             ReceiveTimeout = TimeSpanExtensions.Infinite;

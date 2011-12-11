@@ -92,6 +92,8 @@ namespace Cloudy.Computing
 
         public event ParametrizedEventHandler<Guid, IPEndPoint> CreatingWormHole;
 
+        public event ParametrizedEventHandler<IPEndPoint, IPEndPoint> PortScanning;
+
         /// <summary>
         /// Creates a thread within this slave node.
         /// </summary>
@@ -490,6 +492,11 @@ namespace Cloudy.Computing
              */
             foreach (IPEndPoint endPoint in initialEndPoint.GetPortScanEndPoints(MaxPortScanOffset))
             {
+                if (PortScanning != null)
+                {
+                    PortScanning(this, new EventArgs<IPEndPoint, IPEndPoint>(
+                        initialEndPoint, endPoint));
+                }
                 if (MakeSignedPing(currentThreadId, endPoint))
                 {
                     succeededEndPoint = endPoint;
