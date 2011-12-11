@@ -132,6 +132,7 @@
     <Compile Include="Computing\Topologies\TopologyRepository.cs" />
     <Compile Include="Helpers\EventArgs.cs" />
     <Compile Include="Helpers\InvokeHelper.cs" />
+    <Compile Include="Helpers\IPEndPointExtensions.cs" />
     <Compile Include="Helpers\LinkedListExtensions.cs" />
     <Compile Include="Helpers\ParametrizedEventHandler.cs" />
     <Compile Include="Helpers\TimeSpanExtensions.cs" />

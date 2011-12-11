@@ -44,6 +44,7 @@ namespace Cloudy.Computing
             AddHandler(Tags.SignedPing, OnSignedPing);
             AddHandler(Tags.SignedPingRequest, OnSignedPingRequest);
             State = SlaveState.NotJoined;
+            MaxPortScanOffset = 3;
         }
 
         public Guid? SlaveId { get; protected set; }
@@ -72,6 +73,12 @@ namespace Cloudy.Computing
                 }
             }
         }
+
+        /// <summary>
+        /// Specifies a maximum offset from the current port number
+        /// when performing port scanning during UDP hole punching.
+        /// </summary>
+        public int MaxPortScanOffset { get; set; }
 
         public event ParametrizedEventHandler<IPEndPoint, Guid> Joined;
 
@@ -416,13 +423,13 @@ namespace Cloudy.Computing
                         Tags.EndPointRequest);
                     response = ReceiveFrom<EndPointResponseValue>(masterEndPoint);
                 }
-                if (CreateWormhole(currentThreadId, threadId, response.LocalEndPoint.Value))
+                IPEndPoint succeededEndPoint;
+                if (CreateWormhole(currentThreadId, threadId, response.LocalEndPoint.Value,
+                    out succeededEndPoint) ||
+                    CreateWormhole(currentThreadId, threadId, response.ExternalEndPoint.Value,
+                    out succeededEndPoint))
                 {
-                    return endPoints[threadId] = response.LocalEndPoint.Value;
-                }
-                if (CreateWormhole(currentThreadId, threadId, response.ExternalEndPoint.Value))
-                {
-                    return endPoints[threadId] = response.ExternalEndPoint.Value;
+                    return endPoints[threadId] = succeededEndPoint;
                 }
                 // TODO: Handle this case more smartly:
                 // TODO: re-resolve, create a bridge through master etc ...
@@ -437,8 +444,9 @@ namespace Cloudy.Computing
         /// </summary>
         /// <returns>Whether the method call was succedded.</returns>
         private bool CreateWormhole(Guid currentThreadId, Guid targetThreadId,
-            IPEndPoint targetEndPoint)
+            IPEndPoint targetEndPoint, out IPEndPoint succeededEndPoint)
         {
+            succeededEndPoint = targetEndPoint;
             if (CreatingWormHole != null)
             {
                 CreatingWormHole(this, new EventArgs<Guid, IPEndPoint>(
@@ -449,7 +457,7 @@ namespace Cloudy.Computing
                 // Hooray! We've established a connection!
                 return true;
             }
-            // No, ping me, please.
+            // No, then we should make request for the external ping.
             lock (masterConversationLock)
             {
                 SignedPingRequest request = new SignedPingRequest();
@@ -460,15 +468,36 @@ namespace Cloudy.Computing
                 Send(masterEndPoint, request, Tags.SignedPingRequest);
                 SignedPingResponse response = ReceiveFrom<SignedPingResponse>(
                     masterEndPoint);
-                return response.Success == true;
-                // TODO: return DoPortScan(currentThreadId, targetEndPoint);
+                return response.Success == true ||
+                    DoPortScan(currentThreadId, targetEndPoint, out succeededEndPoint);
             }
         }
 
+        /// <summary>
+        /// Attempts to find the external port number of the node.
+        /// </summary>
+        /// <param name="currentThreadId">Current thread ID.</param>
+        /// <param name="initialEndPoint">The endpoint to start with.</param>
+        /// <param name="succeededEndPoint"></param>
+        /// <returns>Whether a call was successful.</returns>
         private bool DoPortScan(Guid currentThreadId, IPEndPoint initialEndPoint,
             out IPEndPoint succeededEndPoint)
         {
-            throw new NotImplementedException();
+            /*
+             * We start with the initial endpoint because it's possible that
+             * the other node cannot ping this node, but it has opened a hole
+             * on its side.
+             */
+            foreach (IPEndPoint endPoint in initialEndPoint.GetPortScanEndPoints(MaxPortScanOffset))
+            {
+                if (MakeSignedPing(currentThreadId, endPoint))
+                {
+                    succeededEndPoint = endPoint;
+                    return true;
+                }
+            }
+            succeededEndPoint = null;
+            return false;
         }
 
         private void SendEnvironmentOperation(Guid recipientId, 
