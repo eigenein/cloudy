@@ -187,19 +187,22 @@ namespace Cloudy.Messaging
         /// </summary>
         public void Send<T>(TEndPoint endPoint, T message, int tag, TimeSpan timeout)
         {
+            Exception innerException = null;
             for (int i = 0; i < SendAttemptsCount; i++)
             {
                 MessagingAsyncResult ar = BeginSend(endPoint, message, tag, null, null);
                 try
                 {
                     EndSend(ar, timeout);
-                    break;
+                    return;
                 }
-                catch (TimeoutException)
+                catch (TimeoutException ex)
                 {
-                    continue;
+                    innerException = ex;
                 }
             }
+            throw new TimeoutException(String.Format("Timeout: {0}", timeout),
+                innerException);
         }
 
         /// <summary>
