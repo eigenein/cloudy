@@ -105,6 +105,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Cloudy.Protobuf\Cloudy.Protobuf.csproj">
+      <Project>{C61D18FC-1546-40FA-B917-A972FA25B7ED}</Project>
+      <Name>Cloudy.Protobuf</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Cloudy\Cloudy.csproj">
       <Project>{670CB013-9734-4D71-BE05-070FED4C0EF2}</Project>
       <Name>Cloudy</Name>

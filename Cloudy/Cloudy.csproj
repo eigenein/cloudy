@@ -148,44 +148,6 @@
     <Compile Include="Messaging\Communicator.cs" />
     <Compile Include="Messaging\Structures\MessagingAsyncResult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Protobuf\Attributes\ProtobufFieldAttribute.cs" />
-    <Compile Include="Protobuf\Attributes\ProtobufSerializableAttribute.cs" />
-    <Compile Include="Protobuf\Encoding\ProtobufReader.cs" />
-    <Compile Include="Protobuf\Encoding\ProtobufWriter.cs" />
-    <Compile Include="Protobuf\Enums\DataType.cs" />
-    <Compile Include="Protobuf\Enums\WireType.cs" />
-    <Compile Include="Protobuf\Exceptions\DuplicateFieldNumberException.cs" />
-    <Compile Include="Protobuf\Exceptions\MissingValueException.cs" />
-    <Compile Include="Protobuf\Exceptions\NotSerializableException.cs" />
-    <Compile Include="Protobuf\Exceptions\UnexpectedEndOfStreamException.cs" />
-    <Compile Include="Protobuf\Helpers\DataTypeToSerializerCache.cs" />
-    <Compile Include="Protobuf\Helpers\DefaultSerializersCache.cs" />
-    <Compile Include="Protobuf\Helpers\UnknownFieldSkipHelper.cs" />
-    <Compile Include="Protobuf\Interfaces\AbstractSerializer.cs" />
-    <Compile Include="Protobuf\Interfaces\IValueBuilder.cs" />
-    <Compile Include="Protobuf\Interfaces\SerializerWithWireType.cs" />
-    <Compile Include="Protobuf\Serializer.cs" />
-    <Compile Include="Protobuf\Serializers\NullProxySerializer.cs" />
-    <Compile Include="Protobuf\Serializers\BoolSerializer.cs" />
-    <Compile Include="Protobuf\Serializers\BytesSerializer.cs" />
-    <Compile Include="Protobuf\Serializers\EmbeddedMessageSerializer.cs" />
-    <Compile Include="Protobuf\Serializers\EnumSerializer.cs" />
-    <Compile Include="Protobuf\Serializers\FixedUInt32Serializer.cs" />
-    <Compile Include="Protobuf\Serializers\FixedInt32Serializer.cs" />
-    <Compile Include="Protobuf\Serializers\FixedInt64Serializer.cs" />
-    <Compile Include="Protobuf\Serializers\FixedUInt64Serializer.cs" />
-    <Compile Include="Protobuf\Serializers\GuidSerializer.cs" />
-    <Compile Include="Protobuf\Serializers\PackedRepeatedSerializer.cs" />
-    <Compile Include="Protobuf\Serializers\RepeatedSerializer.cs" />
-    <Compile Include="Protobuf\Serializers\SignedVarintSerializer.cs" />
-    <Compile Include="Protobuf\Serializers\StringSerializer.cs" />
-    <Compile Include="Protobuf\Serializers\UnsignedVarintSerializer.cs" />
-    <Compile Include="Protobuf\Structures\BuildingProperty.cs" />
-    <Compile Include="Protobuf\Structures\BuildingSerializer.cs" />
-    <Compile Include="Protobuf\ValueBuilders\NullableValueBuilder.cs" />
-    <Compile Include="Protobuf\ValueBuilders\RepeatedValueBuilder.cs" />
-    <Compile Include="Protobuf\ValueBuilders\RequiredValueBuilder.cs" />
-    <Compile Include="Protobuf\ValueBuilders\SingleValueBuilder.cs" />
     <Compile Include="Structures\EmptyValue.cs" />
     <Compile Include="Structures\Tuple.cs" />
   </ItemGroup>
@@ -196,6 +158,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Computing\Structures\Values\Environment\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cloudy.Protobuf\Cloudy.Protobuf.csproj">
+      <Project>{C61D18FC-1546-40FA-B917-A972FA25B7ED}</Project>
+      <Name>Cloudy.Protobuf</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

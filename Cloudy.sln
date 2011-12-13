@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Examples.Static.Pi.S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Examples.Shared", "Cloudy.Examples.Shared\Cloudy.Examples.Shared.csproj", "{E2C08F4D-6607-4520-9E2B-DCBB03F1A78E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Protobuf", "Cloudy.Protobuf\Cloudy.Protobuf.csproj", "{C61D18FC-1546-40FA-B917-A972FA25B7ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,16 @@ Global
 		{E2C08F4D-6607-4520-9E2B-DCBB03F1A78E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{E2C08F4D-6607-4520-9E2B-DCBB03F1A78E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{E2C08F4D-6607-4520-9E2B-DCBB03F1A78E}.Release|x86.ActiveCfg = Release|Any CPU
+		{C61D18FC-1546-40FA-B917-A972FA25B7ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C61D18FC-1546-40FA-B917-A972FA25B7ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C61D18FC-1546-40FA-B917-A972FA25B7ED}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C61D18FC-1546-40FA-B917-A972FA25B7ED}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C61D18FC-1546-40FA-B917-A972FA25B7ED}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C61D18FC-1546-40FA-B917-A972FA25B7ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C61D18FC-1546-40FA-B917-A972FA25B7ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C61D18FC-1546-40FA-B917-A972FA25B7ED}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{C61D18FC-1546-40FA-B917-A972FA25B7ED}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{C61D18FC-1546-40FA-B917-A972FA25B7ED}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

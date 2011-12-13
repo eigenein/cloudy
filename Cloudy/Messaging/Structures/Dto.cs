@@ -1,6 +1,5 @@
 ﻿using System;
 using Cloudy.Messaging.Interfaces;
-using Cloudy.Protobuf;
 using Cloudy.Protobuf.Attributes;
 
 namespace Cloudy.Messaging.Structures
