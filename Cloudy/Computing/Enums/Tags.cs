@@ -39,23 +39,6 @@ namespace Cloudy.Computing.Enums
         public const int EnvironmentOperation = -10;
 
         /// <summary>
-        /// Query to obtain an ID of the next thread in a route path.
-        /// </summary>
-        public const int RouteRequest = -11;
-
-        /// <summary>
-        /// Information about a route path.
-        /// </summary>
-        public const int RouteResponse = -12;
-
-        /// <summary>
-        /// Resolve recipients and shortcuts request.
-        /// </summary>
-        public const int ResolveRecipientRequest = -13;
-
-        public const int ResolveRecipientResponse = -14;
-
-        /// <summary>
         /// Request IP endpoint by a thread ID.
         /// </summary>
         public const int EndPointRequest = -15;

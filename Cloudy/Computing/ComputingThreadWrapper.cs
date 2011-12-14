@@ -10,7 +10,7 @@ namespace Cloudy.Computing
     /// </summary>
     internal class ComputingThreadWrapper
     {
-        private readonly Guid threadId;
+        private readonly byte[] rank;
 
         private readonly IInternalEnvironment environment;
 
@@ -18,23 +18,23 @@ namespace Cloudy.Computing
 
         private Thread thread;
 
-        public event ParameterizedEventHandler<Exception> ThreadFailed;
+        public event ParameterizedEventHandler<byte[], Exception> ThreadFailed;
 
-        public event EventHandler ThreadCompleted;
+        public event ParameterizedEventHandler<byte[]> ThreadCompleted;
 
-        public event EventHandler ThreadStopped;
+        public event ParameterizedEventHandler<byte[]> ThreadStopped;
 
-        public ComputingThreadWrapper(Guid threadId, IInternalEnvironment environment,
+        public ComputingThreadWrapper(byte[] rank, IInternalEnvironment environment,
             Func<IComputingThread> createThread)
         {
-            this.threadId = threadId;
+            this.rank = rank;
             this.environment = environment;
             this.createThread = createThread;
         }
 
-        public Guid ThreadId
+        public byte[] Rank
         {
-            get { return threadId; }
+            get { return rank; }
         }
 
         public IInternalEnvironment Environment
@@ -63,7 +63,7 @@ namespace Cloudy.Computing
             thread = null;
             if (ThreadStopped != null)
             {
-                ThreadStopped(this, new EventArgs());
+                ThreadStopped(this, new EventArgs<byte[]>(rank));
             }
         }
 
@@ -75,14 +75,14 @@ namespace Cloudy.Computing
                 computingThread.Run(environment);
                 if (ThreadCompleted != null)
                 {
-                    ThreadCompleted(this, new EventArgs());
+                    ThreadCompleted(this, new EventArgs<byte[]>(rank));
                 }
             }
             catch (Exception ex)
             {
                 if (ThreadFailed != null)
                 {
-                    ThreadFailed(this, new EventArgs<Exception>(ex));
+                    ThreadFailed(this, new EventArgs<byte[], Exception>(rank, ex));
                 }
             }
             OnThreadStopped();

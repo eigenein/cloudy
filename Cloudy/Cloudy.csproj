@@ -108,8 +108,6 @@
     <Compile Include="Computing\Interfaces\IEnvironment.cs" />
     <Compile Include="Computing\Interfaces\IEnvironmentTransport.cs" />
     <Compile Include="Computing\Interfaces\IInternalEnvironment.cs" />
-    <Compile Include="Computing\Interfaces\INetworkRepository.cs" />
-    <Compile Include="Computing\NetworkRepository.cs" />
     <Compile Include="Computing\Structures\SlaveContext.cs" />
     <Compile Include="Computing\Structures\ThreadContext.cs" />
     <Compile Include="Computing\Structures\Values\EndPointResponseValue.cs" />
@@ -118,22 +116,26 @@
     <Compile Include="Computing\Structures\Values\GuidValue.cs" />
     <Compile Include="Computing\Structures\Values\JoinRequestValue.cs" />
     <Compile Include="Computing\Structures\Values\JoinResponseValue.cs" />
+    <Compile Include="Computing\Structures\Values\SignedPingValue.cs" />
     <Compile Include="Computing\Structures\Values\SignedPingRequest.cs" />
-    <Compile Include="Computing\Structures\Values\ResolveRecipientRequestValue.cs" />
-    <Compile Include="Computing\Structures\Values\ResolveRecipientResponseValue.cs" />
-    <Compile Include="Computing\Structures\Values\RouteRequestValue.cs" />
     <Compile Include="Computing\Structures\Values\SignedPingResponse.cs" />
     <Compile Include="Computing\Structures\Values\WrappedValue.cs" />
-    <Compile Include="Computing\Topologies\Interfaces\ITopology.cs" />
-    <Compile Include="Computing\Topologies\Interfaces\ITopologyRepository.cs" />
-    <Compile Include="Computing\Topologies\Shortcuts\StarShortcuts.cs" />
-    <Compile Include="Computing\Topologies\StarTopology.cs" />
-    <Compile Include="Computing\Topologies\TopologyRepository.cs" />
+    <Compile Include="Computing\Topologies\Enums\TopologyType.cs" />
+    <Compile Include="Computing\Topologies\Interfaces\IRank.cs" />
+    <Compile Include="Computing\Topologies\Interfaces\Master\ITopology.cs" />
+    <Compile Include="Computing\Topologies\Interfaces\Slave\ITopology.cs" />
+    <Compile Include="Computing\Topologies\SlaveTopologiesCache.cs" />
+    <Compile Include="Computing\Topologies\Master\StarTopology.cs" />
+    <Compile Include="Computing\Topologies\Slave\StarTopology.cs" />
+    <Compile Include="Computing\Topologies\Structures\RouteSearchResult.cs" />
+    <Compile Include="Computing\Topologies\Structures\StarRank.cs" />
+    <Compile Include="Helpers\ByteArrayComparer.cs" />
+    <Compile Include="Helpers\ByteArrayExtensions.cs" />
     <Compile Include="Helpers\EventArgs.cs" />
-    <Compile Include="Helpers\InvokeHelper.cs" />
     <Compile Include="Helpers\IPEndPointExtensions.cs" />
     <Compile Include="Helpers\LinkedListExtensions.cs" />
     <Compile Include="Helpers\ParameterizedEventHandler.cs" />
+    <Compile Include="Helpers\RankConverter.cs" />
     <Compile Include="Helpers\TimeSpanExtensions.cs" />
     <Compile Include="Messaging\Raw\StreamSimpleCommunicator.cs" />
     <Compile Include="Messaging\Raw\UdpClientSimpleCommunicator.cs" />
@@ -157,6 +159,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Computing\Nodes\" />
     <Folder Include="Computing\Structures\Values\Environment\" />
   </ItemGroup>
   <ItemGroup>

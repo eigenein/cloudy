@@ -9,11 +9,6 @@ namespace Cloudy.Computing.Structures.Values
     [ProtobufSerializable]
     public class EnvironmentOperationValue : ByteArrayValue
     {
-        public EnvironmentOperationValue()
-        {
-            RecipientsResolved = false;
-        }
-
         /// <summary>
         /// Used to distinguish one operation from another.
         /// </summary>
@@ -27,12 +22,9 @@ namespace Cloudy.Computing.Structures.Values
         public int UserTag { get; set; }
 
         [ProtobufField(5)]
-        public Guid SenderId { get; set; }
+        public byte[] Sender { get; set; }
 
         [ProtobufField(6)]
-        public ICollection<Guid> RecipientsIds { get; set; }
-
-        [ProtobufField(7)]
-        public bool? RecipientsResolved { get; set; }
+        public ICollection<byte[]> Recipients { get; set; }
     }
 }

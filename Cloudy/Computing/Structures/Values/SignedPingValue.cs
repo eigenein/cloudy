@@ -5,9 +5,9 @@ using Cloudy.Protobuf.Attributes;
 namespace Cloudy.Computing.Structures.Values
 {
     [ProtobufSerializable]
-    public class ResolveRecipientResponseValue
+    public class SignedPingValue
     {
         [ProtobufField(1)]
-        public ICollection<Guid> ResolvedTo { get; set; }
+        public ICollection<byte[]> LocalRanks { get; set; }
     }
 }

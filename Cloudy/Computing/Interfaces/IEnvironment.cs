@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Cloudy.Computing.Topologies.Interfaces;
 
 namespace Cloudy.Computing.Interfaces
 {
@@ -8,26 +9,27 @@ namespace Cloudy.Computing.Interfaces
     /// </summary>
     public interface IEnvironment
     {
-        /// <summary>
-        /// Gets the ID of the current thread.
-        /// </summary>
-        Guid ThreadId { get; }
+        // Nothing.
+    }
 
-        /// <summary>
-        /// Resolves a shortcut identifier to the corresponding threads identifiers.
-        /// </summary>
-        ICollection<Guid> ResolveId(Guid id);
+    /// <summary>
+    /// Represents an environment of a computing thread.
+    /// </summary>
+    public interface IEnvironment<TRank> : IEnvironment
+        where TRank : IRank
+    {
+        TRank Rank { get; }
 
-        void Send<T>(int tag, T value, Guid recipientId);
+        void Send<T>(int tag, T value, TRank recipient);
 
-        void Send<T>(int tag, T value, ICollection<Guid> recipientsIds);
+        void Send<T>(int tag, T value, ICollection<TRank> recipients);
 
-        void Receive<T>(int tag, out T value, out Guid senderId);
+        void Receive<T>(int tag, out T value, out TRank sender);
 
-        void Receive<T>(out int tag, out T value, out Guid senderId);
+        void Receive<T>(out int tag, out T value, out TRank sender);
 
-        void Receive<T>(int tag, out T value, Guid senderId);
+        void Receive<T>(int tag, out T value, TRank sender);
 
-        void Receive<T>(out int tag, out T value, Guid senderId);
+        void Receive<T>(out int tag, out T value, TRank sender);
     }
 }

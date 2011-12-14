@@ -31,43 +31,47 @@ namespace Cloudy.Examples.Static.Pi.Slave
         private static readonly int SlotsCount =
             ApplicationSettings.GetInteger("SlotsCount");
 
+        private static readonly SlaveNode Slave = 
+            new SlaveNode(Port, LocalAddress, SlotsCount);
+
         static void Main(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
             Logger.Info("Starting Slave ...");
-            SlaveNode slave = new SlaveNode(Port, LocalAddress, SlotsCount);
-            ThreadPool.QueueUserWorkItem(HandleMessages, slave);
-            ThreadPool.QueueUserWorkItem(ProcessIncomingMessages, slave);
+            ThreadPool.QueueUserWorkItem(HandleMessages, Slave);
+            ThreadPool.QueueUserWorkItem(ProcessIncomingMessages, Slave);
 
             Logger.Info("Joining the network at {0} ...", MasterEndPoint);
-            if (!InvokeHelper.RepeatedCall(() => slave.Join(MasterEndPoint), 3))
+            try
+            {
+                Slave.Join(MasterEndPoint);
+            }
+            catch
             {
                 Logger.Error("Join failed.");
             }
 
             Logger.Info("Press Enter to quit.");
             Console.ReadLine();
-            slave.Dispose();
+            Slave.Dispose();
         }
 
         private static void HandleMessages(object state)
         {
-            AbstractSlaveNode slave = (AbstractSlaveNode)state;
-            while (slave.State != Computing.Enums.SlaveState.Left)
+            while (Slave.State != Computing.Enums.SlaveState.Left)
             {
-                slave.HandleMessages(1);
+                Slave.HandleMessages(1);
             }
         }
 
         private static void ProcessIncomingMessages(object state)
         {
-            AbstractSlaveNode slave = (AbstractSlaveNode)state;
-            while (slave.State != Computing.Enums.SlaveState.Left)
+            while (Slave.State != Computing.Enums.SlaveState.Left)
             {
                 try
                 {
-                    slave.ProcessIncomingMessages(1);
+                    Slave.ProcessIncomingMessages(1);
                 }
                 catch (SocketException ex)
                 {

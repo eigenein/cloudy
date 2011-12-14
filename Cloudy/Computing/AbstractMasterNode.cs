@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using Cloudy.Computing.Enums;
-using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Structures;
 using Cloudy.Computing.Structures.Values;
-using Cloudy.Computing.Topologies.Interfaces;
+using Cloudy.Computing.Topologies.Interfaces.Master;
 using Cloudy.Helpers;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Structures;
@@ -14,24 +14,28 @@ namespace Cloudy.Computing
 {
     public abstract class AbstractMasterNode : AbstractNode
     {
+        private readonly Dictionary<Guid, SlaveContext> slaveById =
+            new Dictionary<Guid, SlaveContext>();
+
+        private readonly Dictionary<IPEndPoint, SlaveContext> slaveByEndPoint =
+            new Dictionary<IPEndPoint, SlaveContext>();
+
+        private readonly Dictionary<byte[], SlaveContext> slaveByRank =
+            new Dictionary<byte[], SlaveContext>(ByteArrayComparer.Instance);
+
+        protected int TotalSlotsCount;
+
+        private int runningThreadsCount;
+
         private MasterState state;
 
-        private readonly ITopologyRepository topologyRepository;
-
-        protected readonly INetworkRepository NetworkRepository;
-
-        protected AbstractMasterNode(int port, INetworkRepository networkRepository,
-            ITopologyRepository topologyRepository) 
+        protected AbstractMasterNode(int port) 
             : base(port)
         {
-            this.NetworkRepository = networkRepository;
-            this.topologyRepository = topologyRepository;
             AddHandler(Tags.JoinRequest, OnJoinRequest);
             AddHandler(Tags.Bye, OnBye);
             AddHandler(Tags.ThreadCompleted, OnThreadCompleted);
             AddHandler(Tags.ThreadFailed, OnThreadFailed);
-            AddHandler(Tags.RouteRequest, OnRouteRequest);
-            AddHandler(Tags.ResolveRecipientRequest, OnResolveRecipient);
             AddHandler(Tags.EndPointRequest, OnEndPointRequest);
             AddHandler(Tags.SignedPingRequest, OnSignedPingRequest);
             AddHandler(Tags.SignedPingResponse, OnSignedPingResponse);
@@ -60,19 +64,17 @@ namespace Cloudy.Computing
 
         public event ParameterizedEventHandler<JobResult> JobStopped;
 
-        public event ParameterizedEventHandler<Guid, Guid> ThreadFailedToStart;
+        public event ParameterizedEventHandler<Guid, byte[]> ThreadFailedToStart;
 
         public event EventHandler Started;
 
         public event EventHandler FailedToStart;
 
-        public event ParameterizedEventHandler<Guid> StartingThread;
+        public event ParameterizedEventHandler<byte[]> StartingThread;
 
-        public event ParameterizedEventHandler<Guid> ThreadCompleted;
+        public event ParameterizedEventHandler<byte[]> ThreadCompleted;
 
-        public event ParameterizedEventHandler<Guid> ThreadFailed;
-
-        public event ParameterizedEventHandler<Guid, Guid> ResolvingRecipient;
+        public event ParameterizedEventHandler<byte[]> ThreadFailed;
 
         protected abstract ITopology Topology { get; }
 
@@ -92,7 +94,7 @@ namespace Cloudy.Computing
         /// <returns>
         /// Whether starting of a job should be continued (failed otherwise).
         /// </returns>
-        protected abstract bool OnThreadFailedToStart(Guid slaveId, Guid threadId);
+        protected abstract bool OnThreadFailedToStart(Guid slaveId, byte[] threadRank);
 
         /// <summary>
         /// Notifies that the job is stopped.
@@ -112,6 +114,7 @@ namespace Cloudy.Computing
             JoinResponseValue response = new JoinResponseValue();
             response.ExternalEndPoint = new EndPointValue { Value = remoteEndPoint };
             response.SlaveId = slaveId;
+            response.TopologyType = Topology.TopologyType;
             try
             {
                 Send(remoteEndPoint, response, Tags.JoinResponse);
@@ -122,15 +125,16 @@ namespace Cloudy.Computing
                 return;
             }
             SlaveContext slave;
-            if (!NetworkRepository.TryGetSlave(slaveId, out slave))
+            if (!slaveById.TryGetValue(slaveId, out slave))
             {
-                NetworkRepository.AddToTotalSlotsCount(request.SlotsCount);
+                Interlocked.Add(ref TotalSlotsCount, request.SlotsCount);
                 slave = new SlaveContext();
                 slave.SlaveId = slaveId;
                 slave.SlotsCount = request.SlotsCount;
                 slave.LocalEndPoint = request.LocalEndPoint.Value;
                 slave.ExternalEndPoint = remoteEndPoint;
-                NetworkRepository.AddSlave(remoteEndPoint, slave);
+                slaveByEndPoint.Add(remoteEndPoint, slave);
+                slaveById.Add(slaveId, slave);
             }
             if (SlaveJoined != null)
             {
@@ -141,9 +145,14 @@ namespace Cloudy.Computing
 
         private void OnBye(IPEndPoint remoteEndPoint, IMessage message)
         {
-            SlaveContext slave = NetworkRepository.GetSlave(remoteEndPoint);
-            NetworkRepository.RemoveFromTotalSlotsCount(slave.SlotsCount);
-            NetworkRepository.RemoveSlave(remoteEndPoint);
+            SlaveContext slave = slaveByEndPoint[remoteEndPoint];
+            Interlocked.Add(ref TotalSlotsCount, -slave.SlotsCount);
+            slaveByEndPoint.Remove(remoteEndPoint);
+            slaveById.Remove(slave.SlaveId);
+            foreach (ThreadContext thread in slave.Threads)
+            {
+                slaveByRank.Remove(thread.Rank);
+            }
             if (SlaveLeft != null)
             {
                 SlaveLeft(this, new EventArgs<IPEndPoint, Guid>(remoteEndPoint, slave.SlaveId));
@@ -156,73 +165,18 @@ namespace Cloudy.Computing
 
         private void OnThreadFailed(IPEndPoint remoteEndPoint, IMessage message)
         {
-            Guid threadId = message.Get<GuidValue>().Value;
+            byte[] threadRank = message.Get<WrappedValue<byte[]>>().Value;
             if (ThreadFailed != null)
             {
-                ThreadFailed(this, new EventArgs<Guid>(threadId));
-            }
-        }
-
-        private void StopThread(IPEndPoint remoteEndPoint, Guid threadId)
-        {
-            SendAsync(remoteEndPoint, new GuidValue { Value = threadId },
-                Tags.StopThread);
-        }
-
-        private void OnRouteRequest(IPEndPoint remoteEndPoint, IMessage message)
-        {
-            RouteRequestValue value = message.Get<RouteRequestValue>();
-            Guid nextThreadId;
-            if (!Topology.TryGetRoute(value.CurrentThreadId, value.DestinationThreadId,
-                topologyRepository, out nextThreadId))
-            {
-                // We don't know this destination, thus terminate the thread.
-                StopThread(remoteEndPoint, value.CurrentThreadId);
-                return;
-            }
-            // Ok, send the next thread ID back.
-            SendAsync(remoteEndPoint, new GuidValue { Value = nextThreadId },
-                Tags.RouteResponse);
-        }
-
-        private void OnResolveRecipient(IPEndPoint remoteEndPoint, IMessage message)
-        {
-            ResolveRecipientRequestValue request =
-                message.Get<ResolveRecipientRequestValue>();
-            if (ResolvingRecipient != null)
-            {
-                ResolvingRecipient(this, new EventArgs<Guid, Guid>(
-                    request.CurrentThreadId, request.RecipientId));
-            }
-            ResolveRecipientResponseValue response = new ResolveRecipientResponseValue();
-            if (request.RecipientId == Guid.Empty)
-            {
-                // Resolve the loopback ID to the thread itself.
-                response.ResolvedTo = new[] { request.CurrentThreadId };
-            }
-            if (!Topology.IsShortcut(request.RecipientId))
-            {
-                response.ResolvedTo = new[] { request.RecipientId };
-            }
-            ICollection<Guid> resolvedTo;
-            if (topologyRepository.TryGetThreadsByShortcut(request.CurrentThreadId, 
-                request.RecipientId, out resolvedTo))
-            {
-                // HashSet couldn't be cast to ICollection at runtime.
-                response.ResolvedTo = new List<Guid>(resolvedTo);
-                SendAsync(remoteEndPoint, response, Tags.ResolveRecipientResponse);
-            }
-            else
-            {
-                StopThread(remoteEndPoint, request.CurrentThreadId);
+                ThreadFailed(this, new EventArgs<byte[]>(threadRank));
             }
         }
 
         private void OnEndPointRequest(IPEndPoint remoteEndPoint, IMessage message)
         {
-            Guid targetThreadId = message.Get<GuidValue>().Value;
+            byte[] targetThread = message.Get<WrappedValue<byte[]>>().Value;
             SlaveContext slave;
-            if (NetworkRepository.TryGetSlaveByThreadId(targetThreadId, out slave))
+            if (slaveByRank.TryGetValue(targetThread, out slave))
             {
                 EndPointResponseValue response = new EndPointResponseValue();
                 response.ExternalEndPoint.Value = slave.ExternalEndPoint;
@@ -235,7 +189,7 @@ namespace Cloudy.Computing
         {
             SignedPingRequest request = message.Get<SignedPingRequest>();
             SlaveContext targetSlave;
-            if (NetworkRepository.TryGetSlaveByThreadId(request.TargetId, out targetSlave))
+            if (slaveByRank.TryGetValue(request.Destination, out targetSlave))
             {
                 SendAsync(targetSlave.ExternalEndPoint, request, Tags.SignedPingRequest);
             }
@@ -251,13 +205,13 @@ namespace Cloudy.Computing
 
         private void OnThreadCompleted(IPEndPoint remoteEndPoint, IMessage message)
         {
-            Guid threadId = message.Get<GuidValue>().Value;
+            byte[] threadRank = message.Get<WrappedValue<byte[]>>().Value;
             if (ThreadCompleted != null)
             {
-                ThreadCompleted(this, new EventArgs<Guid>(threadId));
+                ThreadCompleted(this, new EventArgs<byte[]>(threadRank));
             }
             if (state == MasterState.Running &&
-                NetworkRepository.RemoveFromRunningThreadsCount(1) == 0)
+                Interlocked.Decrement(ref runningThreadsCount) == 0)
             {
                 StopJob(JobResult.Succeeded);
             }
@@ -265,14 +219,16 @@ namespace Cloudy.Computing
 
         protected void CreateThreads(SlaveContext slave)
         {
-            int count = slave.SlotsCount - NetworkRepository.GetThreadsCount(slave.SlaveId);
+            int count = slave.SlotsCount - slave.Threads.Count;
             while (count-- > 0)
             {
                 ThreadContext thread = new ThreadContext();
-                thread.ThreadId = Guid.NewGuid();
-                thread.State = Topology.TryAddThread(thread.ThreadId, topologyRepository) ?
-                    ThreadState.NotRunning : ThreadState.Reserved;
-                NetworkRepository.AddThread(slave.SlaveId, thread);
+                byte[] rank;
+                thread.State = Topology.TryAddThread(out rank) ?
+                    Enums.ThreadState.NotRunning : Enums.ThreadState.Reserved;
+                thread.Rank = rank;
+                slaveByRank.Add(rank, slave);
+                slave.Threads.Add(thread);
             }
         }
 
@@ -290,30 +246,31 @@ namespace Cloudy.Computing
         protected virtual bool Start()
         {
             bool atLeastOneStarted = false;
-            NetworkRepository.ResetRunningThreadsCount();
-            foreach (SlaveContext slave in NetworkRepository.GetAllSlaves())
+            runningThreadsCount = 0;
+            foreach (SlaveContext slave in slaveById.Values)
             {
-                foreach (ThreadContext thread in NetworkRepository.GetThreads(slave.SlaveId))
+                foreach (ThreadContext thread in slave.Threads)
                 {
-                    if (thread.State == ThreadState.Reserved)
+                    if (thread.State == Enums.ThreadState.Reserved)
                     {
                         continue;
                     }
                     if (StartingThread != null)
                     {
-                        StartingThread(this, new EventArgs<Guid>(thread.ThreadId));
+                        StartingThread(this, new EventArgs<byte[]>(thread.Rank));
                     }
                     try
                     {
-                        Send(slave.ExternalEndPoint, new GuidValue { Value = thread.ThreadId }, 
-                            Tags.StartThread);
-                        NetworkRepository.SetThreadState(thread.ThreadId, ThreadState.Running);
-                        NetworkRepository.AddToRunningThreadsCount(1);
+                        WrappedValue<byte[]> value = new WrappedValue<byte[]>();
+                        value.Value = thread.Rank;
+                        Send(slave.ExternalEndPoint, value, Tags.StartThread);
+                        thread.State = Enums.ThreadState.Running;
+                        Interlocked.Increment(ref runningThreadsCount);
                         atLeastOneStarted = true;
                     }
                     catch (TimeoutException)
                     {
-                        if (!OnThreadFailedToStart(slave.SlaveId, thread.ThreadId))
+                        if (!OnThreadFailedToStart(slave.SlaveId, thread.Rank))
                         {
                             StopAllThreads();
                             OnFailedToStart();
@@ -321,8 +278,8 @@ namespace Cloudy.Computing
                         }
                         if (ThreadFailedToStart != null)
                         {
-                            ThreadFailedToStart(this, new EventArgs<Guid, Guid>(
-                                slave.SlaveId, thread.ThreadId));
+                            ThreadFailedToStart(this, new EventArgs<Guid, byte[]>(
+                                slave.SlaveId, thread.Rank));
                         }
                     }
                 }
@@ -369,18 +326,18 @@ namespace Cloudy.Computing
 
         private void StopAllThreads()
         {
-            foreach (SlaveContext slave in NetworkRepository.GetAllSlaves())
+            foreach (SlaveContext slave in slaveById.Values)
             {
-                foreach (ThreadContext thread in NetworkRepository.GetThreads(slave.SlaveId))
+                foreach (ThreadContext thread in slave.Threads)
                 {
-                    if (thread.State == ThreadState.Running)
+                    if (thread.State == Enums.ThreadState.Running)
                     {
                         try
                         {
-                            Send(slave.ExternalEndPoint, new GuidValue { Value = thread.ThreadId },
-                                Tags.StopThread);
-                            NetworkRepository.SetThreadState(thread.ThreadId,
-                                ThreadState.NotRunning);
+                            WrappedValue<byte[]> value = new WrappedValue<byte[]>();
+                            value.Value = thread.Rank;
+                            Send(slave.ExternalEndPoint, value, Tags.StopThread);
+                            thread.State = Enums.ThreadState.NotRunning;
                         }
                         catch (TimeoutException)
                         {
@@ -396,7 +353,7 @@ namespace Cloudy.Computing
         /// </summary>
         public void Close()
         {
-            foreach (IPEndPoint endPoint in NetworkRepository.GetSlavesEndPoints())
+            foreach (IPEndPoint endPoint in slaveByEndPoint.Keys)
             {
                 SendAsync(endPoint, EmptyValue.Instance, Tags.Bye);
             }

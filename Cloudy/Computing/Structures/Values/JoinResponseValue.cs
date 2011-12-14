@@ -1,4 +1,5 @@
 ﻿using System;
+using Cloudy.Computing.Topologies.Enums;
 using Cloudy.Protobuf.Attributes;
 
 namespace Cloudy.Computing.Structures.Values
@@ -11,5 +12,8 @@ namespace Cloudy.Computing.Structures.Values
 
         [ProtobufField(2)]
         public Guid SlaveId { get; set; }
+
+        [ProtobufField(3)]
+        public TopologyType TopologyType { get; set; }
     }
 }

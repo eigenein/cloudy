@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Cloudy.Protobuf.Attributes;
 
 namespace Cloudy.Computing.Structures.Values
@@ -13,7 +14,7 @@ namespace Cloudy.Computing.Structures.Values
         }
 
         [ProtobufField(1)]
-        public Guid SenderId { get; set; }
+        public ICollection<byte[]> LocalRanks { get; set; }
 
         [ProtobufField(2)]
         public EndPointValue SenderLocalEndPoint { get; set; }
@@ -22,6 +23,6 @@ namespace Cloudy.Computing.Structures.Values
         public EndPointValue SenderExternalEndPoint { get; set; }
 
         [ProtobufField(4)]
-        public Guid TargetId { get; set; }
+        public byte[] Destination { get; set; }
     }
 }

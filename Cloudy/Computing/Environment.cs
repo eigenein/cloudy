@@ -1,120 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Cloudy.Collections;
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Structures.Values;
+using Cloudy.Computing.Topologies.Interfaces;
+using Cloudy.Helpers;
+using Cloudy.Protobuf;
 
 namespace Cloudy.Computing
 {
     /// <summary>
-    /// A default implementation of the <see cref="IEnvironment"/> interface.
+    /// Implements a computing thread environment methods.
     /// </summary>
     internal class Environment : IInternalEnvironment, IDisposable
     {
-        private readonly Guid threadId;
+        protected readonly IEnvironmentTransport Transport;
 
-        private readonly IEnvironmentTransport transport;
-
-        private readonly BlockingFilteredQueue<EnvironmentOperationValue> queue =
+        protected readonly BlockingFilteredQueue<EnvironmentOperationValue> Queue =
             new BlockingFilteredQueue<EnvironmentOperationValue>();
+
+        protected readonly byte[] RawRank;
 
         private int operationId;
 
-        public Environment(IEnvironmentTransport transport, Guid threadId)
+        public Environment(IEnvironmentTransport transport, byte[] rank)
         {
-            this.transport = transport;
-            this.threadId = threadId;
-        }
-
-        public Guid ThreadId
-        {
-            get { return threadId; }
-        }
-
-        public ICollection<Guid> ResolveId(Guid id)
-        {
-            return transport.ResolveId(threadId, id);
+            this.Transport = transport;
+            this.RawRank = rank;
         }
 
         public void NotifyValueReceived(EnvironmentOperationValue value)
         {
-            queue.Enqueue(value);
+            Queue.Enqueue(value);
         }
 
-        private int GetOperationId()
+        protected int GetOperationId()
         {
             return Interlocked.Increment(ref operationId);
-        }
-
-        /// <summary>
-        /// Performs a blocking send.
-        /// </summary>
-        public void Send<T>(int tag, T value, Guid recipientId)
-        {
-            Send(tag, value, new[] { recipientId });
-        }
-
-        /// <summary>
-        /// Performs a blocking send.
-        /// </summary>
-        public void Send<T>(int tag, T value, ICollection<Guid> recipientsIds)
-        {
-            EnvironmentOperationValue operationValue = new EnvironmentOperationValue();
-            operationValue.SenderId = threadId;
-            operationValue.OperationId = GetOperationId();
-            operationValue.OperationType = EnvironmentOperationType.PeerToPeer;
-            operationValue.UserTag = tag;
-            operationValue.RecipientsIds = recipientsIds;
-            operationValue.Set(new WrappedValue<T>(value));
-            transport.Send(operationValue);
-        }
-
-        /// <summary>
-        /// Blocking receive for a message
-        /// </summary>
-        public void Receive<T>(int tag, out T value, out Guid senderId)
-        {
-            EnvironmentOperationValue operationValue = queue.Dequeue(
-                v => v.UserTag == tag && v.OperationType == EnvironmentOperationType.PeerToPeer);
-            value = operationValue.Get<WrappedValue<T>>().Value;
-            senderId = operationValue.SenderId;
-        }
-
-        /// <summary>
-        /// Blocking receive for a message
-        /// </summary>
-        public void Receive<T>(out int tag, out T value, out Guid senderId)
-        {
-            EnvironmentOperationValue operationValue = queue.Dequeue(
-                v => v.OperationType == EnvironmentOperationType.PeerToPeer);
-            value = operationValue.Get<WrappedValue<T>>().Value;
-            senderId = operationValue.SenderId;
-            tag = operationValue.UserTag;
-        }
-
-        /// <summary>
-        /// Blocking receive for a message
-        /// </summary>
-        public void Receive<T>(int tag, out T value, Guid senderId)
-        {
-            EnvironmentOperationValue operationValue = queue.Dequeue(
-                v =>v.SenderId == senderId && v.UserTag == tag && 
-                    v.OperationType == EnvironmentOperationType.PeerToPeer);
-            value = operationValue.Get<WrappedValue<T>>().Value;
-        }
-
-        /// <summary>
-        /// Blocking receive for a message
-        /// </summary>
-        public void Receive<T>(out int tag, out T value, Guid senderId)
-        {
-            EnvironmentOperationValue operationValue = queue.Dequeue(
-                v => v.SenderId == senderId && 
-                    v.OperationType == EnvironmentOperationType.PeerToPeer);
-            value = operationValue.Get<WrappedValue<T>>().Value;
-            tag = operationValue.UserTag;
         }
 
         #region Implementation of IDisposable
@@ -130,8 +55,95 @@ namespace Cloudy.Computing
         {
             if (disposing)
             {
-                queue.Dispose();
+                Queue.Dispose();
             }
+        }
+    }
+
+    internal class Environment<TRank> : Environment,
+        IEnvironment<TRank> where TRank : IRank
+    {
+        private readonly TRank rank;
+
+        public Environment(IEnvironmentTransport transport, byte[] rank)
+            : base(transport, rank)
+        {
+            this.rank = RankConverter<TRank>.Convert(rank);
+        }
+
+        public TRank Rank
+        {
+            get { return rank; }
+        }
+
+        /// <summary>
+        /// Performs a blocking send.
+        /// </summary>
+        public void Send<T>(int tag, T value, TRank recipient)
+        {
+            Send(tag, value, new[] { recipient });
+        }
+
+        /// <summary>
+        /// Performs a blocking send.
+        /// </summary>
+        public void Send<T>(int tag, T value, ICollection<TRank> recipients)
+        {
+            EnvironmentOperationValue operationValue = new EnvironmentOperationValue();
+            operationValue.Sender = RawRank;
+            operationValue.OperationId = GetOperationId();
+            operationValue.OperationType = EnvironmentOperationType.PeerToPeer;
+            operationValue.Set(new WrappedValue<T>(value));
+            operationValue.Recipients = recipients.Select(RankConverter<TRank>.Convert).ToList();
+            Transport.Send(operationValue);
+        }
+
+        /// <summary>
+        /// Blocking receive for a message
+        /// </summary>
+        public void Receive<T>(int tag, out T value, out TRank sender)
+        {
+            EnvironmentOperationValue operationValue = Queue.Dequeue(
+                v => v.UserTag == tag && v.OperationType == EnvironmentOperationType.PeerToPeer);
+            value = operationValue.Get<WrappedValue<T>>().Value;
+            sender = RankConverter<TRank>.Convert(operationValue.Sender);
+        }
+
+        /// <summary>
+        /// Blocking receive for a message
+        /// </summary>
+        public void Receive<T>(out int tag, out T value, out TRank sender)
+        {
+            EnvironmentOperationValue operationValue = Queue.Dequeue(
+                v => v.OperationType == EnvironmentOperationType.PeerToPeer);
+            value = operationValue.Get<WrappedValue<T>>().Value;
+            sender = RankConverter<TRank>.Convert(operationValue.Sender);
+            tag = operationValue.UserTag;
+        }
+
+        /// <summary>
+        /// Blocking receive for a message
+        /// </summary>
+        public void Receive<T>(int tag, out T value, TRank sender)
+        {
+            byte[] rawSenderRank = RankConverter<TRank>.Convert(sender);
+            EnvironmentOperationValue operationValue = Queue.Dequeue(
+                v => v.Sender.SameAs(rawSenderRank) && v.UserTag == tag &&
+                    v.OperationType == EnvironmentOperationType.PeerToPeer);
+            value = operationValue.Get<WrappedValue<T>>().Value;
+        }
+
+        /// <summary>
+        /// Blocking receive for a message
+        /// </summary>
+        public void Receive<T>(out int tag, out T value, TRank sender)
+        {
+            byte[] rawSenderRank = RankConverter<TRank>.Convert(sender);
+            EnvironmentOperationValue operationValue = Queue.Dequeue(
+                v => v.Sender.SameAs(rawSenderRank) &&
+                    v.OperationType == EnvironmentOperationType.PeerToPeer);
+            value = operationValue.Get<WrappedValue<T>>().Value;
+            tag = operationValue.UserTag;
         }
     }
 }

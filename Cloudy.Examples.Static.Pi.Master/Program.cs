@@ -24,8 +24,7 @@ namespace Cloudy.Examples.Static.Pi.Master
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
             Logger.Info("Starting master on port {0} ...", Port);
-            MasterNode master = new MasterNode(Port, StartUpThreadsCount, 
-                new NetworkRepository(), new TopologyRepository());
+            MasterNode master = new MasterNode(Port, StartUpThreadsCount);
             ThreadPool.QueueUserWorkItem(HandleMessages, master);
             ThreadPool.QueueUserWorkItem(ProcessIncomingMessages, master);
             Logger.Info("Awaiting for at least {0} slaves ...",

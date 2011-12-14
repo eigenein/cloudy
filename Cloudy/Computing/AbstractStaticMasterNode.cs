@@ -1,8 +1,6 @@
 ﻿using System;
 using Cloudy.Computing.Enums;
-using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Structures;
-using Cloudy.Computing.Topologies.Interfaces;
 
 namespace Cloudy.Computing
 {
@@ -10,9 +8,8 @@ namespace Cloudy.Computing
     {
         private readonly int startUpThreadsCount;
 
-        protected AbstractStaticMasterNode(int port, int startUpThreadsCount, 
-            INetworkRepository networkRepository, ITopologyRepository topologyRepository) 
-            : base(port, networkRepository, topologyRepository)
+        protected AbstractStaticMasterNode(int port, int startUpThreadsCount) 
+            : base(port)
         {
             this.startUpThreadsCount = startUpThreadsCount;
         }
@@ -21,7 +18,7 @@ namespace Cloudy.Computing
 
         protected override bool Start()
         {
-            return NetworkRepository.GetTotalSlotsCount() >= startUpThreadsCount && base.Start();
+            return TotalSlotsCount >= startUpThreadsCount && base.Start();
         }
 
         protected override void OnSlaveJoined(SlaveContext slave)
@@ -29,7 +26,7 @@ namespace Cloudy.Computing
             if (State != MasterState.Running)
             {
                 CreateThreads(slave);
-                if (NetworkRepository.GetTotalSlotsCount() >= startUpThreadsCount)
+                if (TotalSlotsCount >= startUpThreadsCount)
                 {
                     Start();
                 }
@@ -38,7 +35,7 @@ namespace Cloudy.Computing
 
         protected override bool OnSlaveLeft(SlaveContext slave)
         {
-            foreach (ThreadContext thread in NetworkRepository.GetThreads(slave.SlaveId))
+            foreach (ThreadContext thread in slave.Threads)
             {
                 if (thread.State == ThreadState.Running)
                 {
@@ -48,7 +45,7 @@ namespace Cloudy.Computing
             return true;
         }
 
-        protected override bool OnThreadFailedToStart(Guid slaveId, Guid threadId)
+        protected override bool OnThreadFailedToStart(Guid slaveId, byte[] threadRank)
         {
             return false;
         }
