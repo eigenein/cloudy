@@ -5,6 +5,9 @@ using Cloudy.Helpers;
 
 namespace Cloudy.Computing.Topologies.Slave
 {
+    /// <summary>
+    /// Slave star topology implementation.
+    /// </summary>
     public class StarTopology : ITopology
     {
         #region Implementation of ITopology

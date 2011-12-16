@@ -388,6 +388,12 @@ namespace Cloudy.Computing
                         Tags.EndPointRequest);
                     response = ReceiveFrom<EndPointResponseValue>(masterEndPoint);
                 }
+                if (response.IsFound == false)
+                {
+                    throw new KeyNotFoundException(String.Format(
+                        "The thread was not found in the network: {0}",
+                        BitConverter.ToString(destination)));
+                }
                 IPEndPoint succeededEndPoint;
                 if (CreateWormhole(destination, response.LocalEndPoint.Value,
                     out succeededEndPoint) ||

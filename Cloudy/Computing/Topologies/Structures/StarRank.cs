@@ -5,6 +5,9 @@ using Cloudy.Protobuf.Attributes;
 
 namespace Cloudy.Computing.Topologies.Structures
 {
+    /// <summary>
+    /// Represents a thread rank in the star topology.
+    /// </summary>
     [ProtobufSerializable]
     public class StarRank : IRank
     {
@@ -23,6 +26,10 @@ namespace Cloudy.Computing.Topologies.Structures
 
         public static readonly StarRank Central = new StarRank(0);
 
+        /// <summary>
+        /// Gets the index in a star. Zero is the central thread, while others
+        /// are peripheral.
+        /// </summary>
         [ProtobufField(1)]
         public int Index { get; set; }
 

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using Cloudy.Computing;
+using Cloudy.Computing.Enums;
 using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Topologies.Structures;
 using NLog;
@@ -54,13 +55,13 @@ namespace Cloudy.Examples.Static.Pi.Slave
             Logger.Info("Rank: {0}", e.Rank);
             if (!e.Rank.IsCentral)
             {
-                e.Send(0, "Hello", StarRank.Central);
+                e.Send(UserTags.Default, "Hello", StarRank.Central);
             }
             else
             {
                 StarRank sender;
                 string value;
-                e.Receive(0, out value, out sender);
+                e.Receive(UserTags.Default, out value, out sender);
                 Logger.Info("{0} from {1}", value, sender);
             }
         }

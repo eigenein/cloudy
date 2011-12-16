@@ -176,13 +176,18 @@ namespace Cloudy.Computing
         {
             byte[] targetThread = message.Get<WrappedValue<byte[]>>().Value;
             SlaveContext slave;
+            EndPointResponseValue response = new EndPointResponseValue();
             if (slaveByRank.TryGetValue(targetThread, out slave))
             {
-                EndPointResponseValue response = new EndPointResponseValue();
                 response.ExternalEndPoint.Value = slave.ExternalEndPoint;
                 response.LocalEndPoint.Value = slave.LocalEndPoint;
-                Send(remoteEndPoint, response, Tags.EndPointResponse);
             }
+            else
+            {
+                response.IsFound = false;
+            }
+            ThreadPool.QueueUserWorkItem(o => Send(
+                remoteEndPoint, response, Tags.EndPointResponse));
         }
 
         private void OnSignedPingRequest(IPEndPoint remoteEndPoint, IMessage message)
@@ -191,7 +196,8 @@ namespace Cloudy.Computing
             SlaveContext targetSlave;
             if (slaveByRank.TryGetValue(request.Destination, out targetSlave))
             {
-                SendAsync(targetSlave.ExternalEndPoint, request, Tags.SignedPingRequest);
+                ThreadPool.QueueUserWorkItem(o => Send(
+                    targetSlave.ExternalEndPoint, request, Tags.SignedPingRequest));
             }
         }
 
@@ -324,6 +330,9 @@ namespace Cloudy.Computing
             }
         }
 
+        /// <summary>
+        /// Stops all the threads in network.
+        /// </summary>
         private void StopAllThreads()
         {
             foreach (SlaveContext slave in slaveById.Values)
@@ -332,19 +341,32 @@ namespace Cloudy.Computing
                 {
                     if (thread.State == Enums.ThreadState.Running)
                     {
-                        try
-                        {
-                            WrappedValue<byte[]> value = new WrappedValue<byte[]>();
-                            value.Value = thread.Rank;
-                            Send(slave.ExternalEndPoint, value, Tags.StopThread);
-                            thread.State = Enums.ThreadState.NotRunning;
-                        }
-                        catch (TimeoutException)
-                        {
-                            continue;
-                        }
+                        IPEndPoint targetEndPoint = slave.ExternalEndPoint;
+                        ThreadContext targetThread = thread;
+                        ThreadPool.QueueUserWorkItem(o => StopThread(
+                            targetEndPoint, targetThread));
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Stops the thread.
+        /// </summary>
+        /// <returns>Whether the thread was successfully stopped.</returns>
+        private bool StopThread(IPEndPoint targetEndPoint, ThreadContext thread)
+        {
+            WrappedValue<byte[]> value = new WrappedValue<byte[]>();
+            value.Value = thread.Rank;
+            try
+            {
+                Send(targetEndPoint, value, Tags.StopThread);
+                thread.State = Enums.ThreadState.NotRunning;
+                return true;
+            }
+            catch (TimeoutException)
+            {
+                return false;
             }
         }
 

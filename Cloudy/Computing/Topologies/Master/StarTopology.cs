@@ -7,6 +7,9 @@ using Cloudy.Helpers;
 
 namespace Cloudy.Computing.Topologies.Master
 {
+    /// <summary>
+    /// Master star topology implementation.
+    /// </summary>
     public class StarTopology : ITopology
     {
         private int nextRank = -1;
