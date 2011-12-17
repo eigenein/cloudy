@@ -185,6 +185,12 @@ namespace Cloudy.Computing
             else
             {
                 response.IsFound = false;
+                /*
+                 * Do not send these values (they will be skipped by
+                 * Protocol Buffers serializer because of null values).
+                 */
+                response.LocalEndPoint = null;
+                response.ExternalEndPoint = null;
             }
             ThreadPool.QueueUserWorkItem(o => Send(
                 remoteEndPoint, response, Tags.EndPointResponse));
