@@ -45,6 +45,9 @@ namespace Cloudy.Examples.Static.Pi.Slave
             EndPointResolved += (sender, e) =>
                 Logger.Info("{0} is resolved to {1}", 
                 BitConverter.ToString(e.Value1), e.Value2);
+            RankReassigned += (sender, e) =>
+                Logger.Info("Rank reassigned: {0} -> {1}",
+                BitConverter.ToString(e.Value1), BitConverter.ToString(e.Value2));
         }
 
         private static void Run(IEnvironment environment)

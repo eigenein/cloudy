@@ -5,6 +5,8 @@ namespace Cloudy.Computing.Interfaces
 {
     internal interface IInternalEnvironment : IEnvironment
     {
+        byte[] RawRank { get; set; }
+
         void NotifyValueReceived(EnvironmentOperationValue value);
     }
 }

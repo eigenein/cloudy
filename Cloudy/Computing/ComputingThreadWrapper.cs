@@ -10,8 +10,6 @@ namespace Cloudy.Computing
     /// </summary>
     internal class ComputingThreadWrapper
     {
-        private readonly byte[] rank;
-
         private readonly IInternalEnvironment environment;
 
         private readonly Func<IComputingThread> createThread;
@@ -24,17 +22,17 @@ namespace Cloudy.Computing
 
         public event ParameterizedEventHandler<byte[]> ThreadStopped;
 
-        public ComputingThreadWrapper(byte[] rank, IInternalEnvironment environment,
+        public ComputingThreadWrapper(IInternalEnvironment environment,
             Func<IComputingThread> createThread)
         {
-            this.rank = rank;
             this.environment = environment;
             this.createThread = createThread;
         }
 
         public byte[] Rank
         {
-            get { return rank; }
+            get { return environment.RawRank; }
+            set { environment.RawRank = value; }
         }
 
         public IInternalEnvironment Environment
@@ -63,7 +61,7 @@ namespace Cloudy.Computing
             thread = null;
             if (ThreadStopped != null)
             {
-                ThreadStopped(this, new EventArgs<byte[]>(rank));
+                ThreadStopped(this, new EventArgs<byte[]>(Rank));
             }
         }
 
@@ -75,14 +73,14 @@ namespace Cloudy.Computing
                 computingThread.Run(environment);
                 if (ThreadCompleted != null)
                 {
-                    ThreadCompleted(this, new EventArgs<byte[]>(rank));
+                    ThreadCompleted(this, new EventArgs<byte[]>(Rank));
                 }
             }
             catch (Exception ex)
             {
                 if (ThreadFailed != null)
                 {
-                    ThreadFailed(this, new EventArgs<byte[], Exception>(rank, ex));
+                    ThreadFailed(this, new EventArgs<byte[], Exception>(Rank, ex));
                 }
             }
             OnThreadStopped();

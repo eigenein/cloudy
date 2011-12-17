@@ -117,6 +117,7 @@
     <Compile Include="Computing\Structures\Values\GuidValue.cs" />
     <Compile Include="Computing\Structures\Values\JoinRequestValue.cs" />
     <Compile Include="Computing\Structures\Values\JoinResponseValue.cs" />
+    <Compile Include="Computing\Structures\Values\ReassignRankValue.cs" />
     <Compile Include="Computing\Structures\Values\SignedPingValue.cs" />
     <Compile Include="Computing\Structures\Values\SignedPingRequest.cs" />
     <Compile Include="Computing\Structures\Values\SignedPingResponse.cs" />

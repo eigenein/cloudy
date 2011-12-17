@@ -12,7 +12,7 @@ namespace Cloudy.Computing.Topologies.Master
     /// </summary>
     public class StarTopology : ITopology
     {
-        private int nextRank = -1;
+        private int greatestRank = -1;
 
         #region Implementation of ITopology
 
@@ -24,8 +24,26 @@ namespace Cloudy.Computing.Topologies.Master
         public bool TryAddThread(out byte[] rank)
         {
             rank = RankConverter<StarRank>.Convert(new StarRank(
-                Interlocked.Increment(ref nextRank)));
+                Interlocked.Increment(ref greatestRank)));
             return true;
+        }
+
+        public bool RemoveThread(byte[] rank, out byte[] replaceWith)
+        {
+            int index = RankConverter<StarRank>.Convert(rank).Index;
+            if (greatestRank != -1)
+            {
+                int replacementIndex = Interlocked.Decrement(ref greatestRank) + 1;
+                if (index != replacementIndex)
+                {
+                    // Replace the existing thread rank with the removed thread rank.
+                    replaceWith = RankConverter<StarRank>.Convert(
+                        new StarRank(replacementIndex));
+                    return true;
+                }
+            }
+            replaceWith = null;
+            return false;
         }
 
         #endregion

@@ -39,6 +39,11 @@ namespace Cloudy.Computing.Enums
         public const int EnvironmentOperation = -10;
 
         /// <summary>
+        /// Reassigns an existing thread to other rank.
+        /// </summary>
+        public const int ReassignRank = -11;
+
+        /// <summary>
         /// Request IP endpoint by a thread ID.
         /// </summary>
         public const int EndPointRequest = -15;

@@ -32,13 +32,13 @@ namespace Cloudy.Computing
         protected AbstractMasterNode(int port) 
             : base(port)
         {
-            AddHandler(Tags.JoinRequest, OnJoinRequest);
-            AddHandler(Tags.Bye, OnBye);
-            AddHandler(Tags.ThreadCompleted, OnThreadCompleted);
-            AddHandler(Tags.ThreadFailed, OnThreadFailed);
-            AddHandler(Tags.EndPointRequest, OnEndPointRequest);
-            AddHandler(Tags.SignedPingRequest, OnSignedPingRequest);
-            AddHandler(Tags.SignedPingResponse, OnSignedPingResponse);
+            AddHandler(Tags.JoinRequest, HandleJoinRequest);
+            AddHandler(Tags.Bye, HandleBye);
+            AddHandler(Tags.ThreadCompleted, HandleThreadCompleted);
+            AddHandler(Tags.ThreadFailed, HandleThreadFailed);
+            AddHandler(Tags.EndPointRequest, HandleEndPointRequest);
+            AddHandler(Tags.SignedPingRequest, HandleSignedPingRequest);
+            AddHandler(Tags.SignedPingResponse, HandleSignedPingResponse);
             MessageHandled += OnMessageHandled;
             State = MasterState.Joined;
         }
@@ -76,6 +76,8 @@ namespace Cloudy.Computing
 
         public event ParameterizedEventHandler<byte[]> ThreadFailed;
 
+        public event ParameterizedEventHandler<byte[], byte[]> RankReassigned;
+
         protected abstract ITopology Topology { get; }
 
         protected abstract void OnSlaveJoined(SlaveContext slave);
@@ -107,7 +109,7 @@ namespace Cloudy.Computing
         /// <summary>
         /// Called when the master receives a join request from a slave.
         /// </summary>
-        private void OnJoinRequest(IPEndPoint remoteEndPoint, IMessage message)
+        private void HandleJoinRequest(IPEndPoint remoteEndPoint, IMessage message)
         {
             JoinRequestValue request = message.Get<JoinRequestValue>();
             Guid slaveId = request.SlaveId ?? Guid.NewGuid();
@@ -143,7 +145,7 @@ namespace Cloudy.Computing
             OnSlaveJoined(slave);
         }
 
-        private void OnBye(IPEndPoint remoteEndPoint, IMessage message)
+        private void HandleBye(IPEndPoint remoteEndPoint, IMessage message)
         {
             SlaveContext slave = slaveByEndPoint[remoteEndPoint];
             RemoveSlave(slave);
@@ -167,11 +169,52 @@ namespace Cloudy.Computing
             slaveById.Remove(slave.SlaveId);
             foreach (ThreadContext thread in slave.Threads)
             {
-                slaveByRank.Remove(thread.Rank);
+                RemoveThread(thread);
             }
         }
 
-        private void OnThreadFailed(IPEndPoint remoteEndPoint, IMessage message)
+        private void RemoveThread(ThreadContext thread)
+        {
+            slaveByRank.Remove(thread.Rank);
+            byte[] replacement;
+            if (Topology.RemoveThread(thread.Rank, out replacement))
+            {
+                ThreadPool.QueueUserWorkItem(o => ReassignRank(thread, 
+                    slaveByRank[replacement], replacement));
+            }
+        }
+
+        /// <summary>
+        /// Replaces the removed thread with the specified thread.
+        /// </summary>
+        private void ReassignRank(ThreadContext thread, SlaveContext replacementSlave,
+            byte[] replacementRank)
+        {
+            try
+            {
+                ThreadContext replacementThread = replacementSlave.Threads.Find(
+                    t => t.Rank.SameAs(replacementRank));
+                ReassignRankValue value = new ReassignRankValue();
+                value.OldRank = replacementRank;
+                value.NewRank = thread.Rank;
+                // It's important to send the message before updating the caches.
+                Send(replacementSlave.ExternalEndPoint, value, Tags.ReassignRank);
+                replacementThread.Rank = thread.Rank; // This was removed.
+                slaveByRank[thread.Rank] = replacementSlave;
+                slaveByRank.Remove(replacementRank); // This was existing, but now is re-assigned.
+                if (RankReassigned != null)
+                {
+                    RankReassigned(this, new EventArgs<byte[], byte[]>(
+                        replacementRank, thread.Rank));
+                }
+            }
+            catch (TimeoutException)
+            {
+                RemoveSlave(replacementSlave);
+            }
+        }
+
+        private void HandleThreadFailed(IPEndPoint remoteEndPoint, IMessage message)
         {
             byte[] threadRank = message.Get<WrappedValue<byte[]>>().Value;
             if (ThreadFailed != null)
@@ -180,7 +223,7 @@ namespace Cloudy.Computing
             }
         }
 
-        private void OnEndPointRequest(IPEndPoint remoteEndPoint, IMessage message)
+        private void HandleEndPointRequest(IPEndPoint remoteEndPoint, IMessage message)
         {
             byte[] targetThread = message.Get<WrappedValue<byte[]>>().Value;
             SlaveContext slave;
@@ -204,7 +247,7 @@ namespace Cloudy.Computing
                 remoteEndPoint, response, Tags.EndPointResponse));
         }
 
-        private void OnSignedPingRequest(IPEndPoint remoteEndPoint, IMessage message)
+        private void HandleSignedPingRequest(IPEndPoint remoteEndPoint, IMessage message)
         {
             SignedPingRequest request = message.Get<SignedPingRequest>();
             SlaveContext targetSlave;
@@ -215,7 +258,7 @@ namespace Cloudy.Computing
             }
         }
 
-        private void OnSignedPingResponse(IPEndPoint remoteEndPoint, IMessage message)
+        private void HandleSignedPingResponse(IPEndPoint remoteEndPoint, IMessage message)
         {
             SignedPingResponse response = message.Get<SignedPingResponse>();
             IPEndPoint targetEndPoint = response.SenderExternalEndPoint.Value;
@@ -223,7 +266,7 @@ namespace Cloudy.Computing
             SendAsync(targetEndPoint, response, Tags.SignedPingResponse);
         }
 
-        private void OnThreadCompleted(IPEndPoint remoteEndPoint, IMessage message)
+        private void HandleThreadCompleted(IPEndPoint remoteEndPoint, IMessage message)
         {
             byte[] threadRank = message.Get<WrappedValue<byte[]>>().Value;
             if (ThreadCompleted != null)
@@ -308,6 +351,8 @@ namespace Cloudy.Computing
                             OnJobFailedToStart();
                             return false;
                         }
+                        // Break processing the current slave.
+                        break;
                     }
                 }
             }

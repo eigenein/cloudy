@@ -8,7 +8,6 @@ using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Structures.Values;
 using Cloudy.Computing.Topologies.Interfaces;
 using Cloudy.Helpers;
-using Cloudy.Protobuf;
 
 namespace Cloudy.Computing
 {
@@ -22,15 +21,30 @@ namespace Cloudy.Computing
         protected readonly BlockingFilteredQueue<EnvironmentOperationValue> Queue =
             new BlockingFilteredQueue<EnvironmentOperationValue>();
 
-        protected readonly byte[] RawRank;
-
         private int operationId;
+
+        private byte[] rawRank;
 
         public Environment(IEnvironmentTransport transport, byte[] rank)
         {
             this.Transport = transport;
-            this.RawRank = rank;
+            this.rawRank = rank;
         }
+
+        public byte[] RawRank
+        {
+            get { return rawRank; }
+            set
+            {
+                rawRank = value;
+                if (RawRankChanged != null)
+                {
+                    RawRankChanged(this, new EventArgs<byte[]>(value));
+                }
+            }
+        }
+
+        public event ParameterizedEventHandler<byte[]> RawRankChanged;
 
         public void NotifyValueReceived(EnvironmentOperationValue value)
         {
@@ -63,17 +77,23 @@ namespace Cloudy.Computing
     internal class Environment<TRank> : Environment,
         IEnvironment<TRank> where TRank : IRank
     {
-        private readonly TRank rank;
+        private TRank rank;
 
         public Environment(IEnvironmentTransport transport, byte[] rank)
             : base(transport, rank)
         {
             this.rank = RankConverter<TRank>.Convert(rank);
+            RawRankChanged += OnRawRankChanged;
         }
 
         public TRank Rank
         {
             get { return rank; }
+        }
+
+        private void OnRawRankChanged(object sender, EventArgs<byte[]> e)
+        {
+            rank = RankConverter<TRank>.Convert(e.Value);
         }
 
         /// <summary>
