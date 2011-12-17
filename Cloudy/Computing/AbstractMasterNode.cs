@@ -68,7 +68,7 @@ namespace Cloudy.Computing
 
         public event EventHandler Started;
 
-        public event EventHandler FailedToStart;
+        public event EventHandler JobFailedToStart;
 
         public event ParameterizedEventHandler<byte[]> StartingThread;
 
@@ -146,13 +146,7 @@ namespace Cloudy.Computing
         private void OnBye(IPEndPoint remoteEndPoint, IMessage message)
         {
             SlaveContext slave = slaveByEndPoint[remoteEndPoint];
-            Interlocked.Add(ref TotalSlotsCount, -slave.SlotsCount);
-            slaveByEndPoint.Remove(remoteEndPoint);
-            slaveById.Remove(slave.SlaveId);
-            foreach (ThreadContext thread in slave.Threads)
-            {
-                slaveByRank.Remove(thread.Rank);
-            }
+            RemoveSlave(slave);
             if (SlaveLeft != null)
             {
                 SlaveLeft(this, new EventArgs<IPEndPoint, Guid>(remoteEndPoint, slave.SlaveId));
@@ -160,6 +154,20 @@ namespace Cloudy.Computing
             if (!OnSlaveLeft(slave))
             {
                 StopJob(JobResult.Failed);
+            }
+        }
+
+        /// <summary>
+        /// Removes the slave and its threads from all the caches.
+        /// </summary>
+        private void RemoveSlave(SlaveContext slave)
+        {
+            Interlocked.Add(ref TotalSlotsCount, -slave.SlotsCount);
+            slaveByEndPoint.Remove(slave.ExternalEndPoint);
+            slaveById.Remove(slave.SlaveId);
+            foreach (ThreadContext thread in slave.Threads)
+            {
+                slaveByRank.Remove(thread.Rank);
             }
         }
 
@@ -282,16 +290,23 @@ namespace Cloudy.Computing
                     }
                     catch (TimeoutException)
                     {
-                        if (!OnThreadFailedToStart(slave.SlaveId, thread.Rank))
-                        {
-                            StopAllThreads();
-                            OnFailedToStart();
-                            return false;
-                        }
                         if (ThreadFailedToStart != null)
                         {
                             ThreadFailedToStart(this, new EventArgs<Guid, byte[]>(
                                 slave.SlaveId, thread.Rank));
+                        }
+                        if (SlaveLeft != null)
+                        {
+                            SlaveLeft(this, new EventArgs<IPEndPoint, Guid>(
+                                slave.ExternalEndPoint, slave.SlaveId));
+                        }
+                        RemoveSlave(slave);
+                        // Check whether we should fail the entire network.
+                        if (!OnThreadFailedToStart(slave.SlaveId, thread.Rank))
+                        {
+                            StopAllThreads();
+                            OnJobFailedToStart();
+                            return false;
                         }
                     }
                 }
@@ -306,16 +321,16 @@ namespace Cloudy.Computing
             }
             else
             {
-                OnFailedToStart();
+                OnJobFailedToStart();
             }
             return atLeastOneStarted;
         }
 
-        private void OnFailedToStart()
+        private void OnJobFailedToStart()
         {
-            if (FailedToStart != null)
+            if (JobFailedToStart != null)
             {
-                FailedToStart(this, new EventArgs());
+                JobFailedToStart(this, new EventArgs());
             }
         }
 
