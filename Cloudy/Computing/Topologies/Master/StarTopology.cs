@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading;
 using Cloudy.Computing.Topologies.Enums;
+using Cloudy.Computing.Topologies.Helpers;
 using Cloudy.Computing.Topologies.Interfaces.Master;
 using Cloudy.Computing.Topologies.Structures;
-using Cloudy.Helpers;
 
 namespace Cloudy.Computing.Topologies.Master
 {
@@ -44,6 +44,12 @@ namespace Cloudy.Computing.Topologies.Master
             }
             replaceWith = null;
             return false;
+        }
+
+        public void UpdateValues(Action<string, byte[]> set)
+        {
+            set("GreatestRank", RankConverter<StarRank>.Convert(
+                new StarRank(greatestRank)));
         }
 
         #endregion

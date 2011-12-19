@@ -2,7 +2,7 @@
 using Cloudy.Computing.Topologies.Interfaces;
 using Cloudy.Protobuf;
 
-namespace Cloudy.Helpers
+namespace Cloudy.Computing.Topologies.Helpers
 {
     public class RankConverter<TRank>
         where TRank : IRank

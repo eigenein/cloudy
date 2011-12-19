@@ -4,6 +4,8 @@ using System.Net;
 using Cloudy.Computing;
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Interfaces;
+using Cloudy.Computing.Nodes;
+using Cloudy.Computing.Topologies.Helpers;
 using Cloudy.Computing.Topologies.Structures;
 using NLog;
 
@@ -53,9 +55,10 @@ namespace Cloudy.Examples.Static.Pi.Slave
         private static void Run(IEnvironment environment)
         {
             IEnvironment<StarRank> e = (IEnvironment<StarRank>)environment;
-            // TODO: Implement.
             Logger.Info("RUNNING");
             Logger.Info("Rank: {0}", e.Rank);
+            Logger.Info("Greatest Rank: {0}",
+                StarTopologyHelper.GetGreatestRank(environment));
             if (!e.Rank.IsCentral)
             {
                 e.Send(UserTags.Default, "Hello", StarRank.Central);

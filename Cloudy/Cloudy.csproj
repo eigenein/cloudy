@@ -91,10 +91,10 @@
     <Compile Include="Collections\BlockingFilteredQueue.cs" />
     <Compile Include="Collections\BlockingMultiDictionary.cs" />
     <Compile Include="Collections\BlockingQueue.cs" />
-    <Compile Include="Computing\AbstractMasterNode.cs" />
-    <Compile Include="Computing\AbstractNode.cs" />
-    <Compile Include="Computing\AbstractSlaveNode.cs" />
-    <Compile Include="Computing\AbstractStaticMasterNode.cs" />
+    <Compile Include="Computing\Nodes\AbstractMasterNode.cs" />
+    <Compile Include="Computing\Nodes\AbstractNode.cs" />
+    <Compile Include="Computing\Nodes\AbstractSlaveNode.cs" />
+    <Compile Include="Computing\Nodes\AbstractStaticMasterNode.cs" />
     <Compile Include="Computing\ComputingThread.cs" />
     <Compile Include="Computing\ComputingThreadWrapper.cs" />
     <Compile Include="Computing\Enums\EnvironmentOperationType.cs" />
@@ -103,17 +103,21 @@
     <Compile Include="Computing\Enums\SlaveState.cs" />
     <Compile Include="Computing\Enums\Tags.cs" />
     <Compile Include="Computing\Enums\ThreadState.cs" />
+    <Compile Include="Computing\Enums\TimeToLive.cs" />
     <Compile Include="Computing\Enums\UserTags.cs" />
     <Compile Include="Computing\Environment.cs" />
     <Compile Include="Computing\Interfaces\IComputingThread.cs" />
     <Compile Include="Computing\Interfaces\IEnvironment.cs" />
     <Compile Include="Computing\Interfaces\IEnvironmentTransport.cs" />
     <Compile Include="Computing\Interfaces\IInternalEnvironment.cs" />
+    <Compile Include="Computing\Structures\RemoteMemoryAccessValue.cs" />
     <Compile Include="Computing\Structures\SlaveContext.cs" />
     <Compile Include="Computing\Structures\ThreadContext.cs" />
     <Compile Include="Computing\Structures\Values\EndPointResponseValue.cs" />
     <Compile Include="Computing\Structures\Values\EnvironmentOperationValue.cs" />
     <Compile Include="Computing\Structures\Values\EndPointValue.cs" />
+    <Compile Include="Computing\Structures\Values\GetRemoteValueRequest.cs" />
+    <Compile Include="Computing\Structures\Values\GetRemoteValueResponse.cs" />
     <Compile Include="Computing\Structures\Values\GuidValue.cs" />
     <Compile Include="Computing\Structures\Values\JoinRequestValue.cs" />
     <Compile Include="Computing\Structures\Values\JoinResponseValue.cs" />
@@ -121,8 +125,10 @@
     <Compile Include="Computing\Structures\Values\SignedPingValue.cs" />
     <Compile Include="Computing\Structures\Values\SignedPingRequest.cs" />
     <Compile Include="Computing\Structures\Values\SignedPingResponse.cs" />
+    <Compile Include="Computing\Structures\Values\SetRemoteValueRequest.cs" />
     <Compile Include="Computing\Structures\Values\WrappedValue.cs" />
     <Compile Include="Computing\Topologies\Enums\TopologyType.cs" />
+    <Compile Include="Computing\Topologies\Helpers\StarTopologyHelper.cs" />
     <Compile Include="Computing\Topologies\Interfaces\IRank.cs" />
     <Compile Include="Computing\Topologies\Interfaces\Master\ITopology.cs" />
     <Compile Include="Computing\Topologies\Interfaces\Slave\ITopology.cs" />
@@ -136,8 +142,9 @@
     <Compile Include="Helpers\EventArgs.cs" />
     <Compile Include="Helpers\IPEndPointExtensions.cs" />
     <Compile Include="Helpers\LinkedListExtensions.cs" />
+    <Compile Include="Helpers\Namespaces.cs" />
     <Compile Include="Helpers\ParameterizedEventHandler.cs" />
-    <Compile Include="Helpers\RankConverter.cs" />
+    <Compile Include="Computing\Topologies\Helpers\RankConverter.cs" />
     <Compile Include="Helpers\TimeSpanExtensions.cs" />
     <Compile Include="Messaging\Raw\StreamSimpleCommunicator.cs" />
     <Compile Include="Messaging\Raw\UdpClientSimpleCommunicator.cs" />
@@ -161,7 +168,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Computing\Nodes\" />
     <Folder Include="Computing\Structures\Values\Environment\" />
   </ItemGroup>
   <ItemGroup>

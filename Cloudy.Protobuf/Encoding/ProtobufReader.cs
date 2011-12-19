@@ -10,11 +10,21 @@ namespace Cloudy.Protobuf.Encoding
     /// </summary>
     public static class ProtobufReader
     {
+        private static readonly byte[] EmptyBytes = new byte[0];
+
         /// <summary>
         /// Reads the specified count of bytes from the stream "as is".
         /// </summary>
         public static byte[] ReadRawBytes(Stream stream, int count)
         {
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException("count");
+            }
+            if (count == 0)
+            {
+                return EmptyBytes;
+            }
             byte[] bytes = new byte[count];
             if (stream.Read(bytes, 0, count) < count)
             {

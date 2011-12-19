@@ -8,5 +8,7 @@ namespace Cloudy.Computing.Interfaces
         byte[] RawRank { get; set; }
 
         void NotifyValueReceived(EnvironmentOperationValue value);
+
+        void CleanUp();
     }
 }

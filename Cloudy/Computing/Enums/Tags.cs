@@ -61,5 +61,11 @@ namespace Cloudy.Computing.Enums
         public const int SignedPingRequest = -18;
 
         public const int SignedPingResponse = -19;
+
+        public const int SetRemoteValueRequest = -20;
+
+        public const int GetRemoteValueRequest = -21;
+
+        public const int GetRemoteValueResponse = -22;
     }
 }

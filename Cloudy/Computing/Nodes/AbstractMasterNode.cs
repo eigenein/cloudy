@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using Cloudy.Computing.Enums;
@@ -10,10 +11,12 @@ using Cloudy.Helpers;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Structures;
 
-namespace Cloudy.Computing
+namespace Cloudy.Computing.Nodes
 {
     public abstract class AbstractMasterNode : AbstractNode
     {
+        #region Slave and Threads Caches
+
         private readonly Dictionary<Guid, SlaveContext> slaveById =
             new Dictionary<Guid, SlaveContext>();
 
@@ -22,6 +25,20 @@ namespace Cloudy.Computing
 
         private readonly Dictionary<byte[], SlaveContext> slaveByRank =
             new Dictionary<byte[], SlaveContext>(ByteArrayComparer.Instance);
+
+        #endregion
+
+        #region Remote Memory Access
+
+        /// <summary>
+        /// Used to store values set by remote memory access.
+        /// </summary>
+        private readonly Dictionary<byte[], Dictionary<string, RemoteMemoryAccessValue>> memory =
+            new Dictionary<byte[], Dictionary<string, RemoteMemoryAccessValue>>(ByteArrayComparer.Instance);
+
+        private readonly object memorySyncronizationRoot = new object();
+
+        #endregion
 
         protected int TotalSlotsCount;
 
@@ -39,6 +56,8 @@ namespace Cloudy.Computing
             AddHandler(Tags.EndPointRequest, HandleEndPointRequest);
             AddHandler(Tags.SignedPingRequest, HandleSignedPingRequest);
             AddHandler(Tags.SignedPingResponse, HandleSignedPingResponse);
+            AddHandler(Tags.SetRemoteValueRequest, HandleSetRemoteValueRequest);
+            AddHandler(Tags.GetRemoteValueRequest, HandleGetRemoteValueRequest);
             MessageHandled += OnMessageHandled;
             State = MasterState.Joined;
         }
@@ -221,6 +240,11 @@ namespace Cloudy.Computing
             {
                 ThreadFailed(this, new EventArgs<byte[]>(threadRank));
             }
+            if (Interlocked.Decrement(ref runningThreadsCount) <= 0)
+            {
+                runningThreadsCount = 0;
+                StopJob(JobResult.Failed);
+            }
         }
 
         private void HandleEndPointRequest(IPEndPoint remoteEndPoint, IMessage message)
@@ -266,6 +290,50 @@ namespace Cloudy.Computing
             SendAsync(targetEndPoint, response, Tags.SignedPingResponse);
         }
 
+        private void SetRemoteValue(byte[] @namespace, string key, byte[] value,
+            TimeToLive timeToLive)
+        {
+            lock (memorySyncronizationRoot)
+            {
+                Dictionary<string, RemoteMemoryAccessValue> namespaceMemory;
+                if (!memory.TryGetValue(@namespace, out namespaceMemory))
+                {
+                    memory[@namespace] = namespaceMemory =
+                        new Dictionary<string, RemoteMemoryAccessValue>();
+                }
+                RemoteMemoryAccessValue rawValue = new RemoteMemoryAccessValue();
+                rawValue.Value = value;
+                rawValue.TimeToLive = timeToLive;
+                namespaceMemory[key] = rawValue;
+            }
+        }
+
+        private void HandleSetRemoteValueRequest(IPEndPoint remoteEndPoint, IMessage message)
+        {
+            SetRemoteValueRequest request = message.Get<SetRemoteValueRequest>();
+            SetRemoteValue(request.Namespace, request.Key, request.Value, request.TimeToLive);
+        }
+
+        private void HandleGetRemoteValueRequest(IPEndPoint remoteEndPoint, IMessage message)
+        {
+            GetRemoteValueRequest request = message.Get<GetRemoteValueRequest>();
+            GetRemoteValueResponse response = new GetRemoteValueResponse();
+            Dictionary<string, RemoteMemoryAccessValue> namespaceMemory;
+            RemoteMemoryAccessValue value;
+            if (memory.TryGetValue(request.Namespace, out namespaceMemory) &&
+                namespaceMemory.TryGetValue(request.Key, out value))
+            {
+                response.Value = value.Value;
+                response.TimeToLive = value.TimeToLive;
+            }
+            else
+            {
+                response.Success = false;
+            }
+            ThreadPool.QueueUserWorkItem(o => Send(
+                remoteEndPoint, response, Tags.GetRemoteValueResponse));
+        }
+
         private void HandleThreadCompleted(IPEndPoint remoteEndPoint, IMessage message)
         {
             byte[] threadRank = message.Get<WrappedValue<byte[]>>().Value;
@@ -306,8 +374,16 @@ namespace Cloudy.Computing
             }
         }
 
+        /// <summary>
+        /// Starts a job.
+        /// </summary>
+        /// <returns>Whether a job was successfully started.</returns>
         protected virtual bool Start()
         {
+            Topology.UpdateValues((key, value) => SetRemoteValue(
+                Namespaces.Default, "Topology." + key,
+                new WrappedValue<byte[]>(value).AsByteArray,
+                TimeToLive.JobSpecific));
             bool atLeastOneStarted = false;
             runningThreadsCount = 0;
             foreach (SlaveContext slave in slaveById.Values)
@@ -382,6 +458,7 @@ namespace Cloudy.Computing
         protected void StopJob(JobResult result)
         {
             StopAllThreads();
+            CleanUp();
             if (JobStopped != null)
             {
                 JobStopped(this, new EventArgs<JobResult>(result));
@@ -393,6 +470,20 @@ namespace Cloudy.Computing
             else
             {
                 Close();
+            }
+        }
+
+        private void CleanUp()
+        {
+            foreach (Dictionary<string, RemoteMemoryAccessValue> subCache in memory.Values)
+            {
+                IEnumerable<string> keysToRemove = subCache
+                    .Where(pair => pair.Value.TimeToLive != TimeToLive.Forever)
+                    .Select(pair => pair.Key).ToList();
+                foreach (string key in keysToRemove)
+                {
+                    subCache.Remove(key);
+                }
             }
         }
 

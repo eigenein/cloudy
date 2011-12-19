@@ -15,7 +15,7 @@ using Cloudy.Helpers;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Structures;
 
-namespace Cloudy.Computing
+namespace Cloudy.Computing.Nodes
 {
     public abstract class AbstractSlaveNode<TRank> : AbstractNode, IEnvironmentTransport
         where TRank : IRank
@@ -335,6 +335,21 @@ namespace Cloudy.Computing
         }
 
         #region Implementation of IEnvironmentTransport
+
+        public object MasterConversationLock
+        {
+            get { return masterConversationLock; }
+        }
+
+        void IEnvironmentTransport.SendToMaster<TMessage>(TMessage message, int tag)
+        {
+            Send(masterEndPoint, message, tag);
+        }
+
+        TMessage IEnvironmentTransport.ReceiveFromMaster<TMessage>()
+        {
+            return ReceiveFrom<TMessage>(masterEndPoint);
+        }
 
         void IEnvironmentTransport.Send(EnvironmentOperationValue operationValue)
         {

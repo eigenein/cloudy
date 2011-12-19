@@ -59,6 +59,7 @@ namespace Cloudy.Computing
         private void OnThreadStopped()
         {
             thread = null;
+            environment.CleanUp();
             if (ThreadStopped != null)
             {
                 ThreadStopped(this, new EventArgs<byte[]>(Rank));

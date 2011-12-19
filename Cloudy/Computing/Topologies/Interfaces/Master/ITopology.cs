@@ -1,6 +1,5 @@
 ﻿using System;
 using Cloudy.Computing.Topologies.Enums;
-using Cloudy.Helpers;
 
 namespace Cloudy.Computing.Topologies.Interfaces.Master
 {
@@ -31,5 +30,11 @@ namespace Cloudy.Computing.Topologies.Interfaces.Master
         /// </param>
         /// <returns>Whether the removed rank should be replaced.</returns>
         bool RemoveThread(byte[] rank, out byte[] replaceWith);
+
+        /// <summary>
+        /// Updates values in the Remote Access Memory.
+        /// </summary>
+        /// <param name="set">Method to be invoked to set a value.</param>
+        void UpdateValues(Action<string, byte[]> set);
     }
 }

@@ -34,7 +34,7 @@ namespace Cloudy.Examples.Static.Pi.Slave
         private static readonly SlaveNode Slave = 
             new SlaveNode(Port, LocalAddress, SlotsCount);
 
-        static void Main(string[] args)
+        static void Main()
         {
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 

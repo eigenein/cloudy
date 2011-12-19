@@ -1,6 +1,7 @@
 ﻿using System;
 using Cloudy.Computing;
 using Cloudy.Computing.Enums;
+using Cloudy.Computing.Nodes;
 using Cloudy.Computing.Topologies.Interfaces.Master;
 using Cloudy.Computing.Topologies.Master;
 using NLog;
