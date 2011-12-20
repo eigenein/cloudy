@@ -131,6 +131,7 @@
     <Compile Include="Computing\Topologies\Helpers\StarTopologyHelper.cs" />
     <Compile Include="Computing\Topologies\Interfaces\IRank.cs" />
     <Compile Include="Computing\Topologies\Interfaces\Master\ITopology.cs" />
+    <Compile Include="Computing\Topologies\Interfaces\Master\ITopologyHelper.cs" />
     <Compile Include="Computing\Topologies\Interfaces\Slave\ITopology.cs" />
     <Compile Include="Computing\Topologies\SlaveTopologiesCache.cs" />
     <Compile Include="Computing\Topologies\Master\StarTopology.cs" />

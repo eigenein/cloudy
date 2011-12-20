@@ -11,6 +11,9 @@ namespace Cloudy.Computing.Structures.Values
     [ProtobufSerializable]
     public class WrappedValue<T>
     {
+        private static readonly Serializer Serializer = Serializer.CreateSerializer(
+            typeof(WrappedValue<T>));
+
         /// <summary>
         /// Empty constructor for deserialization.
         /// </summary>
@@ -36,7 +39,7 @@ namespace Cloudy.Computing.Structures.Values
         /// </remarks>
         public byte[] AsByteArray
         {
-            get { return Serializer.CreateSerializer(typeof(WrappedValue<T>)).Serialize(this); }
+            get { return Serializer.Serialize(this); }
         }
     }
 }

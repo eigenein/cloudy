@@ -59,6 +59,8 @@ namespace Cloudy.Examples.Static.Pi.Slave
             Logger.Info("Rank: {0}", e.Rank);
             Logger.Info("Greatest Rank: {0}",
                 StarTopologyHelper.GetGreatestRank(environment));
+            Logger.Info("Threads Count: {0}",
+                StarTopologyHelper.GetThreadsCount(environment));
             if (!e.Rank.IsCentral)
             {
                 e.Send(UserTags.Default, "Hello", StarRank.Central);

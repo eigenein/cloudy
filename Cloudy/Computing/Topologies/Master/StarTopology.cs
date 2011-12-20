@@ -46,10 +46,10 @@ namespace Cloudy.Computing.Topologies.Master
             return false;
         }
 
-        public void UpdateValues(Action<string, byte[]> set)
+        public void UpdateValues(ITopologyHelper helper)
         {
-            set("GreatestRank", RankConverter<StarRank>.Convert(
-                new StarRank(greatestRank)));
+            helper.SetRemoteValue("ThreadsCount", greatestRank + 1);
+            helper.SetRemoteValue("GreatestRank", new StarRank(greatestRank));
         }
 
         #endregion

@@ -34,7 +34,6 @@ namespace Cloudy.Computing.Topologies.Interfaces.Master
         /// <summary>
         /// Updates values in the Remote Access Memory.
         /// </summary>
-        /// <param name="set">Method to be invoked to set a value.</param>
-        void UpdateValues(Action<string, byte[]> set);
+        void UpdateValues(ITopologyHelper helper);
     }
 }

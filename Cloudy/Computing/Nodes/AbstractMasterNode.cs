@@ -13,7 +13,7 @@ using Cloudy.Structures;
 
 namespace Cloudy.Computing.Nodes
 {
-    public abstract class AbstractMasterNode : AbstractNode
+    public abstract class AbstractMasterNode : AbstractNode, ITopologyHelper
     {
         #region Slave and Threads Caches
 
@@ -380,10 +380,7 @@ namespace Cloudy.Computing.Nodes
         /// <returns>Whether a job was successfully started.</returns>
         protected virtual bool Start()
         {
-            Topology.UpdateValues((key, value) => SetRemoteValue(
-                Namespaces.Default, "Topology." + key,
-                new WrappedValue<byte[]>(value).AsByteArray,
-                TimeToLive.JobSpecific));
+            Topology.UpdateValues(this);
             bool atLeastOneStarted = false;
             runningThreadsCount = 0;
             foreach (SlaveContext slave in slaveById.Values)
@@ -547,5 +544,15 @@ namespace Cloudy.Computing.Nodes
             }
             base.Dispose(disposing);
         }
+
+        #region Implementation of ITopologyHelper
+
+        void ITopologyHelper.SetRemoteValue<TValue>(string key, TValue value)
+        {
+            SetRemoteValue(Namespaces.Default, "Topology." + key,
+                new WrappedValue<TValue>(value).AsByteArray, TimeToLive.JobSpecific);
+        }
+
+        #endregion
     }
 }
