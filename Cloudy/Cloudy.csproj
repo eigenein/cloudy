@@ -110,7 +110,8 @@
     <Compile Include="Computing\Interfaces\IEnvironment.cs" />
     <Compile Include="Computing\Interfaces\IEnvironmentTransport.cs" />
     <Compile Include="Computing\Interfaces\IInternalEnvironment.cs" />
-    <Compile Include="Computing\Structures\RemoteMemoryAccessValue.cs" />
+    <Compile Include="Computing\Structures\MemoryStorageByteArray.cs" />
+    <Compile Include="Computing\Structures\MemoryStorageObject.cs" />
     <Compile Include="Computing\Structures\SlaveContext.cs" />
     <Compile Include="Computing\Structures\ThreadContext.cs" />
     <Compile Include="Computing\Structures\Values\EndPointResponseValue.cs" />
@@ -146,6 +147,7 @@
     <Compile Include="Helpers\Namespaces.cs" />
     <Compile Include="Helpers\ParameterizedEventHandler.cs" />
     <Compile Include="Computing\Topologies\Helpers\RankConverter.cs" />
+    <Compile Include="Helpers\MemoryStorage.cs" />
     <Compile Include="Helpers\TimeSpanExtensions.cs" />
     <Compile Include="Messaging\Raw\StreamSimpleCommunicator.cs" />
     <Compile Include="Messaging\Raw\UdpClientSimpleCommunicator.cs" />

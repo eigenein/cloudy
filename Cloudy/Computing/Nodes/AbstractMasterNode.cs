@@ -28,17 +28,8 @@ namespace Cloudy.Computing.Nodes
 
         #endregion
 
-        #region Remote Memory Access
-
-        /// <summary>
-        /// Used to store values set by remote memory access.
-        /// </summary>
-        private readonly Dictionary<byte[], Dictionary<string, RemoteMemoryAccessValue>> memory =
-            new Dictionary<byte[], Dictionary<string, RemoteMemoryAccessValue>>(ByteArrayComparer.Instance);
-
-        private readonly object memorySyncronizationRoot = new object();
-
-        #endregion
+        private readonly MemoryStorage<MemoryStorageByteArray> remoteMemoryStorage =
+            new MemoryStorage<MemoryStorageByteArray>();
 
         protected int TotalSlotsCount;
 
@@ -293,19 +284,10 @@ namespace Cloudy.Computing.Nodes
         private void SetRemoteValue(byte[] @namespace, string key, byte[] value,
             TimeToLive timeToLive)
         {
-            lock (memorySyncronizationRoot)
-            {
-                Dictionary<string, RemoteMemoryAccessValue> namespaceMemory;
-                if (!memory.TryGetValue(@namespace, out namespaceMemory))
-                {
-                    memory[@namespace] = namespaceMemory =
-                        new Dictionary<string, RemoteMemoryAccessValue>();
-                }
-                RemoteMemoryAccessValue rawValue = new RemoteMemoryAccessValue();
-                rawValue.Value = value;
-                rawValue.TimeToLive = timeToLive;
-                namespaceMemory[key] = rawValue;
-            }
+            MemoryStorageByteArray rawValue = new MemoryStorageByteArray();
+            rawValue.Value = value;
+            rawValue.TimeToLive = timeToLive;
+            remoteMemoryStorage.Add(@namespace, key, rawValue);
         }
 
         private void HandleSetRemoteValueRequest(IPEndPoint remoteEndPoint, IMessage message)
@@ -318,10 +300,8 @@ namespace Cloudy.Computing.Nodes
         {
             GetRemoteValueRequest request = message.Get<GetRemoteValueRequest>();
             GetRemoteValueResponse response = new GetRemoteValueResponse();
-            Dictionary<string, RemoteMemoryAccessValue> namespaceMemory;
-            RemoteMemoryAccessValue value;
-            if (memory.TryGetValue(request.Namespace, out namespaceMemory) &&
-                namespaceMemory.TryGetValue(request.Key, out value))
+            MemoryStorageByteArray value;
+            if (remoteMemoryStorage.TryGetValue(request.Namespace, request.Key, out value))
             {
                 response.Value = value.Value;
                 response.TimeToLive = value.TimeToLive;
@@ -472,16 +452,7 @@ namespace Cloudy.Computing.Nodes
 
         private void CleanUp()
         {
-            foreach (Dictionary<string, RemoteMemoryAccessValue> subCache in memory.Values)
-            {
-                IEnumerable<string> keysToRemove = subCache
-                    .Where(pair => pair.Value.TimeToLive != TimeToLive.Forever)
-                    .Select(pair => pair.Key).ToList();
-                foreach (string key in keysToRemove)
-                {
-                    subCache.Remove(key);
-                }
-            }
+            remoteMemoryStorage.CleanUp(value => value.TimeToLive != TimeToLive.Forever);
         }
 
         /// <summary>
