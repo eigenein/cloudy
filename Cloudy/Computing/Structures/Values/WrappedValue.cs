@@ -1,4 +1,5 @@
 ﻿using System;
+using Cloudy.Protobuf;
 using Cloudy.Protobuf.Attributes;
 
 namespace Cloudy.Computing.Structures.Values
@@ -10,6 +11,9 @@ namespace Cloudy.Computing.Structures.Values
     [ProtobufSerializable]
     public class WrappedValue<T>
     {
+        private static readonly Serializer Serializer = Serializer.CreateSerializer(
+            typeof(WrappedValue<T>));
+
         /// <summary>
         /// Empty constructor for deserialization.
         /// </summary>
@@ -25,5 +29,17 @@ namespace Cloudy.Computing.Structures.Values
 
         [ProtobufField(1)]
         public T Value { get; set; }
+
+        /// <summary>
+        /// Gets the value as serialized into an array.
+        /// </summary>
+        /// <remarks>
+        /// Do not read this property twice on the same value, because this
+        /// will serialize this object twice.
+        /// </remarks>
+        public byte[] AsByteArray
+        {
+            get { return Serializer.Serialize(this); }
+        }
     }
 }

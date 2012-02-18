@@ -26,7 +26,9 @@ namespace Cloudy.Helpers
         public int GetHashCode(byte[] key)
         {
             if (key == null)
+            {
                 throw new ArgumentNullException("key");
+            }
             return key.Sum(b => b);
         }
 

@@ -7,7 +7,7 @@ using Cloudy.Messaging;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Messaging.Raw;
 
-namespace Cloudy.Computing
+namespace Cloudy.Computing.Nodes
 {
     public abstract class AbstractNode : IDisposable
     {
@@ -77,6 +77,8 @@ namespace Cloudy.Computing
             dispatcher.Ping(endPoint, SendTimeout);
         }
 
+        #region Send
+
         /// <summary>
         /// Sends the message asynchronously, but without tracking.
         /// </summary>
@@ -89,6 +91,10 @@ namespace Cloudy.Computing
         {
             dispatcher.Send(endPoint, message, tag, SendTimeout);
         }
+
+        #endregion
+
+        #region ReceiveFrom
 
         protected IMessage ReceiveFrom(IPEndPoint endPoint)
         {
@@ -104,6 +110,8 @@ namespace Cloudy.Computing
         {
             return unhandledMessages.Dequeue(endPoint, timeout).Get<T>();
         }
+
+        #endregion
 
         #region Implementation of IDisposable
 

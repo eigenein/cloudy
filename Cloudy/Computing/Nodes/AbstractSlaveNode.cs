@@ -15,7 +15,7 @@ using Cloudy.Helpers;
 using Cloudy.Messaging.Interfaces;
 using Cloudy.Structures;
 
-namespace Cloudy.Computing
+namespace Cloudy.Computing.Nodes
 {
     public abstract class AbstractSlaveNode<TRank> : AbstractNode, IEnvironmentTransport
         where TRank : IRank
@@ -45,12 +45,13 @@ namespace Cloudy.Computing
             : base(port)
         {
             this.localAddress = localAddress;
-            AddHandler(Tags.Bye, OnBye);
-            AddHandler(Tags.StartThread, OnStartThread);
-            AddHandler(Tags.StopThread, OnStopThread);
-            AddHandler(Tags.EnvironmentOperation, OnEnvironmentOperation);
-            AddHandler(Tags.SignedPing, OnSignedPing);
-            AddHandler(Tags.SignedPingRequest, OnSignedPingRequest);
+            AddHandler(Tags.Bye, HandleBye);
+            AddHandler(Tags.StartThread, HandleStartThread);
+            AddHandler(Tags.StopThread, HandleStopThread);
+            AddHandler(Tags.EnvironmentOperation, HandleEnvironmentOperation);
+            AddHandler(Tags.SignedPing, HandleSignedPing);
+            AddHandler(Tags.SignedPingRequest, HandleSignedPingRequest);
+            AddHandler(Tags.ReassignRank, HandleReassignRank);
             State = SlaveState.NotJoined;
             MaxPortScanOffset = 3;
             SignedPingResponseTimeout = new TimeSpan(0, 0, 7);
@@ -111,6 +112,8 @@ namespace Cloudy.Computing
 
         public event ParameterizedEventHandler<byte[], IPEndPoint> EndPointResolved;
 
+        public event ParameterizedEventHandler<byte[], byte[]> RankReassigned;
+
         /// <summary>
         /// Creates a thread within this slave node.
         /// </summary>
@@ -153,14 +156,14 @@ namespace Cloudy.Computing
             }
         }
 
-        private void OnStartThread(IPEndPoint remoteEndPoint, IMessage message)
+        private void HandleStartThread(IPEndPoint remoteEndPoint, IMessage message)
         {
             byte[] rank = message.Get<WrappedValue<byte[]>>().Value;
             ComputingThreadWrapper thread;
             if (!threads.TryGetValue(rank, out thread))
             {
                 thread = threads[rank] = new ComputingThreadWrapper(
-                    rank, new Environment<TRank>(this, rank), CreateThread);
+                    new Environment<TRank>(this, rank), CreateThread);
                 thread.ThreadCompleted += OnThreadCompleted;
                 thread.ThreadFailed += OnThreadFailed;
                 thread.ThreadStopped += OnThreadStopped;
@@ -193,7 +196,7 @@ namespace Cloudy.Computing
             }
         }
 
-        private void OnStopThread(IPEndPoint remoteEndPoint, IMessage message)
+        private void HandleStopThread(IPEndPoint remoteEndPoint, IMessage message)
         {
             byte[] rank = message.Get<WrappedValue<byte[]>>().Value;
             ComputingThreadWrapper thread;
@@ -216,7 +219,7 @@ namespace Cloudy.Computing
             }
         }
 
-        private void OnEnvironmentOperation(IPEndPoint remoteEndPoint, IMessage message)
+        private void HandleEnvironmentOperation(IPEndPoint remoteEndPoint, IMessage message)
         {
             EnvironmentOperationValue value = message.Get<EnvironmentOperationValue>();
             ICollection<byte[]> nextRecipientsIds = new HashSet<byte[]>();
@@ -245,18 +248,35 @@ namespace Cloudy.Computing
             }
         }
 
-        private void OnSignedPing(IPEndPoint remoteEndPoint, IMessage message)
+        private void HandleSignedPing(IPEndPoint remoteEndPoint, IMessage message)
         {
             byte[] rank = message.Get<WrappedValue<byte[]>>().Value;
             endPoints[rank] = remoteEndPoint;
             OnEndPointResolved(rank, remoteEndPoint);
         }
 
-        private void OnSignedPingRequest(IPEndPoint remoteEndPoint, IMessage message)
+        private void HandleSignedPingRequest(IPEndPoint remoteEndPoint, IMessage message)
         {
             SignedPingRequest request = message.Get<SignedPingRequest>();
             ThreadPool.UnsafeQueueUserWorkItem(
                 o => ServeSignedPingRequest(remoteEndPoint, request), null);
+        }
+
+        private void HandleReassignRank(IPEndPoint remoteEndPoint, IMessage message)
+        {
+            ReassignRankValue value = message.Get<ReassignRankValue>();
+            ComputingThreadWrapper thread;
+            if (threads.TryGetValue(value.OldRank, out thread))
+            {
+                thread.Rank = value.NewRank;
+                threads[value.NewRank] = thread;
+                threads.Remove(value.OldRank);
+                if (RankReassigned != null)
+                {
+                    RankReassigned(this, new EventArgs<byte[], byte[]>(
+                        value.OldRank, value.NewRank));
+                }
+            }
         }
 
         private void ServeSignedPingRequest(IPEndPoint remoteEndPoint, SignedPingRequest request)
@@ -314,12 +334,27 @@ namespace Cloudy.Computing
             State = SlaveState.Left;
         }
 
-        private void OnBye(IPEndPoint remoteEndPoint, IMessage message)
+        private void HandleBye(IPEndPoint remoteEndPoint, IMessage message)
         {
             Close();
         }
 
         #region Implementation of IEnvironmentTransport
+
+        public object MasterConversationLock
+        {
+            get { return masterConversationLock; }
+        }
+
+        void IEnvironmentTransport.SendToMaster<TMessage>(TMessage message, int tag)
+        {
+            Send(masterEndPoint, message, tag);
+        }
+
+        TMessage IEnvironmentTransport.ReceiveFromMaster<TMessage>()
+        {
+            return ReceiveFrom<TMessage>(masterEndPoint);
+        }
 
         void IEnvironmentTransport.Send(EnvironmentOperationValue operationValue)
         {

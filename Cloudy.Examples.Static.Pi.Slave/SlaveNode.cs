@@ -4,6 +4,8 @@ using System.Net;
 using Cloudy.Computing;
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Interfaces;
+using Cloudy.Computing.Nodes;
+using Cloudy.Computing.Topologies.Helpers;
 using Cloudy.Computing.Topologies.Structures;
 using NLog;
 
@@ -45,14 +47,20 @@ namespace Cloudy.Examples.Static.Pi.Slave
             EndPointResolved += (sender, e) =>
                 Logger.Info("{0} is resolved to {1}", 
                 BitConverter.ToString(e.Value1), e.Value2);
+            RankReassigned += (sender, e) =>
+                Logger.Info("Rank reassigned: {0} -> {1}",
+                BitConverter.ToString(e.Value1), BitConverter.ToString(e.Value2));
         }
 
         private static void Run(IEnvironment environment)
         {
             IEnvironment<StarRank> e = (IEnvironment<StarRank>)environment;
-            // TODO: Implement.
             Logger.Info("RUNNING");
             Logger.Info("Rank: {0}", e.Rank);
+            Logger.Info("Greatest Rank: {0}",
+                StarTopologyHelper.GetGreatestRank(environment));
+            Logger.Info("Threads Count: {0}",
+                StarTopologyHelper.GetThreadsCount(environment));
             if (!e.Rank.IsCentral)
             {
                 e.Send(UserTags.Default, "Hello", StarRank.Central);

@@ -1,6 +1,7 @@
 ﻿using System;
 using Cloudy.Computing;
 using Cloudy.Computing.Enums;
+using Cloudy.Computing.Nodes;
 using Cloudy.Computing.Topologies.Interfaces.Master;
 using Cloudy.Computing.Topologies.Master;
 using NLog;
@@ -26,7 +27,7 @@ namespace Cloudy.Examples.Static.Pi.Master
                 Logger.Info("Job stopped: {0}", e.Value);
             ThreadFailedToStart += (sender, e) =>
                 Logger.Info("Thread failed to start: {0}", BitConverter.ToString(e.Value2));
-            FailedToStart += (sender, e) =>
+            JobFailedToStart += (sender, e) =>
                 Logger.Error("Failed to start.");
             Started += (sender, e) =>
                 Logger.Info("Started");
@@ -36,6 +37,9 @@ namespace Cloudy.Examples.Static.Pi.Master
                 Logger.Info("Thread Completed: {0}", BitConverter.ToString(e.Value));
             ThreadFailed += (sender, e) =>
                 Logger.Error("Thread Failed: {0}", BitConverter.ToString(e.Value));
+            RankReassigned += (sender, e) =>
+                Logger.Info("Rank reassigned: {0} -> {1}",
+                BitConverter.ToString(e.Value1), BitConverter.ToString(e.Value2));
         }
 
         #region Overrides of AbstractMasterNode

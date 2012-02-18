@@ -5,10 +5,11 @@ using System.Threading;
 using Cloudy.Collections;
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Interfaces;
+using Cloudy.Computing.Structures;
 using Cloudy.Computing.Structures.Values;
+using Cloudy.Computing.Topologies.Helpers;
 using Cloudy.Computing.Topologies.Interfaces;
 using Cloudy.Helpers;
-using Cloudy.Protobuf;
 
 namespace Cloudy.Computing
 {
@@ -22,19 +23,43 @@ namespace Cloudy.Computing
         protected readonly BlockingFilteredQueue<EnvironmentOperationValue> Queue =
             new BlockingFilteredQueue<EnvironmentOperationValue>();
 
-        protected readonly byte[] RawRank;
+        private readonly MemoryStorage<MemoryStorageObject> masterRemoteMemoryCache =
+            new MemoryStorage<MemoryStorageObject>();
 
         private int operationId;
+
+        private byte[] rawRank;
 
         public Environment(IEnvironmentTransport transport, byte[] rank)
         {
             this.Transport = transport;
-            this.RawRank = rank;
+            this.rawRank = rank;
         }
+
+        public byte[] RawRank
+        {
+            get { return rawRank; }
+            set
+            {
+                rawRank = value;
+                if (RawRankChanged != null)
+                {
+                    RawRankChanged(this, new EventArgs<byte[]>(value));
+                }
+            }
+        }
+
+        public event ParameterizedEventHandler<byte[]> RawRankChanged;
 
         public void NotifyValueReceived(EnvironmentOperationValue value)
         {
             Queue.Enqueue(value);
+        }
+
+        public void CleanUp()
+        {
+            masterRemoteMemoryCache.CleanUp(
+                value => value.TimeToLive != TimeToLive.Forever);
         }
 
         protected int GetOperationId()
@@ -58,23 +83,82 @@ namespace Cloudy.Computing
                 Queue.Dispose();
             }
         }
+
+        #region Implementation of IEnvironment
+
+        public void SetRemoteValue<TValue>(byte[] @namespace, string key, 
+            TValue value, TimeToLive timeToLive)
+        {
+            SetRemoteValueRequest request = new SetRemoteValueRequest();
+            request.Namespace = @namespace;
+            request.Key = key;
+            request.Set(new WrappedValue<TValue>(value));
+            request.TimeToLive = timeToLive;
+            Transport.SendToMaster(request, Tags.SetRemoteValueRequest);
+        }
+
+        public bool TryGetRemoteValue<TValue>(byte[] @namespace, string key, out TValue value)
+        {
+            lock (masterRemoteMemoryCache)
+            {
+                MemoryStorageObject rawValue;
+                if (masterRemoteMemoryCache.TryGetValue(@namespace, key, out rawValue))
+                {
+                    value = (TValue)rawValue.Value;
+                    return true;
+                }
+                lock (Transport.MasterConversationLock)
+                {
+                    GetRemoteValueRequest request = new GetRemoteValueRequest();
+                    request.Namespace = @namespace;
+                    request.Key = key;
+                    Transport.SendToMaster(request, Tags.GetRemoteValueRequest);
+                    GetRemoteValueResponse response =
+                        Transport.ReceiveFromMaster<GetRemoteValueResponse>();
+                    if (response.Success != false)
+                    {
+                        value = response.Get<WrappedValue<TValue>>().Value;
+                        if (response.TimeToLive != TimeToLive.Flash)
+                        {
+                            rawValue = new MemoryStorageObject();
+                            rawValue.Value = value;
+                            rawValue.TimeToLive = response.TimeToLive;
+                            masterRemoteMemoryCache.Add(@namespace, key, rawValue);
+                        }
+                        return true;
+                    }
+                    value = default(TValue);
+                    return false;
+                }
+            }
+        }
+
+        #endregion
     }
 
     internal class Environment<TRank> : Environment,
         IEnvironment<TRank> where TRank : IRank
     {
-        private readonly TRank rank;
+        private TRank rank;
 
         public Environment(IEnvironmentTransport transport, byte[] rank)
             : base(transport, rank)
         {
             this.rank = RankConverter<TRank>.Convert(rank);
+            RawRankChanged += OnRawRankChanged;
         }
 
         public TRank Rank
         {
             get { return rank; }
         }
+
+        private void OnRawRankChanged(object sender, EventArgs<byte[]> e)
+        {
+            rank = RankConverter<TRank>.Convert(e.Value);
+        }
+
+        #region Send
 
         /// <summary>
         /// Performs a blocking send.
@@ -87,7 +171,7 @@ namespace Cloudy.Computing
         /// <summary>
         /// Performs a blocking send.
         /// </summary>
-        public void Send<T>(int tag, T value, ICollection<TRank> recipients)
+        public void Send<T>(int tag, T value, IEnumerable<TRank> recipients)
         {
             EnvironmentOperationValue operationValue = new EnvironmentOperationValue();
             operationValue.Sender = RawRank;
@@ -97,6 +181,10 @@ namespace Cloudy.Computing
             operationValue.Recipients = recipients.Select(RankConverter<TRank>.Convert).ToList();
             Transport.Send(operationValue);
         }
+
+        #endregion
+
+        #region Receive
 
         /// <summary>
         /// Blocking receive for a message
@@ -145,5 +233,7 @@ namespace Cloudy.Computing
             value = operationValue.Get<WrappedValue<T>>().Value;
             tag = operationValue.UserTag;
         }
+
+        #endregion
     }
 }

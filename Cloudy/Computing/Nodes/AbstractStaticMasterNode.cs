@@ -2,7 +2,7 @@
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Structures;
 
-namespace Cloudy.Computing
+namespace Cloudy.Computing.Nodes
 {
     public abstract class AbstractStaticMasterNode : AbstractMasterNode
     {
