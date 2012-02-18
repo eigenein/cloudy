@@ -116,6 +116,11 @@ namespace Cloudy.Computing
         /// </summary>
         protected abstract IComputingThread CreateThread();
 
+        public void Join(string host, int port)
+        {
+            Join(new IPEndPoint(HostNameResolver.Resolve(host), port));
+        }
+
         public void Join(IPEndPoint endPoint)
         {
             JoinRequestValue request = 
@@ -146,7 +151,6 @@ namespace Cloudy.Computing
                 Joined(this, new EventArgs<IPEndPoint, Guid>(
                     response.ExternalEndPoint.Value, response.SlaveId));
             }
-            return;
         }
 
         private void OnStartThread(IPEndPoint remoteEndPoint, IMessage message)
@@ -177,6 +181,7 @@ namespace Cloudy.Computing
         /// <summary>
         /// Called when the thread is abnormally terminated.
         /// </summary>
+        /// <param name="sender">The event sender.</param>
         /// <param name="e">Contains an exception object if any have been thrown.</param>
         private void OnThreadFailed(object sender, EventArgs<byte[], Exception> e)
         {

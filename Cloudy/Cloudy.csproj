@@ -129,6 +129,7 @@
     <Compile Include="Helpers\ByteArrayComparer.cs" />
     <Compile Include="Helpers\ByteArrayExtensions.cs" />
     <Compile Include="Helpers\EventArgs.cs" />
+    <Compile Include="Helpers\HostNameResolver.cs" />
     <Compile Include="Helpers\IPEndPointExtensions.cs" />
     <Compile Include="Helpers\LinkedListExtensions.cs" />
     <Compile Include="Helpers\ParameterizedEventHandler.cs" />
