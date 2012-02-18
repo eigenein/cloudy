@@ -13,12 +13,7 @@ namespace Cloudy.Computing.Reduction
         static Reducible()
         {
             Cache.Add(typeof(String), value => new StringReducible((string)value));
-        }
-
-        public static void AddCustomReducible(Type type, 
-            Func<object, IReducible> constructor)
-        {
-            Cache.Add(type, constructor);
+            Cache.Add(typeof(Byte), value => new ByteReducible((byte)value));
         }
 
         public static IReducible Create<TValue>(TValue value)
@@ -30,6 +25,11 @@ namespace Cloudy.Computing.Reduction
                     "The type is not supported: {0}.", typeof(TValue)));
             }
             return constructor(value);
+        }
+
+        public static void AddCustom(Type type, Func<object, IReducible> constructor)
+        {
+            Cache.Add(type, constructor);
         }
 
         #region Implementation of IReducible
@@ -82,6 +82,25 @@ namespace Cloudy.Computing.Reduction
         public virtual void Minimize(IReducible other)
         {
             throw new NotImplementedException("The operation should be overridden.");
+        }
+
+        #endregion
+    }
+
+    public abstract class Reducible<TValue> : Reducible, IReducible<TValue>
+    {
+        protected TValue value;
+
+        protected Reducible(TValue value)
+        {
+            this.value = value;
+        }
+
+        #region Implementation of IReducible<TValue>
+
+        public TValue Value
+        {
+            get { return value; }
         }
 
         #endregion

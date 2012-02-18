@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Text;
 using Cloudy.Computing.Interfaces;
 
 namespace Cloudy.Computing.Reduction.ReducibleTypes
 {
-    public class StringReducible : Reducible
+    public class StringReducible : Reducible<string>
     {
-        private string value;
-
-        public StringReducible(string value)
+        public StringReducible(string value) : base(value)
         {
-            this.value = value;
+            // Do nothing.
         }
 
         #region Implementation of IReducible
@@ -36,15 +33,6 @@ namespace Cloudy.Computing.Reduction.ReducibleTypes
             {
                 value = otherString;
             }
-        }
-
-        #endregion
-
-        #region Implementation of IReducible<string>
-
-        public string Value
-        {
-            get { return value; }
         }
 
         #endregion

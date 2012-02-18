@@ -25,7 +25,7 @@ namespace Cloudy.Computing.Interfaces
         void Minimize(IReducible other);
     }
 
-    public interface IReducible<TValue> : IReducible, IComparable<TValue>
+    public interface IReducible<TValue> : IReducible
     {
         TValue Value { get; }
     }
