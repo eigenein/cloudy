@@ -34,5 +34,10 @@ namespace Cloudy.Examples.Shared.Configuration
         {
             return GetValue(key, IPAddress.Parse);
         }
+
+        public static string GetString(string key)
+        {
+            return GetValue(key, value => value);
+        }
     }
 }

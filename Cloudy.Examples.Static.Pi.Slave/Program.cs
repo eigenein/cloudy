@@ -22,9 +22,11 @@ namespace Cloudy.Examples.Static.Pi.Slave
         private static readonly IPAddress LocalAddress =
             ApplicationSettings.GetIPAddress("LocalAddress");
 
-        private static readonly IPEndPoint MasterEndPoint = new IPEndPoint(
-            ApplicationSettings.GetIPAddress("MasterAddress"),
-            ApplicationSettings.GetInteger("MasterPort"));
+        private static readonly string MasterAddress =
+            ApplicationSettings.GetString("MasterAddress");
+
+        private static readonly int MasterPort = 
+            ApplicationSettings.GetInteger("MasterPort");
 
         private static readonly int SlotsCount =
             ApplicationSettings.GetInteger("SlotsCount");
@@ -32,7 +34,7 @@ namespace Cloudy.Examples.Static.Pi.Slave
         private static readonly SlaveNode Slave = 
             new SlaveNode(Port, LocalAddress, SlotsCount);
 
-        static void Main(string[] args)
+        static void Main()
         {
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
@@ -40,10 +42,11 @@ namespace Cloudy.Examples.Static.Pi.Slave
             ThreadPool.QueueUserWorkItem(HandleMessages, Slave);
             ThreadPool.QueueUserWorkItem(ProcessIncomingMessages, Slave);
 
-            Logger.Info("Joining the network at {0} ...", MasterEndPoint);
+            Logger.Info("Joining the network at {0}:{1} ...", 
+                MasterAddress, MasterPort);
             try
             {
-                Slave.Join(MasterEndPoint);
+                Slave.Join(MasterAddress, MasterPort);
             }
             catch
             {
