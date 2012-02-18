@@ -74,8 +74,6 @@ namespace Cloudy.Computing
             Dispose(true);
         }
 
-        #endregion
-
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -83,6 +81,8 @@ namespace Cloudy.Computing
                 Queue.Dispose();
             }
         }
+
+        #endregion
 
         #region Implementation of IEnvironment
 
@@ -232,6 +232,32 @@ namespace Cloudy.Computing
                     v.OperationType == EnvironmentOperationType.PeerToPeer);
             value = operationValue.Get<WrappedValue<T>>().Value;
             tag = operationValue.UserTag;
+        }
+
+        /// <summary>
+        /// Performs the reduction operation. It combines the values provided 
+        /// by each thread, using a specified <paramref name="operation"/>, 
+        /// and returns the combined value.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="operation">The reduce operation.</param>
+        /// <param name="targets">Threads to gather values from.</param>
+        /// <returns>The combined value.</returns>
+        public T Reduce<T>(int tag, ReduceOperation operation, IEnumerable<TRank> targets)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Provides a value for a reduction operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">The value to combine.</param>
+        public void Reduce<T>(int tag, T value)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

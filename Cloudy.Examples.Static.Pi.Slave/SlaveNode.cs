@@ -55,22 +55,22 @@ namespace Cloudy.Examples.Static.Pi.Slave
         private static void Run(IEnvironment environment)
         {
             IEnvironment<StarRank> e = (IEnvironment<StarRank>)environment;
-            Logger.Info("RUNNING");
-            Logger.Info("Rank: {0}", e.Rank);
-            Logger.Info("Greatest Rank: {0}",
-                StarTopologyHelper.GetGreatestRank(environment));
-            Logger.Info("Threads Count: {0}",
-                StarTopologyHelper.GetThreadsCount(environment));
-            if (!e.Rank.IsCentral)
+            Logger.Info("Running");
+            int threadsCount = StarTopologyHelper.GetThreadsCount(environment);
+            Logger.Info("Threads Count: {0}. Rank: {1}.", threadsCount, e.Rank);
+            double step = 1.0 / threadsCount;
+            double sum = 0.0;
+            for (int i = e.Rank.Index + 1; i <= threadsCount; i++)
             {
-                e.Send(UserTags.Default, "Hello", StarRank.Central);
+                double x = step * (i - 0.5);
+                sum += 4.0 / (1.0 + x * x);
             }
-            else
+            double partOfPi = step * sum;
+            /* MPI_Reduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM, 0,
+               MPI_COMM_WORLD);
+             */
+            if (e.Rank.IsCentral)
             {
-                StarRank sender;
-                string value;
-                e.Receive(UserTags.Default, out value, out sender);
-                Logger.Info("{0} from {1}", value, sender);
             }
         }
 

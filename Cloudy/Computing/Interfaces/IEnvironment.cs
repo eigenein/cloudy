@@ -47,5 +47,29 @@ namespace Cloudy.Computing.Interfaces
         void Receive<T>(out int tag, out T value, TRank sender);
 
         #endregion
+
+        #region Reduction
+
+        /// <summary>
+        /// Performs the reduction operation. It combines the values provided 
+        /// by each thread, using a specified <paramref name="operation"/>, 
+        /// and returns the combined value.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="operation">The reduce operation.</param>
+        /// <param name="targets">Threads to gather values from.</param>
+        /// <returns>The combined value.</returns>
+        T Reduce<T>(int tag, ReduceOperation operation, IEnumerable<TRank> targets);
+
+        /// <summary>
+        /// Provides a value for a reduction operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">The value to combine.</param>
+        void Reduce<T>(int tag, T value);
+
+        #endregion
     }
 }

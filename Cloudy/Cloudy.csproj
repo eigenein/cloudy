@@ -87,6 +87,8 @@
     <Compile Include="Collections\BlockingFilteredQueue.cs" />
     <Compile Include="Collections\BlockingMultiDictionary.cs" />
     <Compile Include="Collections\BlockingQueue.cs" />
+    <Compile Include="Computing\Enums\ReduceOperation.cs" />
+    <Compile Include="Computing\Interfaces\IReducible.cs" />
     <Compile Include="Computing\Nodes\AbstractMasterNode.cs" />
     <Compile Include="Computing\Nodes\AbstractNode.cs" />
     <Compile Include="Computing\Nodes\AbstractSlaveNode.cs" />
@@ -106,6 +108,10 @@
     <Compile Include="Computing\Interfaces\IEnvironment.cs" />
     <Compile Include="Computing\Interfaces\IEnvironmentTransport.cs" />
     <Compile Include="Computing\Interfaces\IInternalEnvironment.cs" />
+    <Compile Include="Computing\Reduction\ComparableReducible.cs" />
+    <Compile Include="Computing\Reduction\Reducible.cs" />
+    <Compile Include="Computing\Reduction\ReducibleTypes\StringReducible.cs" />
+    <Compile Include="Computing\Reduction\ReductorsCache.cs" />
     <Compile Include="Computing\Structures\MemoryStorageByteArray.cs" />
     <Compile Include="Computing\Structures\MemoryStorageObject.cs" />
     <Compile Include="Computing\Structures\SlaveContext.cs" />
