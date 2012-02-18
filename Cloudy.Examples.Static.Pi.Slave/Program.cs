@@ -2,10 +2,8 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using Cloudy.Computing;
 using Cloudy.Examples.Shared.Configuration;
 using Cloudy.Examples.Shared.Helpers;
-using Cloudy.Helpers;
 using NLog;
 
 namespace Cloudy.Examples.Static.Pi.Slave
