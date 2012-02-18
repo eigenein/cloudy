@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading;
 using Cloudy.Computing.Enums;
@@ -518,7 +517,10 @@ namespace Cloudy.Computing.Nodes
 
         #region Implementation of ITopologyHelper
 
-        void ITopologyHelper.SetRemoteValue<TValue>(string key, TValue value)
+        /// <summary>
+        /// Sets a topology-related value.
+        /// </summary>
+        public void SetTopologyRemoteValue<TValue>(string key, TValue value)
         {
             SetRemoteValue(Namespaces.Default, "Topology." + key,
                 new WrappedValue<TValue>(value).AsByteArray, TimeToLive.JobSpecific);
