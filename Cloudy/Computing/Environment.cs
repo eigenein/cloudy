@@ -234,6 +234,10 @@ namespace Cloudy.Computing
             tag = operationValue.UserTag;
         }
 
+        #endregion
+
+        #region Reduction
+
         /// <summary>
         /// Performs the reduction operation. It combines the values provided 
         /// by each thread, using a specified <paramref name="operation"/>, 

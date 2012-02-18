@@ -381,8 +381,10 @@ namespace Cloudy.Computing.Nodes
             }
             Dictionary<byte[], List<byte[]>> nextRecipients = 
                 new Dictionary<byte[], List<byte[]>>();
+            // Splitting by the next rank.
             foreach (byte[] recipient in operationValue.Recipients)
             {
+                // Looking for the shortest path from the current slave.
                 RouteSearchResult result = threads.Keys
                     .Select(rank => topology.TryFindNext(rank, recipient))
                     .Where(r => r.Success)
