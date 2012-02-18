@@ -12,10 +12,25 @@ namespace Cloudy.Computing.Reduction
 
         static Reducible()
         {
-            Cache.Add(typeof(String), value => new StringReducible((string)value));
-            Cache.Add(typeof(Byte), value => new ByteReducible((byte)value));
+            Cache.Add(typeof(String), value => new ReducibleString((string)value));
+            Cache.Add(typeof(Byte), value => new ReducibleByte((byte)value));
+            Cache.Add(typeof(SByte), value => new ReducibleSByte((sbyte)value));
+            Cache.Add(typeof(Int32), value => new ReducibleInt32((int)value));
+            Cache.Add(typeof(UInt32), value => new ReducibleUInt32((uint)value));
+            Cache.Add(typeof(Int16), value => new ReducibleInt16((short)value));
+            Cache.Add(typeof(UInt16), value => new ReducibleUInt16((ushort)value));
+            Cache.Add(typeof(Int64), value => new ReducibleInt64((long)value));
+            Cache.Add(typeof(UInt64), value => new ReducibleUInt64((ulong)value));
+            Cache.Add(typeof(Single), value => new ReducibleSingle((float)value));
+            Cache.Add(typeof(Double), value => new ReducibleDouble((double)value));
+            Cache.Add(typeof(Boolean), value => new ReducibleBoolean((bool)value));
+            Cache.Add(typeof(Decimal), value => new ReducibleDecimal((decimal)value));
+            Cache.Add(typeof(Char), value => new ReducibleChar((char)value));
         }
 
+        /// <summary>
+        /// Wraps the value that implements <see cref="IReducible"/>.
+        /// </summary>
         public static IReducible Create<TValue>(TValue value)
         {
             Func<object, IReducible> constructor;
@@ -27,7 +42,10 @@ namespace Cloudy.Computing.Reduction
             return constructor(value);
         }
 
-        public static void AddCustom(Type type, Func<object, IReducible> constructor)
+        /// <summary>
+        /// Adds the custom reducible type.
+        /// </summary>
+        public static void AddCustomType(Type type, Func<object, IReducible> constructor)
         {
             Cache.Add(type, constructor);
         }

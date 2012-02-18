@@ -108,9 +108,11 @@
     <Compile Include="Computing\Interfaces\IEnvironment.cs" />
     <Compile Include="Computing\Interfaces\IEnvironmentTransport.cs" />
     <Compile Include="Computing\Interfaces\IInternalEnvironment.cs" />
+    <Compile Include="Computing\Reduction\ReducibleTypes\ReducibleInt32.cs" />
     <Compile Include="Computing\Reduction\Reducible.cs" />
-    <Compile Include="Computing\Reduction\ReducibleTypes\ByteReducible.cs" />
-    <Compile Include="Computing\Reduction\ReducibleTypes\StringReducible.cs" />
+    <Compile Include="Computing\Reduction\ReducibleTypes\ReducibleByte.cs" />
+    <Compile Include="Computing\Reduction\ReducibleTypes\ReducibleSByte.cs" />
+    <Compile Include="Computing\Reduction\ReducibleTypes\ReducibleString.cs" />
     <Compile Include="Computing\Reduction\ReductorsCache.cs" />
     <Compile Include="Computing\Structures\MemoryStorageByteArray.cs" />
     <Compile Include="Computing\Structures\MemoryStorageObject.cs" />

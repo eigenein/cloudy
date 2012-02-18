@@ -3,44 +3,37 @@ using Cloudy.Computing.Interfaces;
 
 namespace Cloudy.Computing.Reduction.ReducibleTypes
 {
-    public class ByteReducible : Reducible<byte>
+    public class ReducibleInt16 : Reducible<short>
     {
-        public ByteReducible(byte value) 
+        public ReducibleInt16(short value)
             : base(value)
         {
             // Do nothing.
         }
 
-        #region Implementation of IReducible
-
         public override void Add(IReducible other)
         {
-            value += ((ByteReducible)other).value;
-        }
-
-        public override void Multiply(IReducible other)
-        {
-            value *= ((ByteReducible)other).value;
+            value += ((ReducibleInt16)other).value;
         }
 
         public override void BitwiseAnd(IReducible other)
         {
-            value &= ((ByteReducible)other).value;
+            value &= ((ReducibleInt16)other).value;
         }
 
         public override void BitwiseOr(IReducible other)
         {
-            value |= ((ByteReducible)other).value;
+            value |= ((ReducibleInt16)other).value;
         }
 
         public override void BitwiseXor(IReducible other)
         {
-            value ^= ((ByteReducible)other).value;
+            value ^= ((ReducibleInt16)other).value;
         }
 
         public override void Maximize(IReducible other)
         {
-            byte otherValue = ((ByteReducible)other).value;
+            short otherValue = ((ReducibleInt16)other).value;
             if (otherValue > value)
             {
                 value = otherValue;
@@ -49,13 +42,16 @@ namespace Cloudy.Computing.Reduction.ReducibleTypes
 
         public override void Minimize(IReducible other)
         {
-            byte otherValue = ((ByteReducible)other).value;
+            short otherValue = ((ReducibleInt16)other).value;
             if (otherValue < value)
             {
                 value = otherValue;
             }
         }
 
-        #endregion
+        public override void Multiply(IReducible other)
+        {
+            value *= ((ReducibleInt16)other).value;
+        }
     }
 }

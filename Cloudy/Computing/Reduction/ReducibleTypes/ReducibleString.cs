@@ -3,9 +3,9 @@ using Cloudy.Computing.Interfaces;
 
 namespace Cloudy.Computing.Reduction.ReducibleTypes
 {
-    public class StringReducible : Reducible<string>
+    public class ReducibleString : Reducible<string>
     {
-        public StringReducible(string value) : base(value)
+        public ReducibleString(string value) : base(value)
         {
             // Do nothing.
         }
@@ -14,13 +14,13 @@ namespace Cloudy.Computing.Reduction.ReducibleTypes
 
         public override void Add(IReducible other)
         {
-            value += ((StringReducible)other).value;
+            value += ((ReducibleString)other).value;
         }
 
         public override void Maximize(IReducible other)
         {
-            string otherString = ((StringReducible)other).Value;
-            if (value.CompareTo(otherString) > 0)
+            string otherString = ((ReducibleString)other).Value;
+            if (value.CompareTo(otherString) < 0)
             {
                 value = otherString;
             }
@@ -28,8 +28,8 @@ namespace Cloudy.Computing.Reduction.ReducibleTypes
 
         public override void Minimize(IReducible other)
         {
-            string otherString = ((StringReducible)other).Value;
-            if (value.CompareTo(otherString) < 0)
+            string otherString = ((ReducibleString)other).Value;
+            if (value.CompareTo(otherString) > 0)
             {
                 value = otherString;
             }
