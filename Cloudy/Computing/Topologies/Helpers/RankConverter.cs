@@ -4,7 +4,7 @@ using Cloudy.Protobuf;
 
 namespace Cloudy.Computing.Topologies.Helpers
 {
-    public class RankConverter<TRank>
+    public static class RankConverter<TRank>
         where TRank : IRank
     {
         private static readonly Serializer Serializer =
