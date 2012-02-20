@@ -4,6 +4,7 @@ namespace Cloudy.Computing.Enums
 {
     public enum ReduceOperation
     {
+        Custom,
         Maximum,
         Minimum,
         Sum,
