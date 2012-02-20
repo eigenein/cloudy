@@ -29,5 +29,13 @@ namespace Cloudy.Computing.Topologies.Helpers
             }
             return threadsCount;
         }
+
+        public static IEnumerable<StarRank> GetPeripherals(IEnvironment environment)
+        {
+            for (int index = 1; index < GetThreadsCount(environment); index++)
+            {
+                yield return new StarRank(index);
+            }
+        }
     }
 }

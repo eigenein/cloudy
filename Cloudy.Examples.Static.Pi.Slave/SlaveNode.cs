@@ -71,6 +71,13 @@ namespace Cloudy.Examples.Static.Pi.Slave
              */
             if (e.Rank.IsCentral)
             {
+                double pi = e.Reduce(UserTags.Default, partOfPi, ReduceOperation.Sum,
+                    StarTopologyHelper.GetPeripherals(environment));
+                Console.WriteLine("Pi is {0}", pi);
+            }
+            else
+            {
+                e.Reduce(UserTags.Default, partOfPi);
             }
         }
 

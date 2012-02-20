@@ -108,6 +108,7 @@
     <Compile Include="Computing\Interfaces\IEnvironment.cs" />
     <Compile Include="Computing\Interfaces\IEnvironmentTransport.cs" />
     <Compile Include="Computing\Interfaces\IInternalEnvironment.cs" />
+    <Compile Include="Computing\Reduction\ReduceHelper.cs" />
     <Compile Include="Computing\Reduction\ReducibleTypes\ReducibleBoolean.cs" />
     <Compile Include="Computing\Reduction\ReducibleTypes\ReducibleChar.cs" />
     <Compile Include="Computing\Reduction\ReducibleTypes\ReducibleDecimal.cs" />
@@ -131,6 +132,7 @@
     <Compile Include="Computing\Structures\Values\EndPointResponseValue.cs" />
     <Compile Include="Computing\Structures\Values\EnvironmentOperationValue.cs" />
     <Compile Include="Computing\Structures\Values\EndPointValue.cs" />
+    <Compile Include="Computing\Structures\Values\Environment\ReduceRequestValue.cs" />
     <Compile Include="Computing\Structures\Values\GetRemoteValueRequest.cs" />
     <Compile Include="Computing\Structures\Values\GetRemoteValueResponse.cs" />
     <Compile Include="Computing\Structures\Values\GuidValue.cs" />
@@ -185,9 +187,7 @@
       <Link>Cloudy.snk</Link>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Computing\Structures\Values\Environment\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\Cloudy.Protobuf\Cloudy.Protobuf.csproj">
       <Project>{C61D18FC-1546-40FA-B917-A972FA25B7ED}</Project>

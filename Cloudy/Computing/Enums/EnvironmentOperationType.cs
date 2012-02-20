@@ -13,6 +13,16 @@ namespace Cloudy.Computing.Enums
         /// <summary>
         /// Peer-To-Peer single message.
         /// </summary>
-        PeerToPeer = 1
+        PeerToPeer = 1,
+
+        /// <summary>
+        /// A request for a reduction operation.
+        /// </summary>
+        ReduceRequest = 2,
+
+        /// <summary>
+        /// A response that handles the current value of the reduction operation.
+        /// </summary>
+        ReduceResponse = 3
     }
 }
