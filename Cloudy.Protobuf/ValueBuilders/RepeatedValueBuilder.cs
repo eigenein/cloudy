@@ -62,7 +62,7 @@ namespace Cloudy.Protobuf.ValueBuilders
 
         public static ICollection<T> Cast<T>(ICollection<object> objects)
         {
-            return objects.Select(o => (T)o).ToList();
+            return objects.Cast<T>().ToList();
         }
     }
 }

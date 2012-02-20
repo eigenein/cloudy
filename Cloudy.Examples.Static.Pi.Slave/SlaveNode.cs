@@ -7,6 +7,7 @@ using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Nodes;
 using Cloudy.Computing.Topologies.Helpers;
 using Cloudy.Computing.Topologies.Structures;
+using Cloudy.Examples.Shared.Configuration;
 using NLog;
 
 namespace Cloudy.Examples.Static.Pi.Slave
@@ -14,6 +15,9 @@ namespace Cloudy.Examples.Static.Pi.Slave
     public class SlaveNode : AbstractSlaveNode<StarRank>
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+        private static readonly int IntervalsCount = 
+            ApplicationSettings.GetInteger("IntervalsCount");
 
         private readonly int slotsCount;
 
@@ -58,14 +62,15 @@ namespace Cloudy.Examples.Static.Pi.Slave
             Logger.Info("Running");
             int threadsCount = StarTopologyHelper.GetThreadsCount(environment);
             Logger.Info("Threads Count: {0}. Rank: {1}.", threadsCount, e.Rank);
-            double step = 1.0 / threadsCount;
+            double step = 1.0 / IntervalsCount;
             double sum = 0.0;
-            for (int i = e.Rank.Index + 1; i <= threadsCount; i++)
+            for (int i = e.Rank.Index + 1; i <= IntervalsCount; i += threadsCount)
             {
                 double x = step * (i - 0.5);
                 sum += 4.0 / (1.0 + x * x);
             }
             double partOfPi = step * sum;
+            Logger.Info("Part of Pi: {0}", partOfPi);
             /* MPI_Reduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM, 0,
                MPI_COMM_WORLD);
              */

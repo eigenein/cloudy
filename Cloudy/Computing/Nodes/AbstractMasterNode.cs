@@ -184,12 +184,15 @@ namespace Cloudy.Computing.Nodes
 
         private void RemoveThread(ThreadContext thread)
         {
-            slaveByRank.Remove(thread.Rank);
-            byte[] replacement;
-            if (Topology.RemoveThread(thread.Rank, out replacement))
+            lock (slaveByRank)
             {
-                ThreadPool.QueueUserWorkItem(o => ReassignRank(thread, 
-                    slaveByRank[replacement], replacement));
+                slaveByRank.Remove(thread.Rank);
+                byte[] replacement;
+                if (Topology.RemoveThread(thread.Rank, out replacement))
+                {
+                    ThreadPool.QueueUserWorkItem(o => ReassignRank(thread,
+                        slaveByRank[replacement], replacement));
+                }
             }
         }
 
@@ -209,8 +212,11 @@ namespace Cloudy.Computing.Nodes
                 // It's important to send the message before updating the caches.
                 Send(replacementSlave.ExternalEndPoint, value, Tags.ReassignRank);
                 replacementThread.Rank = thread.Rank; // This was removed.
-                slaveByRank[thread.Rank] = replacementSlave;
-                slaveByRank.Remove(replacementRank); // This was existing, but now is re-assigned.
+                lock (slaveByRank)
+                {
+                    slaveByRank[thread.Rank] = replacementSlave;
+                    slaveByRank.Remove(replacementRank); // This was existing, but now is re-assigned.
+                }
                 if (RankReassigned != null)
                 {
                     RankReassigned(this, new EventArgs<byte[], byte[]>(

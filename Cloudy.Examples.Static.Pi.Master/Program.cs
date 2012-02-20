@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Threading;
-using Cloudy.Computing;
 using Cloudy.Computing.Nodes;
-using Cloudy.Computing.Topologies;
 using Cloudy.Examples.Shared.Configuration;
 using NLog;
 
