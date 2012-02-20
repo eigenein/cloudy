@@ -67,6 +67,7 @@
     <Compile Include="Serializer.cs" />
     <Compile Include="Serializers\BoolSerializer.cs" />
     <Compile Include="Serializers\BytesSerializer.cs" />
+    <Compile Include="Serializers\DoubleSerializer.cs" />
     <Compile Include="Serializers\EmbeddedMessageSerializer.cs" />
     <Compile Include="Serializers\EnumSerializer.cs" />
     <Compile Include="Serializers\FixedInt32Serializer.cs" />
@@ -78,6 +79,7 @@
     <Compile Include="Serializers\PackedRepeatedSerializer.cs" />
     <Compile Include="Serializers\RepeatedSerializer.cs" />
     <Compile Include="Serializers\SignedVarintSerializer.cs" />
+    <Compile Include="Serializers\SingleSerializer.cs" />
     <Compile Include="Serializers\StringSerializer.cs" />
     <Compile Include="Serializers\UnsignedVarintSerializer.cs" />
     <Compile Include="Structures\BuildingProperty.cs" />

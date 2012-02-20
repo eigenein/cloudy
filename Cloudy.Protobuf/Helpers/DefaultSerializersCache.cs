@@ -20,7 +20,9 @@ namespace Cloudy.Protobuf.Helpers
                 {typeof(ulong), new UnsignedVarintSerializer()},
                 {typeof(string), new StringSerializer()},
                 {typeof(byte[]), new BytesSerializer()},
-                {typeof(Guid), new GuidSerializer()}
+                {typeof(Guid), new GuidSerializer()},
+                {typeof(double), new DoubleSerializer()},
+                {typeof(float), new SingleSerializer()}
             };
 
         public static bool TryGetSerializer(Type type,

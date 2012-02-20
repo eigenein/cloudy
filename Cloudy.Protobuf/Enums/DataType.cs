@@ -21,6 +21,8 @@ namespace Cloudy.Protobuf.Enums
         SignedVarint,
         UnsignedVarint,
         String,
-        Guid
+        Guid,
+        Double,
+        Single
     }
 }

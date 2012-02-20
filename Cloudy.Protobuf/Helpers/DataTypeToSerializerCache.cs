@@ -23,7 +23,9 @@ namespace Cloudy.Protobuf.Helpers
                 {DataType.SignedVarint, new SignedVarintSerializer()},
                 {DataType.String, new StringSerializer()},
                 {DataType.UnsignedVarint, new UnsignedVarintSerializer()},
-                {DataType.Guid, new GuidSerializer()}
+                {DataType.Guid, new GuidSerializer()},
+                {DataType.Double, new DoubleSerializer()},
+                {DataType.Single, new SingleSerializer()}
             };
 
         public static bool TryGetSerializer(DataType dataType, out SerializerWithWireType serializer)

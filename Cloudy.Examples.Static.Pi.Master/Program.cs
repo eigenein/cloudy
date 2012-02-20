@@ -28,7 +28,7 @@ namespace Cloudy.Examples.Static.Pi.Master
             MasterNode master = new MasterNode(Port, StartUpThreadsCount);
             ThreadPool.QueueUserWorkItem(HandleMessages, master);
             ThreadPool.QueueUserWorkItem(ProcessIncomingMessages, master);
-            Logger.Info("Awaiting for at least {0} slaves ...",
+            Logger.Info("Awaiting for at least {0} threads to join ...",
                 StartUpThreadsCount);
 
             Logger.Info("Press Enter to quit.");
