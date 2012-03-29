@@ -22,6 +22,10 @@ namespace Cloudy.Protobuf.ValueBuilders
 
         public RepeatedValueBuilder(Type underlyingType, bool instantiateEmptyList)
         {
+            if (underlyingType == null)
+            {
+                throw new ArgumentNullException("underlyingType");
+            }
             this.instantiateEmptyList = instantiateEmptyList;
             this.underlyingType = underlyingType;
         }
