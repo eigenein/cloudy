@@ -330,7 +330,10 @@ namespace Cloudy.Computing.Nodes
             {
                 thread.Abort();
             }
-            SendAsync(masterEndPoint, EmptyValue.Instance, Tags.Bye);
+            if (state == SlaveState.Joined)
+            {
+                SendAsync(masterEndPoint, EmptyValue.Instance, Tags.Bye);
+            }
             State = SlaveState.Left;
         }
 
