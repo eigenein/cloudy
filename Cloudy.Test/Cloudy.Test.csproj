@@ -95,6 +95,8 @@
     <Compile Include="Protobuf\TestClasses\H.cs" />
     <Compile Include="Protobuf\TestClasses\I.cs" />
     <Compile Include="Protobuf\TestClasses\J.cs" />
+    <Compile Include="Protobuf\TestClasses\K.cs" />
+    <Compile Include="Protobuf\TestClasses\L.cs" />
     <Compile Include="Protobuf\TestClasses\TestEnum.cs" />
   </ItemGroup>
   <ItemGroup>

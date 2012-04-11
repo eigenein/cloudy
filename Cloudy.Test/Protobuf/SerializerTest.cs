@@ -206,5 +206,22 @@ namespace Cloudy.Test.Protobuf
             I i = (I)serializer.Deserialize(new byte[] { 0x08, 0x96, 0x01 });
             Assert.AreEqual(150, i.NullableProperty);
         }
+
+        /// <summary>
+        /// Tests the specific case of reading a boolean value.
+        /// </summary>
+        [Test]
+        public void TestL()
+        {
+            byte[] bytes =
+            {
+                0x0A, 0x18, 0x0A, 0x09, 0x08, 0xBA, 0x1F, 0x12, 0x04, 0x7F,
+                0x00, 0x00, 0x01, 0x12, 0x09, 0x08, 0xBA, 0x1F, 0x12, 0x04, 
+                0x7F, 0x00, 0x00, 0x01, 0x18, 0x01, 0x10, 0x1F, 0x18, 0x22
+            };
+            Serializer serializer = Serializer.CreateSerializer(typeof(L));
+            L l = (L)serializer.Deserialize(bytes);
+            Assert.IsTrue(l.Value.IsFound);
+        }
     }
 }
