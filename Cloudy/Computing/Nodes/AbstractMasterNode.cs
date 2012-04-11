@@ -85,6 +85,8 @@ namespace Cloudy.Computing.Nodes
 
         public event ParameterizedEventHandler<byte[]> ThreadFailed;
 
+        public event ParameterizedEventHandler<byte[]> ThreadNotFound;
+
         public event ParameterizedEventHandler<byte[], byte[]> RankReassigned;
 
         protected abstract ITopology Topology { get; }
@@ -250,6 +252,7 @@ namespace Cloudy.Computing.Nodes
             EndPointResponseValue response = new EndPointResponseValue();
             if (slaveByRank.TryGetValue(targetThread, out slave))
             {
+                response.IsFound = true;
                 response.ExternalEndPoint.Value = slave.ExternalEndPoint;
                 response.LocalEndPoint.Value = slave.LocalEndPoint;
             }
@@ -262,6 +265,10 @@ namespace Cloudy.Computing.Nodes
                  */
                 response.LocalEndPoint = null;
                 response.ExternalEndPoint = null;
+                if (ThreadNotFound != null)
+                {
+                    ThreadNotFound(this, new EventArgs<byte[]>(targetThread));
+                }
             }
             ThreadPool.QueueUserWorkItem(o => Send(
                 remoteEndPoint, response, Tags.EndPointResponse));

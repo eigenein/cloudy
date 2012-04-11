@@ -54,6 +54,10 @@ namespace Cloudy.Examples.Static.Pi.Slave
             RankReassigned += (sender, e) =>
                 Logger.Info("Rank reassigned: {0} -> {1}",
                 BitConverter.ToString(e.Value1), BitConverter.ToString(e.Value2));
+            BytesSent += (sender, e) =>
+                Logger.Debug("Out: {0}", BitConverter.ToString(e.Value));
+            BytesReceived += (sender, e) =>
+                Logger.Debug("In:  {0}", BitConverter.ToString(e.Value));
         }
 
         private static void Run(IEnvironment environment)

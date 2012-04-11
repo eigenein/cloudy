@@ -430,7 +430,7 @@ namespace Cloudy.Computing.Nodes
                         Tags.EndPointRequest);
                     response = ReceiveFrom<EndPointResponseValue>(masterEndPoint);
                 }
-                if (response.IsFound == false)
+                if (!response.IsFound)
                 {
                     throw new KeyNotFoundException(String.Format(
                         "The thread was not found in the network: {0}",

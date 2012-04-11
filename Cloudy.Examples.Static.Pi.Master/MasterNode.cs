@@ -40,6 +40,12 @@ namespace Cloudy.Examples.Static.Pi.Master
             RankReassigned += (sender, e) =>
                 Logger.Info("Rank reassigned: {0} -> {1}",
                 BitConverter.ToString(e.Value1), BitConverter.ToString(e.Value2));
+            ThreadNotFound += (sender, e) =>
+                Logger.Error("Thread was not found: {0}", BitConverter.ToString(e.Value));
+            BytesSent += (sender, e) =>
+                Logger.Debug("Out: {0}", BitConverter.ToString(e.Value));
+            BytesReceived += (sender, e) =>
+                Logger.Debug("In:  {0}", BitConverter.ToString(e.Value));
         }
 
         #region Overrides of AbstractMasterNode

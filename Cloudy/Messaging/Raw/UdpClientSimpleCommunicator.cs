@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+
+using Cloudy.Helpers;
 using Cloudy.Messaging.Interfaces;
 
 namespace Cloudy.Messaging.Raw
@@ -22,6 +24,14 @@ namespace Cloudy.Messaging.Raw
             this.udpClient = udpClient;
         }
 
+        #region Events
+
+        public event ParameterizedEventHandler<byte[]> BytesSent;
+
+        public event ParameterizedEventHandler<byte[]> BytesReceived;
+
+        #endregion
+
         #region Implementation of IRawCommunicator
 
         /// <summary>
@@ -30,6 +40,10 @@ namespace Cloudy.Messaging.Raw
         public void Send(byte[] data)
         {
             udpClient.Send(data, data.Length);
+            if (BytesSent != null)
+            {
+                BytesSent(this, new EventArgs<byte[]>(data));
+            }
         }
 
         /// <summary>
@@ -39,7 +53,12 @@ namespace Cloudy.Messaging.Raw
         public byte[] Receive()
         {
             IPEndPoint remoteEndPoint = null;
-            return udpClient.Receive(ref remoteEndPoint);
+            byte[] data = udpClient.Receive(ref remoteEndPoint);
+            if (BytesReceived != null)
+            {
+                BytesReceived(this, new EventArgs<byte[]>(data));
+            }
+            return data;
         }
 
         /// <summary>
@@ -60,6 +79,10 @@ namespace Cloudy.Messaging.Raw
         public void Send(byte[] data, IPEndPoint endPoint)
         {
             udpClient.Send(data, data.Length, endPoint);
+            if (BytesSent != null)
+            {
+                BytesSent(this, new EventArgs<byte[]>(data));
+            }
         }
 
         /// <summary>
@@ -69,7 +92,12 @@ namespace Cloudy.Messaging.Raw
         public byte[] Receive(out IPEndPoint endPoint)
         {
             endPoint = null;
-            return udpClient.Receive(ref endPoint);
+            byte[] data = udpClient.Receive(ref endPoint);
+            if (BytesReceived != null)
+            {
+                BytesReceived(this, new EventArgs<byte[]>(data));
+            }
+            return data;
         }
 
         #endregion

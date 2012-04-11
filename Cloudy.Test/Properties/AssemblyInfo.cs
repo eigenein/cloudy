@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Cloudy Message Passing Library")]
-[assembly: AssemblyCopyright("Pavel Perestoronin © 2011")]
+[assembly: AssemblyCopyright("Pavel Perestoronin © 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

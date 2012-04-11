@@ -21,9 +21,8 @@ namespace Cloudy.Computing.Structures.Values
         /// <summary>
         /// Indicates whether the requested thread was found.
         /// </summary>
-        /// <value>The <c>null</c> means the same as <c>true</c>.</value>
         [ProtobufField(3)]
-        public bool? IsFound { get; set; }
+        public bool IsFound { get; set; }
 
         public override string ToString()
         {
