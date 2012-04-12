@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using Cloudy.Collections;
@@ -127,19 +128,31 @@ namespace Cloudy.Computing.Nodes
 
         #region ReceiveFrom
 
-        protected IMessage ReceiveFrom(IPEndPoint endPoint)
+        protected IMessage ReceiveFrom(IPEndPoint endPoint, int expectedTag)
         {
-            return unhandledMessages.Dequeue(endPoint, ReceiveTimeout);
+            IMessage message = unhandledMessages.Dequeue(endPoint, ReceiveTimeout);
+            if (message.Tag != expectedTag)
+            {
+                throw new InvalidDataException(String.Format(
+                    "Invalid tag: {0}, expected: {1}.", message.Tag, expectedTag));
+            }
+            return message;
         }
 
-        protected T ReceiveFrom<T>(IPEndPoint endPoint)
+        protected T ReceiveFrom<T>(IPEndPoint endPoint, int expectedTag)
         {
-            return unhandledMessages.Dequeue(endPoint, ReceiveTimeout).Get<T>();
+            return ReceiveFrom(endPoint, expectedTag).Get<T>();
         }
 
-        protected T ReceiveFrom<T>(IPEndPoint endPoint, TimeSpan timeout)
+        protected T ReceiveFrom<T>(IPEndPoint endPoint, int expectedTag, TimeSpan timeout)
         {
-            return unhandledMessages.Dequeue(endPoint, timeout).Get<T>();
+            IMessage message = unhandledMessages.Dequeue(endPoint, timeout);
+            if (message.Tag != expectedTag)
+            {
+                throw new InvalidDataException(String.Format(
+                    "Invalid tag: {0}, expected: {1}.", message.Tag, expectedTag));
+            }
+            return message.Get<T>();
         }
 
         #endregion

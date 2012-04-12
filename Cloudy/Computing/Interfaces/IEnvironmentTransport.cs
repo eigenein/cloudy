@@ -14,7 +14,7 @@ namespace Cloudy.Computing.Interfaces
 
         void SendToMaster<TMessage>(TMessage message, int tag);
 
-        TMessage ReceiveFromMaster<TMessage>();
+        TMessage ReceiveFromMaster<TMessage>(int expectedTag);
 
         void Send(EnvironmentOperationValue operationValue);
     }

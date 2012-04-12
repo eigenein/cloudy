@@ -115,8 +115,8 @@ namespace Cloudy.Computing
                     request.Namespace = @namespace;
                     request.Key = key;
                     Transport.SendToMaster(request, Tags.GetRemoteValueRequest);
-                    GetRemoteValueResponse response =
-                        Transport.ReceiveFromMaster<GetRemoteValueResponse>();
+                    GetRemoteValueResponse response = Transport.ReceiveFromMaster<GetRemoteValueResponse>(
+                        Tags.GetRemoteValueResponse);
                     if (response.Success != false)
                     {
                         value = response.Get<WrappedValue<TValue>>().Value;

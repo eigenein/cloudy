@@ -30,8 +30,7 @@ namespace Cloudy.Computing.Nodes
 
         /// <summary>
         /// Use this lock every time you need a bi-directional conversation
-        /// with the Master using both Send and Receive methods. One-directional
-        /// replies and notifications don't need this lock.
+        /// with the Master using both Send and Receive methods.
         /// </summary>
         private readonly object masterConversationLock = new object();
 
@@ -137,7 +136,7 @@ namespace Cloudy.Computing.Nodes
             lock (masterConversationLock)
             {
                 Send(endPoint, request, Tags.JoinRequest);
-                response = ReceiveFrom<JoinResponseValue>(endPoint);
+                response = ReceiveFrom<JoinResponseValue>(endPoint, Tags.JoinResponse);
             }
             SlaveId = response.SlaveId;
             ExternalEndPoint = response.ExternalEndPoint.Value;
@@ -177,8 +176,11 @@ namespace Cloudy.Computing.Nodes
 
         private void OnThreadCompleted(object sender, EventArgs<byte[]> e)
         {
-            Send(masterEndPoint, new WrappedValue<byte[]> { Value = e.Value },
-                Tags.ThreadCompleted);
+            lock (masterConversationLock)
+            {
+                Send(masterEndPoint, new WrappedValue<byte[]> { Value = e.Value },
+                    Tags.ThreadCompleted);
+            }
         }
 
         /// <summary>
@@ -188,8 +190,11 @@ namespace Cloudy.Computing.Nodes
         /// <param name="e">Contains an exception object if any have been thrown.</param>
         private void OnThreadFailed(object sender, EventArgs<byte[], Exception> e)
         {
-            Send(masterEndPoint, new WrappedValue<byte[]> { Value = e.Value1 }, 
-                Tags.ThreadFailed);
+            lock (masterConversationLock)
+            {
+                Send(masterEndPoint, new WrappedValue<byte[]> { Value = e.Value1 },
+                    Tags.ThreadFailed);
+            }
             if (e.Value2 != null && ExceptionUnhandled != null)
             {
                 ExceptionUnhandled(this, new EventArgs<Exception>(e.Value2));
@@ -332,7 +337,10 @@ namespace Cloudy.Computing.Nodes
             }
             if (state == SlaveState.Joined)
             {
-                SendAsync(masterEndPoint, EmptyValue.Instance, Tags.Bye);
+                lock (masterConversationLock)
+                {
+                    SendAsync(masterEndPoint, EmptyValue.Instance, Tags.Bye);
+                }
             }
             State = SlaveState.Left;
         }
@@ -351,12 +359,18 @@ namespace Cloudy.Computing.Nodes
 
         void IEnvironmentTransport.SendToMaster<TMessage>(TMessage message, int tag)
         {
-            Send(masterEndPoint, message, tag);
+            lock (masterConversationLock)
+            {
+                Send(masterEndPoint, message, tag);
+            }
         }
 
-        TMessage IEnvironmentTransport.ReceiveFromMaster<TMessage>()
+        TMessage IEnvironmentTransport.ReceiveFromMaster<TMessage>(int expectedTag)
         {
-            return ReceiveFrom<TMessage>(masterEndPoint);
+            lock (masterConversationLock)
+            {
+                return ReceiveFrom<TMessage>(masterEndPoint, expectedTag);
+            }
         }
 
         void IEnvironmentTransport.Send(EnvironmentOperationValue operationValue)
@@ -431,7 +445,8 @@ namespace Cloudy.Computing.Nodes
                 {
                     Send(masterEndPoint, new WrappedValue<byte[]> { Value = destination },
                         Tags.EndPointRequest);
-                    response = ReceiveFrom<EndPointResponseValue>(masterEndPoint);
+                    response = ReceiveFrom<EndPointResponseValue>(
+                        masterEndPoint, Tags.EndPointResponse);
                 }
                 if (!response.IsFound)
                 {
@@ -488,7 +503,7 @@ namespace Cloudy.Computing.Nodes
                 request.SenderExternalEndPoint.Value = ExternalEndPoint;
                 Send(masterEndPoint, request, Tags.SignedPingRequest);
                 SignedPingResponse response = ReceiveFrom<SignedPingResponse>(
-                    masterEndPoint, SignedPingResponseTimeout);
+                    masterEndPoint, Tags.SignedPingResponse, SignedPingResponseTimeout);
                 if (response.Success == true)
                 {
                     /* 
