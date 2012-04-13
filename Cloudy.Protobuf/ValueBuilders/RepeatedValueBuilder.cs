@@ -54,10 +54,13 @@ namespace Cloudy.Protobuf.ValueBuilders
                 return null;
             }
             MethodInfo castMethod;
-            if (!CastMethodsCache.TryGetValue(underlyingType, out castMethod))
+            lock (CastMethodsCache)
             {
-                CastMethodsCache[underlyingType] = castMethod =
-                    GetType().GetMethod("Cast").MakeGenericMethod(underlyingType);
+                if (!CastMethodsCache.TryGetValue(underlyingType, out castMethod))
+                {
+                    CastMethodsCache[underlyingType] = castMethod =
+                        GetType().GetMethod("Cast").MakeGenericMethod(underlyingType);
+                }
             }
             return castMethod.Invoke(null, new object[] { list });
         }
