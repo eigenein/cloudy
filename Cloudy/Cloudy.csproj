@@ -171,7 +171,6 @@
     <Compile Include="Messaging\Enums\CommonTags.cs" />
     <Compile Include="Messaging\Interfaces\IMessage.cs" />
     <Compile Include="Messaging\Interfaces\ISimpleCommunicator.cs" />
-    <Compile Include="Messaging\Structures\Dto.cs" />
     <Compile Include="Messaging\Structures\EmptyValue.cs" />
     <Compile Include="Messaging\Structures\ByteArrayValue.cs" />
     <Compile Include="Messaging\Structures\TrackableDto.cs" />

@@ -62,8 +62,8 @@ namespace Cloudy.Messaging.Structures
             }
             if (!waitHandleInstance.WaitOne(timeout))
             {
-                throw new TimeoutException(
-                    String.Format("Timeout: {0}", timeout));
+                throw new TimeoutException(String.Format(
+                    "Could not deliver the message with tracking ID #{0}.", trackingId));
             }
         }
 

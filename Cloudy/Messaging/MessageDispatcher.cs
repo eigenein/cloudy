@@ -129,10 +129,10 @@ namespace Cloudy.Messaging
             T message, int tag, AsyncCallback callback, object state)
         {
             TrackableDto<T> dto = new TrackableDto<T>(CreateTrackingId(), tag, message);
-            communicator.Send(dto, endPoint);
-            MessagingAsyncResult ar = new MessagingAsyncResult(dto.TrackingId,
-                1, callback, state);
+            MessagingAsyncResult ar = new MessagingAsyncResult(
+                dto.TrackingId, 1, callback, state);
             sendQueue.Add(dto.TrackingId, ar);
+            communicator.Send(dto, endPoint);
             return ar;
         }
 
@@ -142,16 +142,16 @@ namespace Cloudy.Messaging
         public MessagingAsyncResult BeginSend<T>(TEndPoint[] endPoints, 
             T message, int tag, AsyncCallback callback, object state)
         {
-            // Pre-serialize the DTO to improve performance.
             long trackingId = CreateTrackingId();
+            MessagingAsyncResult ar = new MessagingAsyncResult(
+                trackingId, endPoints.Length, callback, state);
+            sendQueue.Add(trackingId, ar);
+            // Pre-serialize the DTO to improve performance.
             byte[] bytes = new TrackableDto<T>(trackingId, tag, message).Serialize();
             foreach (TEndPoint endPoint in endPoints)
             {
                 communicator.SimpleCommunicator.Send(bytes, endPoint);
             }
-            MessagingAsyncResult ar = new MessagingAsyncResult(trackingId,
-                endPoints.Length, callback, state);
-            sendQueue.Add(trackingId, ar);
             return ar;
         }
 

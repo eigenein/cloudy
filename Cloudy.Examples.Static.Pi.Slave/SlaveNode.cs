@@ -75,9 +75,6 @@ namespace Cloudy.Examples.Static.Pi.Slave
             }
             double partOfPi = step * sum;
             Logger.Info("Part of Pi: {0}", partOfPi);
-            /* MPI_Reduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM, 0,
-               MPI_COMM_WORLD);
-             */
             if (e.Rank.IsCentral)
             {
                 double pi = e.Reduce(UserTags.Default, partOfPi, ReduceOperation.Sum,
@@ -88,6 +85,7 @@ namespace Cloudy.Examples.Static.Pi.Slave
             {
                 e.Reduce(UserTags.Default, partOfPi);
             }
+            Logger.Info("Reduce has finished.");
         }
 
         #region Overrides of AbstractSlaveNode
