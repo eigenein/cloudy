@@ -24,7 +24,7 @@ namespace Cloudy.Messaging
         private readonly Dictionary<long, MessagingAsyncResult> sendQueue =
             new Dictionary<long, MessagingAsyncResult>();
 
-        private readonly BlockingQueue<Tuple<TrackableDto, TEndPoint>> receiveQueue = 
+        private readonly BlockingQueue<Tuple<TrackableDto, TEndPoint>> receiveQueue =
             new BlockingQueue<Tuple<TrackableDto, TEndPoint>>();
 
         #endregion
@@ -132,14 +132,17 @@ namespace Cloudy.Messaging
             communicator.Send(dto, endPoint);
             MessagingAsyncResult ar = new MessagingAsyncResult(dto.TrackingId,
                 1, callback, state);
-            sendQueue.Add(dto.TrackingId, ar);
+            lock (sendQueue)
+            {
+                sendQueue.Add(dto.TrackingId, ar);
+            }
             return ar;
         }
 
         /// <summary>
         /// Starts an asynchronous sending of the message.
         /// </summary>
-        public MessagingAsyncResult BeginSend<T>(TEndPoint[] endPoints, 
+        public MessagingAsyncResult BeginSend<T>(TEndPoint[] endPoints,
             T message, int tag, AsyncCallback callback, object state)
         {
             // Pre-serialize the DTO to improve performance.
