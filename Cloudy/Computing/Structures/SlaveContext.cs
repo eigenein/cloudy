@@ -6,6 +6,8 @@ namespace Cloudy.Computing.Structures
 {
     public class SlaveContext
     {
+        private readonly object synchronizationRoot = new object();
+
         public SlaveContext()
         {
             Threads = new List<ThreadContext>();
@@ -20,5 +22,13 @@ namespace Cloudy.Computing.Structures
         public int SlotsCount { get; set; }
 
         public List<ThreadContext> Threads { get; set; }
+
+        /// <summary>
+        /// Used when sending or receiving messages to or from the slave.
+        /// </summary>
+        public object SynchonizationRoot
+        {
+            get { return synchronizationRoot; }
+        }
     }
 }

@@ -4,6 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
+
 using Cloudy.Collections;
 using Cloudy.Helpers;
 using Cloudy.Messaging;
@@ -90,7 +92,8 @@ namespace Cloudy.Computing.Nodes
                 Action<IPEndPoint, IMessage> handler;
                 if (handlers.TryGetValue(tag, out handler))
                 {
-                    handler(remoteEndPoint, message);
+                    ThreadPool.QueueUserWorkItem(state =>
+                        handler(remoteEndPoint, message));
                 }
                 else
                 {

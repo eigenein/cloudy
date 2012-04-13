@@ -263,8 +263,7 @@ namespace Cloudy.Computing.Nodes
         private void HandleSignedPingRequest(IPEndPoint remoteEndPoint, IMessage message)
         {
             SignedPingRequest request = message.Get<SignedPingRequest>();
-            ThreadPool.UnsafeQueueUserWorkItem(
-                o => ServeSignedPingRequest(remoteEndPoint, request), null);
+            ServeSignedPingRequest(remoteEndPoint, request);
         }
 
         private void HandleReassignRank(IPEndPoint remoteEndPoint, IMessage message)
@@ -311,7 +310,10 @@ namespace Cloudy.Computing.Nodes
                 SignedPingFinished(this, new EventArgs<ICollection<byte[]>, bool>(
                     request.LocalRanks, response.Success == true));
             }
-            Send(remoteEndPoint, response, Tags.SignedPingResponse);
+            lock (masterConversationLock)
+            {
+                Send(remoteEndPoint, response, Tags.SignedPingResponse);
+            }
         }
 
         private bool MakeSignedPing(IPEndPoint targetEndPoint)

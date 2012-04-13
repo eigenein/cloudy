@@ -192,8 +192,7 @@ namespace Cloudy.Computing.Nodes
                 byte[] replacement;
                 if (Topology.RemoveThread(thread.Rank, out replacement))
                 {
-                    ThreadPool.QueueUserWorkItem(o => ReassignRank(thread,
-                        slaveByRank[replacement], replacement));
+                    ReassignRank(thread, slaveByRank[replacement], replacement);
                 }
             }
         }
@@ -212,7 +211,10 @@ namespace Cloudy.Computing.Nodes
                 value.OldRank = replacementRank;
                 value.NewRank = thread.Rank;
                 // It's important to send the message before updating the caches.
-                Send(replacementSlave.ExternalEndPoint, value, Tags.ReassignRank);
+                lock (replacementSlave.SynchonizationRoot)
+                {
+                    Send(replacementSlave.ExternalEndPoint, value, Tags.ReassignRank);
+                }
                 replacementThread.Rank = thread.Rank; // This was removed.
                 lock (slaveByRank)
                 {
@@ -247,6 +249,15 @@ namespace Cloudy.Computing.Nodes
 
         private void HandleEndPointRequest(IPEndPoint remoteEndPoint, IMessage message)
         {
+            SlaveContext requestingSlave;
+            lock (slaveByEndPoint)
+            {
+                if (!slaveByEndPoint.TryGetValue(remoteEndPoint, out requestingSlave))
+                {
+                    throw new KeyNotFoundException(String.Format(
+                        "The remote endpoint is not found: {0}.", remoteEndPoint));
+                }
+            }
             byte[] targetThread = message.Get<WrappedValue<byte[]>>().Value;
             SlaveContext slave;
             EndPointResponseValue response = new EndPointResponseValue();
@@ -270,8 +281,10 @@ namespace Cloudy.Computing.Nodes
                     ThreadNotFound(this, new EventArgs<byte[]>(targetThread));
                 }
             }
-            ThreadPool.QueueUserWorkItem(o => Send(
-                remoteEndPoint, response, Tags.EndPointResponse));
+            lock (requestingSlave.SynchonizationRoot)
+            {
+                Send(remoteEndPoint, response, Tags.EndPointResponse);
+            }
         }
 
         private void HandleSignedPingRequest(IPEndPoint remoteEndPoint, IMessage message)
@@ -280,8 +293,10 @@ namespace Cloudy.Computing.Nodes
             SlaveContext targetSlave;
             if (slaveByRank.TryGetValue(request.Destination, out targetSlave))
             {
-                ThreadPool.QueueUserWorkItem(o => Send(
-                    targetSlave.ExternalEndPoint, request, Tags.SignedPingRequest));
+                lock (targetSlave.SynchonizationRoot)
+                {
+                    Send(targetSlave.ExternalEndPoint, request, Tags.SignedPingRequest);
+                }
             }
         }
 
@@ -290,7 +305,19 @@ namespace Cloudy.Computing.Nodes
             SignedPingResponse response = message.Get<SignedPingResponse>();
             IPEndPoint targetEndPoint = response.SenderExternalEndPoint.Value;
             response.SenderExternalEndPoint = null;
-            SendAsync(targetEndPoint, response, Tags.SignedPingResponse);
+            SlaveContext targetSlave;
+            lock (slaveByEndPoint)
+            {
+                if (!slaveByEndPoint.TryGetValue(remoteEndPoint, out targetSlave))
+                {
+                    throw new KeyNotFoundException(String.Format(
+                        "The sender external endpoint is not found: {0}.", remoteEndPoint));
+                }
+            }
+            lock (targetSlave.SynchonizationRoot)
+            {
+                SendAsync(targetEndPoint, response, Tags.SignedPingResponse);
+            }
         }
 
         private void SetRemoteValue(byte[] @namespace, string key, byte[] value,
@@ -322,8 +349,19 @@ namespace Cloudy.Computing.Nodes
             {
                 response.Success = false;
             }
-            ThreadPool.QueueUserWorkItem(o => Send(
-                remoteEndPoint, response, Tags.GetRemoteValueResponse));
+            SlaveContext requestingSlave;
+            lock (slaveByEndPoint)
+            {
+                if (!slaveByEndPoint.TryGetValue(remoteEndPoint, out requestingSlave))
+                {
+                    throw new KeyNotFoundException(String.Format(
+                        "The remote endpoint is not found: {0}.", remoteEndPoint));
+                }
+            }
+            lock (requestingSlave.SynchonizationRoot)
+            {
+                Send(remoteEndPoint, response, Tags.GetRemoteValueResponse);
+            }
         }
 
         private void HandleThreadCompleted(IPEndPoint remoteEndPoint, IMessage message)
@@ -493,11 +531,22 @@ namespace Cloudy.Computing.Nodes
         /// <returns>Whether the thread was successfully stopped.</returns>
         private bool StopThread(IPEndPoint targetEndPoint, ThreadContext thread)
         {
+            SlaveContext targetSlave;
+            lock (slaveByEndPoint)
+            {
+                if (!slaveByEndPoint.TryGetValue(targetEndPoint, out targetSlave))
+                {
+                    return false;
+                }
+            }
             WrappedValue<byte[]> value = new WrappedValue<byte[]>();
             value.Value = thread.Rank;
             try
             {
-                Send(targetEndPoint, value, Tags.StopThread);
+                lock (targetSlave.SynchonizationRoot)
+                {
+                    Send(targetEndPoint, value, Tags.StopThread);
+                }
                 thread.State = Enums.ThreadState.NotRunning;
                 return true;
             }
@@ -512,9 +561,12 @@ namespace Cloudy.Computing.Nodes
         /// </summary>
         public void Close()
         {
-            foreach (IPEndPoint endPoint in slaveByEndPoint.Keys)
+            foreach (KeyValuePair<IPEndPoint, SlaveContext> pair in slaveByEndPoint)
             {
-                SendAsync(endPoint, EmptyValue.Instance, Tags.Bye);
+                lock (pair.Value.SynchonizationRoot)
+                {
+                    SendAsync(pair.Key, EmptyValue.Instance, Tags.Bye);
+                }
             }
             State = MasterState.Left;
         }
