@@ -39,6 +39,11 @@ namespace Cloudy.Computing.Reduction
 
         public static Action<IReducible, IReducible> Get(ReduceOperation operation)
         {
+            if (operation == ReduceOperation.Custom)
+            {
+                throw new NotSupportedException(
+                    "Custom reduce operation must be specified explicitly.");
+            }
             return Cache[operation];
         }
     }
