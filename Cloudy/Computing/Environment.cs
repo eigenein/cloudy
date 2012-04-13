@@ -249,12 +249,15 @@ namespace Cloudy.Computing
         /// <param name="tag">The user tag.</param>
         /// <param name="operation">The reduce operation.</param>
         /// <param name="targets">Threads to gather values from.</param>
+        /// <param name="targetsCount">A target threads count.</param>
         /// <returns>The combined value.</returns>
-        public T Reduce<T>(int tag, ReduceOperation operation, IEnumerable<TRank> targets)
+        private T Reduce<T>(int tag, ReduceOperation operation, 
+            IEnumerable<TRank> targets, out int targetsCount)
         {
             // Prepare the request.
             EnvironmentOperationValue requestOperationValue = new EnvironmentOperationValue();
             requestOperationValue.Recipients = targets.Select(RankConverter<TRank>.Convert).ToList();
+            targetsCount = requestOperationValue.Recipients.Count;
             if (requestOperationValue.Recipients.Count == 0)
             {
                 return default(T);
@@ -283,13 +286,32 @@ namespace Cloudy.Computing
         /// </summary>
         /// <typeparam name="T">The value type.</typeparam>
         /// <param name="tag">The user tag.</param>
+        /// <param name="operation">The reduce operation.</param>
+        /// <param name="targets">Threads to gather values from.</param>
+        /// <returns>The combined value.</returns>
+        public T Reduce<T>(int tag, ReduceOperation operation, IEnumerable<TRank> targets)
+        {
+            // targetsCount is ignored.
+            int targetsCount;
+            return Reduce<T>(tag, operation, targets, out targetsCount);
+        }
+
+        /// <summary>
+        /// Performs the reduction operation. It combines the values provided 
+        /// by each thread, using a specified <paramref name="operation"/>, 
+        /// and returns the combined value.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
         /// <param name="value">A value that is provided by the local node.</param>
         /// <param name="operation">The reduce operation.</param>
         /// <param name="targets">Threads to gather values from.</param>
         /// <returns>The combined value.</returns>
         public T Reduce<T>(int tag, T value, ReduceOperation operation, IEnumerable<TRank> targets)
         {
-            return ReduceHelper<T>.Reduce(value, Reduce<T>(tag, operation, targets), operation);
+            int targetsCount;
+            T targetsValue = Reduce<T>(tag, operation, targets, out targetsCount);
+            return targetsCount != 0 ? ReduceHelper<T>.Reduce(value, targetsValue, operation) : value;
         }
 
         /// <summary>
