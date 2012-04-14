@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Interfaces;
+using Cloudy.Computing.Reduction.Delegates;
 
 namespace Cloudy.Computing.Reduction
 {
@@ -10,8 +11,8 @@ namespace Cloudy.Computing.Reduction
     /// </summary>
     public static class ReductorsCache
     {
-        private static readonly IDictionary<ReduceOperation, Action<IReducible, IReducible>> Cache =
-            new Dictionary<ReduceOperation, Action<IReducible, IReducible>>();
+        private static readonly IDictionary<ReduceOperation, Reductor> Cache =
+            new Dictionary<ReduceOperation, Reductor>();
 
         static ReductorsCache()
         {
@@ -37,7 +38,7 @@ namespace Cloudy.Computing.Reduction
                 (accumulatedValue, nextValue) => accumulatedValue.Add(nextValue));
         }
 
-        public static Action<IReducible, IReducible> Get(ReduceOperation operation)
+        public static Reductor Get(ReduceOperation operation)
         {
             if (operation == ReduceOperation.Custom)
             {
