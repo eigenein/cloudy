@@ -45,12 +45,9 @@
     <AssemblyOriginatorKeyFile>..\Cloudy.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NLog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -60,6 +57,19 @@
     <None Include="..\Cloudy.snk">
       <Link>Cloudy.snk</Link>
     </None>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cloudy.Examples.Shared\Cloudy.Examples.Shared.csproj">
+      <Project>{E2C08F4D-6607-4520-9E2B-DCBB03F1A78E}</Project>
+      <Name>Cloudy.Examples.Shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Cloudy\Cloudy.csproj">
+      <Project>{670CB013-9734-4D71-BE05-070FED4C0EF2}</Project>
+      <Name>Cloudy</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

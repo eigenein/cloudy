@@ -467,7 +467,7 @@ namespace Cloudy.Computing
             MapReduceRequestValue<TValue> mapReduceRequest = new MapReduceRequestValue<TValue>();
             mapReduceRequest.Participants = requestOperationValue.Recipients;
             mapReduceRequest.Value = value;
-            requestOperationValue.Set(value);
+            requestOperationValue.Set(mapReduceRequest);
             // Send the request.
             Transport.Send(requestOperationValue);
             // Awaiting for the response.

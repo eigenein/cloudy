@@ -122,5 +122,10 @@ namespace Cloudy.Computing.Reduction
         }
 
         #endregion
+
+        public override string ToString()
+        {
+            return value.ToString();
+        }
     }
 }
