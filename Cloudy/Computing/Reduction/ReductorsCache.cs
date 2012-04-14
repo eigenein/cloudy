@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Cloudy.Computing.Enums;
-using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Reduction.Delegates;
 
 namespace Cloudy.Computing.Reduction

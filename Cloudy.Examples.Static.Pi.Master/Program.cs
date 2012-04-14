@@ -18,7 +18,7 @@ namespace Cloudy.Examples.Static.Pi.Master
         private static readonly int StartUpThreadsCount =
             ApplicationSettings.GetInteger("StartUpThreadsCount");
 
-        static void Main(string[] args)
+        static void Main()
         {
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 

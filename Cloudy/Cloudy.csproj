@@ -108,6 +108,7 @@
     <Compile Include="Computing\Interfaces\IEnvironment.cs" />
     <Compile Include="Computing\Interfaces\IEnvironmentTransport.cs" />
     <Compile Include="Computing\Interfaces\IInternalEnvironment.cs" />
+    <Compile Include="Computing\Reduction\Delegates\MapFunction.cs" />
     <Compile Include="Computing\Reduction\Delegates\Reductor.cs" />
     <Compile Include="Computing\Reduction\ReduceHelper.cs" />
     <Compile Include="Computing\Reduction\ReducibleTypes\ReducibleBoolean.cs" />
@@ -133,6 +134,7 @@
     <Compile Include="Computing\Structures\Values\EndPointResponseValue.cs" />
     <Compile Include="Computing\Structures\Values\EnvironmentOperationValue.cs" />
     <Compile Include="Computing\Structures\Values\EndPointValue.cs" />
+    <Compile Include="Computing\Structures\Values\Environment\MapReduceRequestValue.cs" />
     <Compile Include="Computing\Structures\Values\Environment\ReduceRequestValue.cs" />
     <Compile Include="Computing\Structures\Values\GetRemoteValueRequest.cs" />
     <Compile Include="Computing\Structures\Values\GetRemoteValueResponse.cs" />

@@ -440,5 +440,92 @@ namespace Cloudy.Computing
         }
 
         #endregion
+
+        #region MapReduce
+
+        /// <summary>
+        /// Performs the Map-Reduce operation against the nodes.
+        /// </summary>
+        /// <typeparam name="TValue">The type of source values.</typeparam>
+        /// <typeparam name="TResult">The result type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">The source value.</param>
+        /// <param name="targets">Target nodes.</param>
+        public TResult MapReduce<TValue, TResult>(int tag, TValue value, IEnumerable<TRank> targets)
+        {
+            // Prepare the request.
+            EnvironmentOperationValue requestOperationValue = new EnvironmentOperationValue();
+            requestOperationValue.Recipients = targets.Select(RankConverter<TRank>.Convert).ToList();
+            if (requestOperationValue.Recipients.Count == 0)
+            {
+                return default(TResult);
+            }
+            requestOperationValue.OperationId = GetOperationId();
+            requestOperationValue.OperationType = EnvironmentOperationType.MapReduceRequest;
+            requestOperationValue.Sender = RawRank;
+            requestOperationValue.UserTag = tag;
+            MapReduceRequestValue<TValue> mapReduceRequest = new MapReduceRequestValue<TValue>();
+            mapReduceRequest.Participants = requestOperationValue.Recipients;
+            mapReduceRequest.Value = value;
+            requestOperationValue.Set(value);
+            // Send the request.
+            Transport.Send(requestOperationValue);
+            // Awaiting for the response.
+            EnvironmentOperationValue previousOperationValue = Queue.Dequeue(v =>
+                v.OperationId == requestOperationValue.OperationId &&
+                v.OperationType == EnvironmentOperationType.MapReduceResponse);
+            return previousOperationValue.Get<WrappedValue<TResult>>().Value;
+        }
+
+        /// <summary>
+        /// Performs a local part of the Map-Reduce operation.
+        /// </summary>
+        /// <typeparam name="TValue">The type of source values.</typeparam>
+        /// <typeparam name="TResult">The result type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="mapOperation">Map operation.</param>
+        /// <param name="reduceOperation">Reduce operation.</param>
+        public void MapReduce<TValue, TResult>(int tag, 
+            MapFunction<TValue, TResult> mapOperation, 
+            Reductor<TResult> reduceOperation)
+        {
+            EnvironmentOperationValue requestOperationValue = Queue.Dequeue(v =>
+                v.OperationType == EnvironmentOperationType.MapReduceRequest && v.UserTag == tag);
+            MapReduceRequestValue<TValue> request = 
+                requestOperationValue.Get<MapReduceRequestValue<TValue>>();
+            TResult result = mapOperation(request.Value);
+            byte[] previousRank = null;
+            IEnumerator<byte[]> participantsEnumerator = request.Participants.GetEnumerator();
+            while (participantsEnumerator.MoveNext())
+            {
+                if (participantsEnumerator.Current.SameAs(RawRank))
+                {
+                    break;
+                }
+                previousRank = participantsEnumerator.Current;
+            }
+            if (previousRank != null)
+            {
+                // Wait the previous node.
+                EnvironmentOperationValue previousOperationValue = Queue.Dequeue(v =>
+                    v.OperationId == requestOperationValue.OperationId &&
+                    v.OperationType == EnvironmentOperationType.MapReduceResponse &&
+                    v.Sender.SameAs(previousRank));
+                TResult previousValue = previousOperationValue.Get<WrappedValue<TResult>>().Value;
+                result = ReduceHelper<TResult>.Reduce(result, previousValue, reduceOperation);
+            }
+            // Prepare response and send it.
+            EnvironmentOperationValue responseOperationValue = new EnvironmentOperationValue();
+            responseOperationValue.OperationId = requestOperationValue.OperationId;
+            responseOperationValue.OperationType = EnvironmentOperationType.MapReduceResponse;
+            responseOperationValue.Recipients = new[] { participantsEnumerator.MoveNext() ? 
+                participantsEnumerator.Current : requestOperationValue.Sender };
+            responseOperationValue.Sender = RawRank;
+            responseOperationValue.UserTag = requestOperationValue.UserTag;
+            responseOperationValue.Set(new WrappedValue<TResult>(result));
+            Transport.Send(responseOperationValue);
+        }
+
+        #endregion
     }
 }

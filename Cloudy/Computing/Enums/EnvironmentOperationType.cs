@@ -23,6 +23,16 @@ namespace Cloudy.Computing.Enums
         /// <summary>
         /// A response that handles the current value of the reduction operation.
         /// </summary>
-        ReduceResponse = 3
+        ReduceResponse = 3,
+
+        /// <summary>
+        /// A request for a MapReduce operation.
+        /// </summary>
+        MapReduceRequest = 4,
+
+        /// <summary>
+        /// A response that handles the current value of the MapReduce operation.
+        /// </summary>
+        MapReduceResponse = 5
     }
 }

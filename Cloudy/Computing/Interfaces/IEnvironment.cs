@@ -126,5 +126,30 @@ namespace Cloudy.Computing.Interfaces
         void Reduce<T>(int tag, T value, Reductor reductor, TRank sender);
 
         #endregion
+
+        #region MapReduce
+
+        /// <summary>
+        /// Performs the Map-Reduce operation against the nodes.
+        /// </summary>
+        /// <typeparam name="TValue">The type of source values.</typeparam>
+        /// <typeparam name="TResult">The result type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">The source value.</param>
+        /// <param name="targets">Target nodes.</param>
+        TResult MapReduce<TValue, TResult>(int tag, TValue value, IEnumerable<TRank> targets);
+
+        /// <summary>
+        /// Performs a local part of the Map-Reduce operation.
+        /// </summary>
+        /// <typeparam name="TValue">The type of source values.</typeparam>
+        /// <typeparam name="TResult">The result type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="mapOperation">Map operation.</param>
+        /// <param name="reduceOperation">Reduce operation.</param>
+        void MapReduce<TValue, TResult>(int tag, MapFunction<TValue, TResult> mapOperation,
+            Reductor<TResult> reduceOperation);
+
+        #endregion
     }
 }
