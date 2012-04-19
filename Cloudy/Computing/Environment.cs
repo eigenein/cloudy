@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Cloudy.Collections;
@@ -20,6 +21,8 @@ namespace Cloudy.Computing
     /// </summary>
     internal class Environment : IInternalEnvironment, IDisposable
     {
+        protected Stopwatch Stopwatch = new Stopwatch();
+
         protected readonly IEnvironmentTransport Transport;
 
         protected readonly BlockingFilteredQueue<EnvironmentOperationValue> Queue =
@@ -36,6 +39,7 @@ namespace Cloudy.Computing
         {
             this.Transport = transport;
             this.rawRank = rank;
+            Stopwatch.Start();
         }
 
         public byte[] RawRank
@@ -363,5 +367,10 @@ namespace Cloudy.Computing
         }
 
         #endregion
+
+        public double GetTime()
+        {
+            return Stopwatch.Elapsed.TotalSeconds;
+        }
     }
 }
