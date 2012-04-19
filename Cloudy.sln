@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Protobuf", "Cloudy.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Protobuf.Analyzer", "Cloudy.Protobuf.Analyzer\Cloudy.Protobuf.Analyzer.csproj", "{B6AAFC25-7797-43E2-B65B-1070E3F539BF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Examples.Static.MapReduce.Master", "Cloudy.Examples.Static.MapReduce.Master\Cloudy.Examples.Static.MapReduce.Master.csproj", "{B5348BA1-D34E-47B1-9894-191214D62ACB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Examples.Static.MapReduce.Slave", "Cloudy.Examples.Static.MapReduce.Slave\Cloudy.Examples.Static.MapReduce.Slave.csproj", "{88D4E095-FF39-424E-B537-67F06D0123AC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -71,6 +75,22 @@ Global
 		{B6AAFC25-7797-43E2-B65B-1070E3F539BF}.Release|Mixed Platforms.Build.0 = Release|x86
 		{B6AAFC25-7797-43E2-B65B-1070E3F539BF}.Release|x86.ActiveCfg = Release|x86
 		{B6AAFC25-7797-43E2-B65B-1070E3F539BF}.Release|x86.Build.0 = Release|x86
+		{B5348BA1-D34E-47B1-9894-191214D62ACB}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{B5348BA1-D34E-47B1-9894-191214D62ACB}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{B5348BA1-D34E-47B1-9894-191214D62ACB}.Debug|x86.ActiveCfg = Debug|x86
+		{B5348BA1-D34E-47B1-9894-191214D62ACB}.Debug|x86.Build.0 = Debug|x86
+		{B5348BA1-D34E-47B1-9894-191214D62ACB}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{B5348BA1-D34E-47B1-9894-191214D62ACB}.Release|Mixed Platforms.Build.0 = Release|x86
+		{B5348BA1-D34E-47B1-9894-191214D62ACB}.Release|x86.ActiveCfg = Release|x86
+		{B5348BA1-D34E-47B1-9894-191214D62ACB}.Release|x86.Build.0 = Release|x86
+		{88D4E095-FF39-424E-B537-67F06D0123AC}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{88D4E095-FF39-424E-B537-67F06D0123AC}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{88D4E095-FF39-424E-B537-67F06D0123AC}.Debug|x86.ActiveCfg = Debug|x86
+		{88D4E095-FF39-424E-B537-67F06D0123AC}.Debug|x86.Build.0 = Debug|x86
+		{88D4E095-FF39-424E-B537-67F06D0123AC}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{88D4E095-FF39-424E-B537-67F06D0123AC}.Release|Mixed Platforms.Build.0 = Release|x86
+		{88D4E095-FF39-424E-B537-67F06D0123AC}.Release|x86.ActiveCfg = Release|x86
+		{88D4E095-FF39-424E-B537-67F06D0123AC}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

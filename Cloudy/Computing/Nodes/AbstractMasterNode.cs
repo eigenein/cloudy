@@ -320,7 +320,14 @@ namespace Cloudy.Computing.Nodes
             }
         }
 
-        private void SetRemoteValue(byte[] @namespace, string key, byte[] value,
+        /// <summary>
+        /// Sets the remote value.
+        /// </summary>
+        /// <param name="namespace">Namespace.</param>
+        /// <param name="key">Key.</param>
+        /// <param name="value">Value.</param>
+        /// <param name="timeToLive">Caching policy.</param>
+        protected void SetRemoteValue(byte[] @namespace, string key, byte[] value,
             TimeToLive timeToLive)
         {
             MemoryStorageByteArray rawValue = new MemoryStorageByteArray();

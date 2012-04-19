@@ -125,6 +125,11 @@ namespace Cloudy.Protobuf.Analyzer
                 IPAddress ipAddress = new IPAddress(data);
                 Logger.Info("{1}As IP address: {0}", ipAddress, FormatDepth(depth));
             }
+            if (data.Length == 16)
+            {
+                Guid guid = new Guid(data);
+                Logger.Info("{1}As GUID: {0}", guid, FormatDepth(depth));
+            }
             Logger.Info("{0}As message:", FormatDepth(depth));
             Logger.Info("{0}{{", FormatDepth(depth));
             AnalyzeMessage(data, depth + 1);

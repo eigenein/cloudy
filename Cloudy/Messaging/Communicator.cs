@@ -57,17 +57,6 @@ namespace Cloudy.Messaging
         }
 
         /// <summary>
-        /// Reads a tagged message from the communicator. The method is thread-safe.
-        /// </summary>
-        /// <returns>The read message.</returns>
-        public IMessage ReceiveTagged(out int tag)
-        {
-            Dto dto = Receive<Dto>();
-            tag = dto.Tag;
-            return dto;
-        }
-
-        /// <summary>
         /// Writes the message to the communicator. The method is thread-safe.
         /// </summary>
         /// <typeparam name="T">The class of a message.</typeparam>
@@ -92,23 +81,6 @@ namespace Cloudy.Messaging
                     message.GetType()).Serialize(message);
                 simpleCommunicator.Send(dgram);
             }
-        }
-
-        /// <summary>
-        /// Writes the tagged message to the communicator. The method is thread-safe.
-        /// </summary>
-        public void SendTagged(int tag, object message)
-        {
-            Send(new Dto(tag, Serializer.CreateSerializer(
-                message.GetType()).Serialize(message)));
-        }
-
-        /// <summary>
-        /// Writes the tagged message to the communicator. The method is thread-safe.
-        /// </summary>
-        public void SendTagged<T>(int tag, T message)
-        {
-            Send(new Dto<T>(tag, message));
         }
 
         #region Implementation of IDisposable
@@ -193,17 +165,6 @@ namespace Cloudy.Messaging
         }
 
         /// <summary>
-        /// Reads a tagged message from the communicator. The method is thread-safe.
-        /// </summary>
-        /// <returns>The read message.</returns>
-        public IMessage ReceiveTagged(out int tag, out TEndPoint endPoint)
-        {
-            Dto dto = Receive<Dto>(out endPoint);
-            tag = dto.Tag;
-            return dto;
-        }
-
-        /// <summary>
         /// Writes the message to the communicator. The method is thread-safe.
         /// </summary>
         /// <typeparam name="T">The class of a message.</typeparam>
@@ -228,23 +189,6 @@ namespace Cloudy.Messaging
                     message.GetType()).Serialize(message);
                 simpleCommunicator.Send(dgram, endPoint);
             }
-        }
-
-        /// <summary>
-        /// Writes the tagged message to the communicator. The method is thread-safe.
-        /// </summary>
-        public void SendTagged(int tag, object message, TEndPoint endPoint)
-        {
-            Send(new Dto(tag, Serializer.CreateSerializer(
-                message.GetType()).Serialize(message)), endPoint);
-        }
-
-        /// <summary>
-        /// Writes the tagged message to the communicator. The method is thread-safe.
-        /// </summary>
-        public void SendTagged<T>(int tag, T message, TEndPoint endPoint)
-        {
-            Send(new Dto<T>(tag, message), endPoint);
         }
     }
 }
