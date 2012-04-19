@@ -88,6 +88,7 @@ namespace Cloudy.Examples.Static.Pi.Slave
             {
                 e.Reduce(UserTags.Default, partOfPi);
             }
+            Logger.Info("Elapsed time: {0}.", e.GetTime());
         }
 
         #region Overrides of AbstractSlaveNode

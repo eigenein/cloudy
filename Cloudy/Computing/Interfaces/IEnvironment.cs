@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Topologies.Interfaces;
 
@@ -91,6 +90,12 @@ namespace Cloudy.Computing.Interfaces
         /// <param name="value">The value to combine.</param>
         /// <param name="sender">The rank of a node that should request the reduction operation.</param>
         void Reduce<T>(int tag, T value, TRank sender);
+
+        /// <summary>
+        /// Provide local time of the thread in the milliseconds.
+        /// </summary>
+        /// <returns>Local time of the thread from start to current time.</returns>
+        double GetTime();
 
         #endregion
     }
