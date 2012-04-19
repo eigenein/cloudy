@@ -28,31 +28,5 @@ namespace Cloudy.Test.Messaging
                     stream.ToArray());
             }
         }
-
-        [Test]
-        public void TestWriteReadDto()
-        {
-            uint[] values = new uint[] { 1, 29, 34 };
-            int[] tags = new int[] { 78, 10, 67 };
-            using (MemoryStream stream = new MemoryStream())
-            {
-                using (Communicator communicator = new Communicator(
-                    new StreamSimpleCommunicator<object>(stream, null)))
-                {
-                    for (int i = 0; i < 3; i++)
-                    {
-                        communicator.SendTagged(tags[i], new A { UIntValue = values[i]});
-                    }
-                    stream.Position = 0;
-                    for (int i = 0; i < 3; i++)
-                    {
-                        int tag;
-                        uint value = communicator.ReceiveTagged(out tag).Get<A>().UIntValue;
-                        Assert.AreEqual(tags[i], tag);
-                        Assert.AreEqual(values[i], value);
-                    }
-                }
-            }
-        }
     }
 }

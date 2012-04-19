@@ -24,7 +24,7 @@ namespace Cloudy.Messaging
         private readonly Dictionary<long, MessagingAsyncResult> sendQueue =
             new Dictionary<long, MessagingAsyncResult>();
 
-        private readonly BlockingQueue<Tuple<TrackableDto, TEndPoint>> receiveQueue =
+        private readonly BlockingQueue<Tuple<TrackableDto, TEndPoint>> receiveQueue = 
             new BlockingQueue<Tuple<TrackableDto, TEndPoint>>();
 
         #endregion
@@ -129,32 +129,29 @@ namespace Cloudy.Messaging
             T message, int tag, AsyncCallback callback, object state)
         {
             TrackableDto<T> dto = new TrackableDto<T>(CreateTrackingId(), tag, message);
+            MessagingAsyncResult ar = new MessagingAsyncResult(
+                dto.TrackingId, 1, callback, state);
+            sendQueue.Add(dto.TrackingId, ar);
             communicator.Send(dto, endPoint);
-            MessagingAsyncResult ar = new MessagingAsyncResult(dto.TrackingId,
-                1, callback, state);
-            lock (sendQueue)
-            {
-                sendQueue.Add(dto.TrackingId, ar);
-            }
             return ar;
         }
 
         /// <summary>
         /// Starts an asynchronous sending of the message.
         /// </summary>
-        public MessagingAsyncResult BeginSend<T>(TEndPoint[] endPoints,
+        public MessagingAsyncResult BeginSend<T>(TEndPoint[] endPoints, 
             T message, int tag, AsyncCallback callback, object state)
         {
-            // Pre-serialize the DTO to improve performance.
             long trackingId = CreateTrackingId();
+            MessagingAsyncResult ar = new MessagingAsyncResult(
+                trackingId, endPoints.Length, callback, state);
+            sendQueue.Add(trackingId, ar);
+            // Pre-serialize the DTO to improve performance.
             byte[] bytes = new TrackableDto<T>(trackingId, tag, message).Serialize();
             foreach (TEndPoint endPoint in endPoints)
             {
                 communicator.SimpleCommunicator.Send(bytes, endPoint);
             }
-            MessagingAsyncResult ar = new MessagingAsyncResult(trackingId,
-                endPoints.Length, callback, state);
-            sendQueue.Add(trackingId, ar);
             return ar;
         }
 

@@ -5,6 +5,7 @@ using Cloudy.Computing;
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Nodes;
+using Cloudy.Computing.Reduction.Delegates;
 using Cloudy.Computing.Topologies.Helpers;
 using Cloudy.Computing.Topologies.Structures;
 using Cloudy.Examples.Shared.Configuration;
@@ -75,20 +76,18 @@ namespace Cloudy.Examples.Static.Pi.Slave
             }
             double partOfPi = step * sum;
             Logger.Info("Part of Pi: {0}", partOfPi);
-            /* MPI_Reduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM, 0,
-               MPI_COMM_WORLD);
-             */
+            Reductor reductor = (reducible1, reducible2) => reducible1.Add(reducible2);
             if (e.Rank.IsCentral)
             {
-                double pi = e.Reduce(UserTags.Default, partOfPi, ReduceOperation.Sum,
+                double pi = e.Reduce(UserTags.Default, partOfPi, reductor,
                     StarTopologyHelper.GetPeripherals(environment));
                 Console.WriteLine("Pi is {0}", pi);
             }
             else
             {
-                e.Reduce(UserTags.Default, partOfPi);
+                e.Reduce(UserTags.Default, partOfPi, reductor);
             }
-            Logger.Info("Elapsed time: {0}.", e.GetTime());
+            Logger.Info("Reduce has finished.");
         }
 
         #region Overrides of AbstractSlaveNode

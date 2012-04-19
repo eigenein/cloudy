@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Cloudy.Collections;
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Reduction;
+using Cloudy.Computing.Reduction.Delegates;
 using Cloudy.Computing.Structures;
 using Cloudy.Computing.Structures.Values;
 using Cloudy.Computing.Structures.Values.Environment;
@@ -21,8 +21,6 @@ namespace Cloudy.Computing
     /// </summary>
     internal class Environment : IInternalEnvironment, IDisposable
     {
-        protected Stopwatch Stopwatch = new Stopwatch();
-
         protected readonly IEnvironmentTransport Transport;
 
         protected readonly BlockingFilteredQueue<EnvironmentOperationValue> Queue =
@@ -39,7 +37,6 @@ namespace Cloudy.Computing
         {
             this.Transport = transport;
             this.rawRank = rank;
-            Stopwatch.Start();
         }
 
         public byte[] RawRank
@@ -256,9 +253,125 @@ namespace Cloudy.Computing
         /// <returns>The combined value.</returns>
         public T Reduce<T>(int tag, ReduceOperation operation, IEnumerable<TRank> targets)
         {
+            // targetsCount is ignored.
+            int targetsCount;
+            return Reduce<T>(tag, operation, targets, out targetsCount);
+        }
+
+        /// <summary>
+        /// Performs the reduction operation. It combines the values provided 
+        /// by each thread, using a specified <paramref name="operation"/>, 
+        /// and returns the combined value.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">A value that is provided by the local node.</param>
+        /// <param name="operation">The reduce operation.</param>
+        /// <param name="targets">Threads to gather values from.</param>
+        /// <returns>The combined value.</returns>
+        public T Reduce<T>(int tag, T value, ReduceOperation operation, IEnumerable<TRank> targets)
+        {
+            int targetsCount;
+            T targetsValue = Reduce<T>(tag, operation, targets, out targetsCount);
+            return targetsCount != 0 ? ReduceHelper<T>.Reduce(value, targetsValue, operation) : value;
+        }
+
+        /// <summary>
+        /// Performs the reduction operation. It combines the values provided 
+        /// by each thread, using a specified <paramref name="reductor"/>, 
+        /// and returns the combined value.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">A value that is provided by the local node.</param>
+        /// <param name="reductor">The custom reductor.</param>
+        /// <param name="targets">Threads to gather values from.</param>
+        /// <returns>The combined value.</returns>
+        public T Reduce<T>(int tag, T value, Reductor reductor, IEnumerable<TRank> targets)
+        {
+            int targetsCount;
+            T targetsValue = Reduce<T>(tag, ReduceOperation.Custom, targets, out targetsCount);
+            return targetsCount != 0 ? ReduceHelper<T>.Reduce(value, targetsValue, reductor) : value;
+        }
+
+        /// <summary>
+        /// Provides a value for a reduction operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">The value to combine.</param>
+        public void Reduce<T>(int tag, T value)
+        {
+            EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
+                v.OperationType == EnvironmentOperationType.ReduceRequest && v.UserTag == tag);
+            Reduce(value, null, operationValue);
+        }
+
+        /// <summary>
+        /// Provides a value for a reduction operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">The value to combine.</param>
+        /// <param name="reductor">The custom reductor.</param>
+        public void Reduce<T>(int tag, T value, Reductor reductor)
+        {
+            EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
+                v.OperationType == EnvironmentOperationType.ReduceRequest && v.UserTag == tag);
+            Reduce(value, reductor, operationValue);
+        }
+
+        /// <summary>
+        /// Provides a value for a reduction operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">The value to combine.</param>
+        /// <param name="sender">The rank of a node that should request the reduction operation.</param>
+        public void Reduce<T>(int tag, T value, TRank sender)
+        {
+            byte[] rawSenderRank = RankConverter<TRank>.Convert(sender);
+            EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
+                v.UserTag == tag && v.Sender.SameAs(rawSenderRank) && 
+                    v.OperationType == EnvironmentOperationType.ReduceRequest);
+            Reduce(value, null, operationValue);
+        }
+
+        /// <summary>
+        /// Provides a value for a reduction operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">The value to combine.</param>
+        /// <param name="reductor">The custom reductor.</param>
+        /// <param name="sender">The rank of a node that should request the reduction operation.</param>
+        public void Reduce<T>(int tag, T value, Reductor reductor, TRank sender)
+        {
+            byte[] rawSenderRank = RankConverter<TRank>.Convert(sender);
+            EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
+                v.UserTag == tag && v.Sender.SameAs(rawSenderRank) &&
+                    v.OperationType == EnvironmentOperationType.ReduceRequest);
+            Reduce(value, reductor, operationValue);
+        }
+
+        /// <summary>
+        /// Performs the reduction operation. It combines the values provided 
+        /// by each thread, using a specified <paramref name="operation"/>, 
+        /// and returns the combined value.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="operation">The reduce operation.</param>
+        /// <param name="targets">Threads to gather values from.</param>
+        /// <param name="targetsCount">A target threads count.</param>
+        /// <returns>The combined value.</returns>
+        private T Reduce<T>(int tag, ReduceOperation operation,
+            IEnumerable<TRank> targets, out int targetsCount)
+        {
             // Prepare the request.
             EnvironmentOperationValue requestOperationValue = new EnvironmentOperationValue();
             requestOperationValue.Recipients = targets.Select(RankConverter<TRank>.Convert).ToList();
+            targetsCount = requestOperationValue.Recipients.Count;
             if (requestOperationValue.Recipients.Count == 0)
             {
                 return default(T);
@@ -281,54 +394,12 @@ namespace Cloudy.Computing
         }
 
         /// <summary>
-        /// Performs the reduction operation. It combines the values provided 
-        /// by each thread, using a specified <paramref name="operation"/>, 
-        /// and returns the combined value.
-        /// </summary>
-        /// <typeparam name="T">The value type.</typeparam>
-        /// <param name="tag">The user tag.</param>
-        /// <param name="value">A value that is provided by the local node.</param>
-        /// <param name="operation">The reduce operation.</param>
-        /// <param name="targets">Threads to gather values from.</param>
-        /// <returns>The combined value.</returns>
-        public T Reduce<T>(int tag, T value, ReduceOperation operation, IEnumerable<TRank> targets)
-        {
-            return ReduceHelper<T>.Reduce(value, Reduce<T>(tag, operation, targets), operation);
-        }
-
-        /// <summary>
-        /// Provides a value for a reduction operation.
-        /// </summary>
-        /// <typeparam name="T">The value type.</typeparam>
-        /// <param name="tag">The user tag.</param>
-        /// <param name="value">The value to combine.</param>
-        public void Reduce<T>(int tag, T value)
-        {
-            EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
-                v.OperationType == EnvironmentOperationType.ReduceRequest && v.UserTag == tag);
-            Reduce(value, operationValue);
-        }
-
-        /// <summary>
-        /// Provides a value for a reduction operation.
-        /// </summary>
-        /// <typeparam name="T">The value type.</typeparam>
-        /// <param name="tag">The user tag.</param>
-        /// <param name="value">The value to combine.</param>
-        /// <param name="sender">The rank of a node that should request the reduction operation.</param>
-        public void Reduce<T>(int tag, T value, TRank sender)
-        {
-            byte[] rawSenderRank = RankConverter<TRank>.Convert(sender);
-            EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
-                v.UserTag == tag && v.Sender.SameAs(rawSenderRank) && 
-                    v.OperationType == EnvironmentOperationType.ReduceRequest);
-            Reduce(value, operationValue);
-        }
-
-        /// <summary>
         /// Handles the reduce request.
         /// </summary>
-        private void Reduce<T>(T value, EnvironmentOperationValue requestOperationValue)
+        private void Reduce<T>(
+            T value,
+            Reductor customReductor,
+            EnvironmentOperationValue requestOperationValue)
         {
             ReduceRequestValue request = requestOperationValue.Get<ReduceRequestValue>();
             // Initialize reduced value...
@@ -352,7 +423,9 @@ namespace Cloudy.Computing
                     v.OperationType == EnvironmentOperationType.ReduceResponse &&
                     v.Sender.SameAs(previousRank));
                 T previousValue = previousOperationValue.Get<WrappedValue<T>>().Value;
-                result = ReduceHelper<T>.Reduce(result, previousValue, request.Operation);
+                result = request.Operation != ReduceOperation.Custom ?
+                    ReduceHelper<T>.Reduce(result, previousValue, request.Operation) :
+                    ReduceHelper<T>.Reduce(result, previousValue, customReductor);
             }
             // Prepare response and send it.
             EnvironmentOperationValue responseOperationValue = new EnvironmentOperationValue();
@@ -368,9 +441,91 @@ namespace Cloudy.Computing
 
         #endregion
 
-        public double GetTime()
+        #region MapReduce
+
+        /// <summary>
+        /// Performs the Map-Reduce operation against the nodes.
+        /// </summary>
+        /// <typeparam name="TValue">The type of source values.</typeparam>
+        /// <typeparam name="TResult">The result type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">The source value.</param>
+        /// <param name="targets">Target nodes.</param>
+        public TResult MapReduce<TValue, TResult>(int tag, TValue value, IEnumerable<TRank> targets)
         {
-            return Stopwatch.Elapsed.TotalSeconds;
+            // Prepare the request.
+            EnvironmentOperationValue requestOperationValue = new EnvironmentOperationValue();
+            requestOperationValue.Recipients = targets.Select(RankConverter<TRank>.Convert).ToList();
+            if (requestOperationValue.Recipients.Count == 0)
+            {
+                return default(TResult);
+            }
+            requestOperationValue.OperationId = GetOperationId();
+            requestOperationValue.OperationType = EnvironmentOperationType.MapReduceRequest;
+            requestOperationValue.Sender = RawRank;
+            requestOperationValue.UserTag = tag;
+            MapReduceRequestValue<TValue> mapReduceRequest = new MapReduceRequestValue<TValue>();
+            mapReduceRequest.Participants = requestOperationValue.Recipients;
+            mapReduceRequest.Value = value;
+            requestOperationValue.Set(mapReduceRequest);
+            // Send the request.
+            Transport.Send(requestOperationValue);
+            // Awaiting for the response.
+            EnvironmentOperationValue previousOperationValue = Queue.Dequeue(v =>
+                v.OperationId == requestOperationValue.OperationId &&
+                v.OperationType == EnvironmentOperationType.MapReduceResponse);
+            return previousOperationValue.Get<WrappedValue<TResult>>().Value;
         }
+
+        /// <summary>
+        /// Performs a local part of the Map-Reduce operation.
+        /// </summary>
+        /// <typeparam name="TValue">The type of source values.</typeparam>
+        /// <typeparam name="TResult">The result type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="mapOperation">Map operation.</param>
+        /// <param name="reduceOperation">Reduce operation.</param>
+        public void MapReduce<TValue, TResult>(int tag, 
+            MapFunction<TValue, TResult> mapOperation, 
+            Reductor<TResult> reduceOperation)
+        {
+            EnvironmentOperationValue requestOperationValue = Queue.Dequeue(v =>
+                v.OperationType == EnvironmentOperationType.MapReduceRequest && v.UserTag == tag);
+            MapReduceRequestValue<TValue> request = 
+                requestOperationValue.Get<MapReduceRequestValue<TValue>>();
+            TResult result = mapOperation(request.Value);
+            byte[] previousRank = null;
+            IEnumerator<byte[]> participantsEnumerator = request.Participants.GetEnumerator();
+            while (participantsEnumerator.MoveNext())
+            {
+                if (participantsEnumerator.Current.SameAs(RawRank))
+                {
+                    break;
+                }
+                previousRank = participantsEnumerator.Current;
+            }
+            if (previousRank != null)
+            {
+                // Wait the previous node.
+                EnvironmentOperationValue previousOperationValue = Queue.Dequeue(v =>
+                    v.OperationId == requestOperationValue.OperationId &&
+                    v.OperationType == EnvironmentOperationType.MapReduceResponse &&
+                    v.Sender.SameAs(previousRank));
+                TResult previousValue = previousOperationValue.Get<WrappedValue<TResult>>().Value;
+                result = ReduceHelper<TResult>.Reduce(result, previousValue, reduceOperation);
+            }
+            // Prepare response and send it.
+            EnvironmentOperationValue responseOperationValue = new EnvironmentOperationValue();
+            responseOperationValue.OperationId = requestOperationValue.OperationId;
+            responseOperationValue.OperationType = EnvironmentOperationType.MapReduceResponse;
+            responseOperationValue.Recipients = new[] { participantsEnumerator.MoveNext() ? 
+                participantsEnumerator.Current : requestOperationValue.Sender };
+            responseOperationValue.Sender = RawRank;
+            responseOperationValue.UserTag = requestOperationValue.UserTag;
+            responseOperationValue.Set(new WrappedValue<TResult>(result));
+            Transport.Send(responseOperationValue);
+        }
+
+        #endregion
     }
 }

@@ -31,7 +31,7 @@ namespace Cloudy.Computing.Reduction
         /// <summary>
         /// Wraps the value that implements <see cref="IReducible"/>.
         /// </summary>
-        public static IReducible Create<TValue>(TValue value)
+        public static IReducible<TValue> Create<TValue>(TValue value)
         {
             Func<object, IReducible> constructor;
             if (!Cache.TryGetValue(typeof(TValue), out constructor))
@@ -39,7 +39,7 @@ namespace Cloudy.Computing.Reduction
                 throw new NotSupportedException(String.Format(
                     "The type is not supported: {0}.", typeof(TValue)));
             }
-            return constructor(value);
+            return (IReducible<TValue>)constructor(value);
         }
 
         /// <summary>
@@ -122,5 +122,10 @@ namespace Cloudy.Computing.Reduction
         }
 
         #endregion
+
+        public override string ToString()
+        {
+            return value.ToString();
+        }
     }
 }
