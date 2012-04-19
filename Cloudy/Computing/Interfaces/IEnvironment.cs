@@ -128,7 +128,8 @@ namespace Cloudy.Computing.Interfaces
         /// Provide local time of the thread in the milliseconds.
         /// </summary>
         /// <returns>Local time of the thread from start to current time.</returns>
-        double GetTime();        #endregion
+        double GetTime();        
+        #endregion
 
         #region MapReduce
 
