@@ -10,5 +10,7 @@ namespace Cloudy.Computing.Interfaces
         void NotifyValueReceived(EnvironmentOperationValue value);
 
         void CleanUp();
+
+        void ResetTime();
     }
 }

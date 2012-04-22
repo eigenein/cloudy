@@ -124,11 +124,6 @@ namespace Cloudy.Computing.Interfaces
         /// <param name="sender">The rank of a node that should request the reduction operation.</param>
         void Reduce<T>(int tag, T value, Reductor reductor, TRank sender);
 
-        /// <summary>
-        /// Provide local time of the thread in the milliseconds.
-        /// </summary>
-        /// <returns>Local time of the thread from start to current time.</returns>
-        double GetTime();        
         #endregion
 
         #region MapReduce
@@ -153,6 +148,16 @@ namespace Cloudy.Computing.Interfaces
         /// <param name="reduceOperation">Reduce operation.</param>
         void MapReduce<TValue, TResult>(int tag, MapFunction<TValue, TResult> mapOperation,
             Reductor<TResult> reduceOperation);
+
+        #endregion
+
+        #region Utilities
+
+        /// <summary>
+        /// Gets the local time of the thread.
+        /// </summary>
+        /// <returns>Local time of the thread from the start to current time.</returns>
+        double Time { get; }
 
         #endregion
     }
