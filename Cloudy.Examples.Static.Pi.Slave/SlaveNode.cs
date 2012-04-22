@@ -67,6 +67,7 @@ namespace Cloudy.Examples.Static.Pi.Slave
             Logger.Info("Running");
             int threadsCount = StarTopologyHelper.GetThreadsCount(environment);
             Logger.Info("Threads Count: {0}. Rank: {1}.", threadsCount, e.Rank);
+            double startTime = e.Time;
             double step = 1.0 / IntervalsCount;
             double sum = 0.0;
             for (int i = e.Rank.Index + 1; i <= IntervalsCount; i += threadsCount)
@@ -88,7 +89,7 @@ namespace Cloudy.Examples.Static.Pi.Slave
                 e.Reduce(UserTags.Default, partOfPi, reductor);
             }
             Logger.Info("Reduce has finished.");
-            Logger.Info("Elapsed time: {0}.", e.Time);
+            Logger.Info("Elapsed time: {0}.", e.Time - startTime);
         }
 
         #region Overrides of AbstractSlaveNode
