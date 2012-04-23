@@ -33,6 +33,10 @@ namespace Cloudy.Computing.Enums
         /// <summary>
         /// A response that handles the current value of the MapReduce operation.
         /// </summary>
-        MapReduceResponse = 5
+        MapReduceResponse = 5,
+
+        GatherRequest = 6,
+
+        GatherResponse = 7
     }
 }

@@ -155,5 +155,13 @@ namespace Cloudy.Computing.Interfaces
             Reductor<TResult> reduceOperation);
 
         #endregion
+
+        #region Gather
+
+        IEnumerable<T> Gather<T>(IEnumerable<TRank> senders);
+
+        void Gather<T>(T value, IEnumerable<TRank> recipients);
+
+        #endregion
     }
 }

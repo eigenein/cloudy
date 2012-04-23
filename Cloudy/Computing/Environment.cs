@@ -557,6 +557,50 @@ namespace Cloudy.Computing
 
         #endregion
 
+        #region Gather
+
+        public IEnumerable<T> Gather<T>(IEnumerable<TRank> senders)
+        {
+            // Prepare the request.
+            var requestOperationValue = new EnvironmentOperationValue();
+            requestOperationValue.Recipients = senders.Select(RankConverter<TRank>.Convert).ToList();
+            // targetsCount = requestOperationValue.Recipients.Count;
+            if (requestOperationValue.Recipients.Count == 0)
+            {
+                return null;
+            }
+            requestOperationValue.OperationId = GetOperationId();
+            requestOperationValue.OperationType = EnvironmentOperationType.GatherRequest;
+            requestOperationValue.Sender = RawRank;
+            // requestOperationValue.UserTag = tag;
+            // Transport.Send(requestOperationValue);
+            // Awaiting for the response.
+            var list = new List<T>();
+            foreach (var sender in senders)
+            {
+                EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
+                                                                         v.OperationId ==
+                                                                         requestOperationValue.OperationId &&
+                                                                         v.OperationType ==
+                                                                         EnvironmentOperationType.GatherResponse);
+                list.Add(operationValue.Get<WrappedValue<T>>().Value);
+            }
+            return list;
+        }
+
+        public void Gather<T>(T value, IEnumerable<TRank> recipients)
+        {
+            var operationValue = new EnvironmentOperationValue();
+            operationValue.Sender = RawRank;
+            operationValue.OperationId = GetOperationId();
+            operationValue.OperationType = EnvironmentOperationType.GatherResponse;
+            operationValue.Set(new WrappedValue<T>(value));
+            operationValue.Recipients = recipients.Select(RankConverter<TRank>.Convert).ToList();
+            Transport.Send(operationValue);
+        }
+
+        #endregion
+
         public double GetTime()
         {
             return Stopwatch.Elapsed.TotalSeconds;
