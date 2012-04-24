@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using Cloudy.Computing;
-using Cloudy.Computing.Enums;
 using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Nodes;
-using Cloudy.Computing.Reduction.Delegates;
 using Cloudy.Computing.Topologies.Helpers;
 using Cloudy.Computing.Topologies.Structures;
-using Cloudy.Examples.Shared.Configuration;
+using Cloudy.Examples.Shared.Helpers;
+
 using NLog;
 
 namespace Cloudy.Examples.Static.Gather.Slave
@@ -17,9 +16,6 @@ namespace Cloudy.Examples.Static.Gather.Slave
     public class SlaveNode : AbstractSlaveNode<StarRank>
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-        private static readonly int IntervalsCount =
-            ApplicationSettings.GetInteger("IntervalsCount");
 
         private readonly int slotsCount;
 
@@ -64,26 +60,25 @@ namespace Cloudy.Examples.Static.Gather.Slave
 
         private static void Run(IEnvironment environment)
         {
-            var e = (IEnvironment<StarRank>)environment;
+            IEnvironment<StarRank> e = (IEnvironment<StarRank>)environment;
             Logger.Info("Running");
             int threadsCount = StarTopologyHelper.GetThreadsCount(environment);
             Logger.Info("Threads Count: {0}. Rank: {1}.", threadsCount, e.Rank);
             if (e.Rank.IsCentral)
             {
-                IEnumerable<int> result = e.Gather<int>(StarTopologyHelper.GetPeripherals(environment));
-                Console.WriteLine("Values:");
-                foreach (var i in result)
-                {
-                    Console.Write("{0}\t", i);
-                }
-                Console.WriteLine();
+                IEnumerable<int> result = e.Gather<int>(
+                    StarTopologyHelper.GetPeripherals(environment));
+                Logger.Info("Gathered values: {0}", String.Join(", ",
+                    result.Select(i => i.ToString()).ToArray()));
             }
             else
             {
-                e.Gather(new Random().Next());
+                int i = RandomExtensions.Instance.Next();
+                Logger.Info("Providing the value {0}.", i);
+                e.Gather(i);
             }
 
-            Logger.Info("Gather has finished.");
+            Logger.Info("Gather has finished. Rank: {0}.", e.Rank);
             Logger.Info("Elapsed time: {0}.", e.Time);
         }
 

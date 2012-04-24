@@ -375,6 +375,13 @@ namespace Cloudy.Computing.Nodes
             }
         }
 
+        /// <summary>
+        /// Sends the operation value.
+        /// </summary>
+        /// <remarks>
+        /// The assigned recipients collection will be altered during this 
+        /// operation.
+        /// </remarks>
         void IEnvironmentTransport.Send(EnvironmentOperationValue operationValue)
         {
             SendEnvironmentOperation(operationValue);

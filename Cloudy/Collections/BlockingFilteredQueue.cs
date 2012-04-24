@@ -8,29 +8,12 @@ namespace Cloudy.Collections
     {
         public T Dequeue(Func<T, bool> filter, TimeSpan timeout)
         {
-            // Check if there is already an appropriate item.
-            lock (SynchronizationRoot)
-            {
-                foreach (LinkedListNode<T> node in List.EnumerateNodes())
-                {
-                    if (filter(node.Value))
-                    {
-                        List.Remove(node);
-                        return node.Value;
-                    }
-                }
-            }
-            // No, then wait for a newly enqueued item.
             while (true)
             {
-                lock (SynchronizationRoot)
+                T value;
+                if (TrySearch(filter, out value))
                 {
-                    LinkedListNode<T> node = List.First;
-                    if (node != null && filter(node.Value))
-                    {
-                        List.Remove(node);
-                        return node.Value;
-                    }
+                    return value;
                 }
                 if (!WaitHandle.WaitOne(timeout))
                 {
@@ -43,6 +26,24 @@ namespace Cloudy.Collections
         public T Dequeue(Func<T, bool> filter)
         {
             return Dequeue(filter, TimeSpanExtensions.Infinite);
+        }
+
+        private bool TrySearch(Func<T, bool> filter, out T value)
+        {
+            lock (SynchronizationRoot)
+            {
+                foreach (LinkedListNode<T> node in List.EnumerateNodes())
+                {
+                    if (filter(node.Value))
+                    {
+                        value = node.Value;
+                        List.Remove(node);
+                        return true;
+                    }
+                }
+                value = default(T);
+                return false;
+            }
         }
     }
 }

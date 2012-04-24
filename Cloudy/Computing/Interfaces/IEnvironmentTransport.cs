@@ -16,6 +16,13 @@ namespace Cloudy.Computing.Interfaces
 
         TMessage ReceiveFromMaster<TMessage>(int expectedTag);
 
+        /// <summary>
+        /// Sends the operation value.
+        /// </summary>
+        /// <remarks>
+        /// The assigned recipients collection will be altered during this 
+        /// operation.
+        /// </remarks>
         void Send(EnvironmentOperationValue operationValue);
     }
 }

@@ -23,15 +23,16 @@ namespace Cloudy.Examples.Static.Gather.Master
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
             Logger.Info("Starting master on port {0} ...", Port);
-            MasterNode master = new MasterNode(Port, StartUpThreadsCount);
-            ThreadPool.QueueUserWorkItem(HandleMessages, master);
-            ThreadPool.QueueUserWorkItem(ProcessIncomingMessages, master);
-            Logger.Info("Awaiting for at least {0} threads to join ...",
-                StartUpThreadsCount);
+            using (MasterNode master = new MasterNode(Port, StartUpThreadsCount))
+            {
+                ThreadPool.QueueUserWorkItem(HandleMessages, master);
+                ThreadPool.QueueUserWorkItem(ProcessIncomingMessages, master);
+                Logger.Info("Awaiting for at least {0} threads to join ...",
+                    StartUpThreadsCount);
 
-            Logger.Info("Press Enter to quit.");
-            Console.ReadLine();
-            master.Dispose();
+                Logger.Info("Press Enter to quit.");
+                Console.ReadLine();
+            }
         }
 
         private static void ProcessIncomingMessages(object state)

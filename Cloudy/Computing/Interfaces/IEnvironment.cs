@@ -160,7 +160,7 @@ namespace Cloudy.Computing.Interfaces
         /// <typeparam name="T">The value type.</typeparam>
         /// <param name="senders">Threads to gather value from.</param>
         /// <returns>Combined values from senders.</returns>
-        Collection<T> Gather<T>(IEnumerable<TRank> senders);
+        ICollection<T> Gather<T>(IEnumerable<TRank> senders);
 
         /// <summary>
         /// Gathers together values from a group of processes with current.
@@ -169,7 +169,7 @@ namespace Cloudy.Computing.Interfaces
         /// <param name="value">Current thread value.</param>
         /// <param name="senders">Threads to gather value from.</param>
         /// <returns>Combined values from senders and current thread.</returns>
-        Collection<T> Gather<T>(T value, IEnumerable<TRank> senders);
+        ICollection<T> Gather<T>(T value, IEnumerable<TRank> senders);
 
         /// <summary>
         /// Send a value for GatherRequest.

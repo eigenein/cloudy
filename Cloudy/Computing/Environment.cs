@@ -43,6 +43,9 @@ namespace Cloudy.Computing
             this.rawRank = rank;
         }
 
+        /// <summary>
+        /// Gets the serialized current rank.
+        /// </summary>
         public byte[] RawRank
         {
             get { return rawRank; }
@@ -75,6 +78,9 @@ namespace Cloudy.Computing
             Stopwatch.Start();
         }
 
+        /// <summary>
+        /// Generates a new operation ID.
+        /// </summary>
         protected int GetOperationId()
         {
             return Interlocked.Increment(ref operationId);
@@ -117,7 +123,7 @@ namespace Cloudy.Computing
                 MemoryStorageObject rawValue;
                 if (masterRemoteMemoryCache.TryGetValue(@namespace, key, out rawValue))
                 {
-                    value = (TValue) rawValue.Value;
+                    value = (TValue)rawValue.Value;
                     return true;
                 }
                 lock (Transport.MasterConversationLock)
@@ -177,7 +183,7 @@ namespace Cloudy.Computing
         /// </summary>
         public void Send<T>(int tag, T value, TRank recipient)
         {
-            Send(tag, value, new[] {recipient});
+            Send(tag, value, new[] { recipient });
         }
 
         /// <summary>
@@ -546,29 +552,35 @@ namespace Cloudy.Computing
         /// <typeparam name="T">The value type.</typeparam>
         /// <param name="senders">Threads to gather value from.</param>
         /// <returns>Combined values from senders.</returns>
-        public Collection<T> Gather<T>(IEnumerable<TRank> senders)
+        public ICollection<T> Gather<T>(IEnumerable<TRank> senders)
         {
             // Prepare the request.
-            var requestOperationValue = new EnvironmentOperationValue();
-            requestOperationValue.Recipients = senders.Select(RankConverter<TRank>.Convert).ToList();
+            EnvironmentOperationValue requestOperationValue = new EnvironmentOperationValue();
+            List<byte[]> convertedSenders = senders.Select(RankConverter<TRank>.Convert).ToList();
+            // We create a copy because it will be altered by Transport.Send.
+            List<byte[]> convertedRecipients = new List<byte[]>(convertedSenders);
+            requestOperationValue.Recipients = convertedRecipients;
             if (requestOperationValue.Recipients.Count == 0)
             {
-                return null;
+                return new List<T>();
             }
             requestOperationValue.OperationId = GetOperationId();
             requestOperationValue.OperationType = EnvironmentOperationType.GatherRequest;
             requestOperationValue.Sender = RawRank;
             Transport.Send(requestOperationValue);
 
-            var collection = new Collection<T>();
-            foreach (var sender in senders)
+            List<T> gatheredValues = new List<T>();
+            foreach (byte[] sender in convertedSenders)
             {
+                // Preventing access to modified closure.
+                byte[] localSender = sender;
                 EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
                     v.OperationId == requestOperationValue.OperationId &&
-                    v.OperationType == EnvironmentOperationType.GatherResponse);
-                collection.Add(operationValue.Get<WrappedValue<T>>().Value);
+                    v.OperationType == EnvironmentOperationType.GatherResponse &&
+                    v.Sender.SameAs(localSender));
+                gatheredValues.Add(operationValue.Get<WrappedValue<T>>().Value);
             }
-            return collection;
+            return gatheredValues;
         }
 
         /// <summary>
@@ -578,25 +590,25 @@ namespace Cloudy.Computing
         /// <param name="value">Current thread value.</param>
         /// <param name="senders">Threads to gather value from.</param>
         /// <returns>Combined values from senders and current thread.</returns>
-        public Collection<T> Gather<T>(T value, IEnumerable<TRank> senders)
+        public ICollection<T> Gather<T>(T value, IEnumerable<TRank> senders)
         {
-            var collection = (Collection<T>)Gather<T>(senders);
-            collection.Add(value);
-            return collection;
+            ICollection<T> gatheredValues = Gather<T>(senders);
+            gatheredValues.Add(value);
+            return gatheredValues;
         }
 
         /// <summary>
-        /// Send a value for GatherRequest.
+        /// Sends a value for the Gather operation.
         /// </summary>
         /// <typeparam name="T">The value type.</typeparam>
         /// <param name="value">Current thread value.</param>
         public void Gather<T>(T value)
         {
-            var requestValue = Queue.Dequeue(v =>
+            EnvironmentOperationValue requestValue = Queue.Dequeue(v =>
                 v.OperationType == EnvironmentOperationType.GatherRequest);
-            var operationValue = new EnvironmentOperationValue();
+            EnvironmentOperationValue operationValue = new EnvironmentOperationValue();
             operationValue.Sender = RawRank;
-            operationValue.OperationId = GetOperationId();
+            operationValue.OperationId = requestValue.OperationId;
             operationValue.OperationType = EnvironmentOperationType.GatherResponse;
             operationValue.Set(new WrappedValue<T>(value));
             operationValue.Recipients = new[] { requestValue.Sender };
