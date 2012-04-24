@@ -551,7 +551,6 @@ namespace Cloudy.Computing
             // Prepare the request.
             var requestOperationValue = new EnvironmentOperationValue();
             requestOperationValue.Recipients = senders.Select(RankConverter<TRank>.Convert).ToList();
-            // targetsCount = requestOperationValue.Recipients.Count;
             if (requestOperationValue.Recipients.Count == 0)
             {
                 return null;
@@ -559,9 +558,8 @@ namespace Cloudy.Computing
             requestOperationValue.OperationId = GetOperationId();
             requestOperationValue.OperationType = EnvironmentOperationType.GatherRequest;
             requestOperationValue.Sender = RawRank;
-            // requestOperationValue.UserTag = tag;
             Transport.Send(requestOperationValue);
-            // Awaiting for the response.
+
             var list = new Collection<T>();
             foreach (var sender in senders)
             {
