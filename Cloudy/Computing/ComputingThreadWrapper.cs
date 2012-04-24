@@ -52,6 +52,7 @@ namespace Cloudy.Computing
         public void Restart()
         {
             Abort();
+            environment.ResetTime();
             thread = new Thread(Run);
             thread.Start(null);
         }

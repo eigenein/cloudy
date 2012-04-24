@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -22,13 +23,6 @@ namespace Cloudy.Computing
     /// </summary>
     internal class Environment : IInternalEnvironment, IDisposable
     {
-        protected Stopwatch Stopwatch = new Stopwatch();
-
-        protected readonly IEnvironmentTransport Transport;
-
-        protected readonly BlockingFilteredQueue<EnvironmentOperationValue> Queue =
-            new BlockingFilteredQueue<EnvironmentOperationValue>();
-
         private readonly MemoryStorage<MemoryStorageObject> masterRemoteMemoryCache =
             new MemoryStorage<MemoryStorageObject>();
 
@@ -36,11 +30,17 @@ namespace Cloudy.Computing
 
         private byte[] rawRank;
 
-        public Environment(IEnvironmentTransport transport, byte[] rank)
+        protected readonly IEnvironmentTransport Transport;
+
+        protected readonly BlockingFilteredQueue<EnvironmentOperationValue> Queue =
+            new BlockingFilteredQueue<EnvironmentOperationValue>();
+
+        protected readonly Stopwatch Stopwatch = new Stopwatch();
+
+        protected Environment(IEnvironmentTransport transport, byte[] rank)
         {
             this.Transport = transport;
             this.rawRank = rank;
-            Stopwatch.Start();
         }
 
         public byte[] RawRank
@@ -69,6 +69,12 @@ namespace Cloudy.Computing
                 value => value.TimeToLive != TimeToLive.Forever);
         }
 
+        public void ResetTime()
+        {
+            Stopwatch.Reset();
+            Stopwatch.Start();
+        }
+
         protected int GetOperationId()
         {
             return Interlocked.Increment(ref operationId);
@@ -94,7 +100,7 @@ namespace Cloudy.Computing
         #region Implementation of IEnvironment
 
         public void SetRemoteValue<TValue>(byte[] @namespace, string key,
-                                           TValue value, TimeToLive timeToLive)
+            TValue value, TimeToLive timeToLive)
         {
             SetRemoteValueRequest request = new SetRemoteValueRequest();
             request.Namespace = @namespace;
@@ -111,7 +117,7 @@ namespace Cloudy.Computing
                 MemoryStorageObject rawValue;
                 if (masterRemoteMemoryCache.TryGetValue(@namespace, key, out rawValue))
                 {
-                    value = (TValue) rawValue.Value;
+                    value = (TValue)rawValue.Value;
                     return true;
                 }
                 lock (Transport.MasterConversationLock)
@@ -143,8 +149,7 @@ namespace Cloudy.Computing
         #endregion
     }
 
-    internal class Environment<TRank> : Environment,
-                                        IEnvironment<TRank> where TRank : IRank
+    internal class Environment<TRank> : Environment, IEnvironment<TRank> where TRank : IRank
     {
         private TRank rank;
 
@@ -172,7 +177,7 @@ namespace Cloudy.Computing
         /// </summary>
         public void Send<T>(int tag, T value, TRank recipient)
         {
-            Send(tag, value, new[] {recipient});
+            Send(tag, value, new[] { recipient });
         }
 
         /// <summary>
@@ -307,9 +312,8 @@ namespace Cloudy.Computing
         public void Reduce<T>(int tag, T value)
         {
             EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
-                                                                     v.OperationType ==
-                                                                     EnvironmentOperationType.ReduceRequest &&
-                                                                     v.UserTag == tag);
+                v.OperationType == EnvironmentOperationType.ReduceRequest &&
+                v.UserTag == tag);
             Reduce(value, null, operationValue);
         }
 
@@ -323,9 +327,8 @@ namespace Cloudy.Computing
         public void Reduce<T>(int tag, T value, Reductor reductor)
         {
             EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
-                                                                     v.OperationType ==
-                                                                     EnvironmentOperationType.ReduceRequest &&
-                                                                     v.UserTag == tag);
+                v.OperationType == EnvironmentOperationType.ReduceRequest &&
+                v.UserTag == tag);
             Reduce(value, reductor, operationValue);
         }
 
@@ -340,9 +343,8 @@ namespace Cloudy.Computing
         {
             byte[] rawSenderRank = RankConverter<TRank>.Convert(sender);
             EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
-                                                                     v.UserTag == tag && v.Sender.SameAs(rawSenderRank) &&
-                                                                     v.OperationType ==
-                                                                     EnvironmentOperationType.ReduceRequest);
+                v.UserTag == tag && v.Sender.SameAs(rawSenderRank) &&
+                v.OperationType == EnvironmentOperationType.ReduceRequest);
             Reduce(value, null, operationValue);
         }
 
@@ -358,9 +360,8 @@ namespace Cloudy.Computing
         {
             byte[] rawSenderRank = RankConverter<TRank>.Convert(sender);
             EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
-                                                                     v.UserTag == tag && v.Sender.SameAs(rawSenderRank) &&
-                                                                     v.OperationType ==
-                                                                     EnvironmentOperationType.ReduceRequest);
+                v.UserTag == tag && v.Sender.SameAs(rawSenderRank) &&
+                v.OperationType == EnvironmentOperationType.ReduceRequest);
             Reduce(value, reductor, operationValue);
         }
 
@@ -376,7 +377,7 @@ namespace Cloudy.Computing
         /// <param name="targetsCount">A target threads count.</param>
         /// <returns>The combined value.</returns>
         private T Reduce<T>(int tag, ReduceOperation operation,
-                            IEnumerable<TRank> targets, out int targetsCount)
+            IEnumerable<TRank> targets, out int targetsCount)
         {
             // Prepare the request.
             EnvironmentOperationValue requestOperationValue = new EnvironmentOperationValue();
@@ -398,19 +399,15 @@ namespace Cloudy.Computing
             Transport.Send(requestOperationValue);
             // Awaiting for the response.
             EnvironmentOperationValue previousOperationValue = Queue.Dequeue(v =>
-                                                                             v.OperationId ==
-                                                                             requestOperationValue.OperationId &&
-                                                                             v.OperationType ==
-                                                                             EnvironmentOperationType.ReduceResponse);
+                v.OperationId == requestOperationValue.OperationId &&
+                v.OperationType == EnvironmentOperationType.ReduceResponse);
             return previousOperationValue.Get<WrappedValue<T>>().Value;
         }
 
         /// <summary>
         /// Handles the reduce request.
         /// </summary>
-        private void Reduce<T>(
-            T value,
-            Reductor customReductor,
+        private void Reduce<T>(T value, Reductor customReductor,
             EnvironmentOperationValue requestOperationValue)
         {
             ReduceRequestValue request = requestOperationValue.Get<ReduceRequestValue>();
@@ -431,26 +428,20 @@ namespace Cloudy.Computing
             {
                 // Wait the previous node.
                 EnvironmentOperationValue previousOperationValue = Queue.Dequeue(v =>
-                                                                                 v.OperationId ==
-                                                                                 requestOperationValue.OperationId &&
-                                                                                 v.OperationType ==
-                                                                                 EnvironmentOperationType.ReduceResponse &&
-                                                                                 v.Sender.SameAs(previousRank));
+                    v.OperationId == requestOperationValue.OperationId &&
+                    v.OperationType == EnvironmentOperationType.ReduceResponse &&
+                    v.Sender.SameAs(previousRank));
                 T previousValue = previousOperationValue.Get<WrappedValue<T>>().Value;
                 result = request.Operation != ReduceOperation.Custom
-                             ? ReduceHelper<T>.Reduce(result, previousValue, request.Operation)
-                             : ReduceHelper<T>.Reduce(result, previousValue, customReductor);
+                    ? ReduceHelper<T>.Reduce(result, previousValue, request.Operation)
+                    : ReduceHelper<T>.Reduce(result, previousValue, customReductor);
             }
             // Prepare response and send it.
             EnvironmentOperationValue responseOperationValue = new EnvironmentOperationValue();
             responseOperationValue.OperationId = requestOperationValue.OperationId;
             responseOperationValue.OperationType = EnvironmentOperationType.ReduceResponse;
-            responseOperationValue.Recipients = new[]
-                                                    {
-                                                        participantsEnumerator.MoveNext()
-                                                            ? participantsEnumerator.Current
-                                                            : requestOperationValue.Sender
-                                                    };
+            responseOperationValue.Recipients = new[] { participantsEnumerator.MoveNext() ?
+                participantsEnumerator.Current : requestOperationValue.Sender };
             responseOperationValue.Sender = RawRank;
             responseOperationValue.UserTag = requestOperationValue.UserTag;
             responseOperationValue.Set(new WrappedValue<T>(result));
@@ -490,10 +481,8 @@ namespace Cloudy.Computing
             Transport.Send(requestOperationValue);
             // Awaiting for the response.
             EnvironmentOperationValue previousOperationValue = Queue.Dequeue(v =>
-                                                                             v.OperationId ==
-                                                                             requestOperationValue.OperationId &&
-                                                                             v.OperationType ==
-                                                                             EnvironmentOperationType.MapReduceResponse);
+                v.OperationId == requestOperationValue.OperationId &&
+                v.OperationType == EnvironmentOperationType.MapReduceResponse);
             return previousOperationValue.Get<WrappedValue<TResult>>().Value;
         }
 
@@ -506,13 +495,12 @@ namespace Cloudy.Computing
         /// <param name="mapOperation">Map operation.</param>
         /// <param name="reduceOperation">Reduce operation.</param>
         public void MapReduce<TValue, TResult>(int tag,
-                                               MapFunction<TValue, TResult> mapOperation,
-                                               Reductor<TResult> reduceOperation)
+            MapFunction<TValue, TResult> mapOperation,
+            Reductor<TResult> reduceOperation)
         {
             EnvironmentOperationValue requestOperationValue = Queue.Dequeue(v =>
-                                                                            v.OperationType ==
-                                                                            EnvironmentOperationType.MapReduceRequest &&
-                                                                            v.UserTag == tag);
+                v.OperationType == EnvironmentOperationType.MapReduceRequest &&
+                v.UserTag == tag);
             MapReduceRequestValue<TValue> request =
                 requestOperationValue.Get<MapReduceRequestValue<TValue>>();
             TResult result = mapOperation(request.Value);
@@ -530,12 +518,9 @@ namespace Cloudy.Computing
             {
                 // Wait the previous node.
                 EnvironmentOperationValue previousOperationValue = Queue.Dequeue(v =>
-                                                                                 v.OperationId ==
-                                                                                 requestOperationValue.OperationId &&
-                                                                                 v.OperationType ==
-                                                                                 EnvironmentOperationType.
-                                                                                     MapReduceResponse &&
-                                                                                 v.Sender.SameAs(previousRank));
+                    v.OperationId == requestOperationValue.OperationId &&
+                    v.OperationType == EnvironmentOperationType.MapReduceResponse &&
+                    v.Sender.SameAs(previousRank));
                 TResult previousValue = previousOperationValue.Get<WrappedValue<TResult>>().Value;
                 result = ReduceHelper<TResult>.Reduce(result, previousValue, reduceOperation);
             }
@@ -543,12 +528,8 @@ namespace Cloudy.Computing
             EnvironmentOperationValue responseOperationValue = new EnvironmentOperationValue();
             responseOperationValue.OperationId = requestOperationValue.OperationId;
             responseOperationValue.OperationType = EnvironmentOperationType.MapReduceResponse;
-            responseOperationValue.Recipients = new[]
-                                                    {
-                                                        participantsEnumerator.MoveNext()
-                                                            ? participantsEnumerator.Current
-                                                            : requestOperationValue.Sender
-                                                    };
+            responseOperationValue.Recipients = new[] { participantsEnumerator.MoveNext() ?
+                participantsEnumerator.Current : requestOperationValue.Sender };
             responseOperationValue.Sender = RawRank;
             responseOperationValue.UserTag = requestOperationValue.UserTag;
             responseOperationValue.Set(new WrappedValue<TResult>(result));
@@ -559,7 +540,13 @@ namespace Cloudy.Computing
 
         #region Gather
 
-        public IEnumerable<T> Gather<T>(IEnumerable<TRank> senders)
+        /// <summary>
+        /// Gathers together values from a group of processes.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="senders">Threads to gather value from.</param>
+        /// <returns>Combined values from senders.</returns>
+        public Collection<T> Gather<T>(IEnumerable<TRank> senders)
         {
             // Prepare the request.
             var requestOperationValue = new EnvironmentOperationValue();
@@ -573,37 +560,64 @@ namespace Cloudy.Computing
             requestOperationValue.OperationType = EnvironmentOperationType.GatherRequest;
             requestOperationValue.Sender = RawRank;
             // requestOperationValue.UserTag = tag;
-            // Transport.Send(requestOperationValue);
+            Transport.Send(requestOperationValue);
             // Awaiting for the response.
-            var list = new List<T>();
+            var list = new Collection<T>();
             foreach (var sender in senders)
             {
                 EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
-                                                                         v.OperationId ==
-                                                                         requestOperationValue.OperationId &&
-                                                                         v.OperationType ==
-                                                                         EnvironmentOperationType.GatherResponse);
+                    v.OperationId == requestOperationValue.OperationId &&
+                    v.OperationType == EnvironmentOperationType.GatherResponse);
                 list.Add(operationValue.Get<WrappedValue<T>>().Value);
             }
             return list;
         }
 
-        public void Gather<T>(T value, IEnumerable<TRank> recipients)
+        /// <summary>
+        /// Gathers together values from a group of processes with current.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="value">Current thread value.</param>
+        /// <param name="senders">Threads to gather value from.</param>
+        /// <returns>Combined values from senders and current thread.</returns>
+        public Collection<T> Gather<T>(T value, IEnumerable<TRank> senders)
         {
+            var collection = (Collection<T>)Gather<T>(senders);
+            collection.Add(value);
+            return collection;
+        }
+
+        /// <summary>
+        /// Send a value for GatherRequest.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="value">Current thread value.</param>
+        public void Gather<T>(T value)
+        {
+            var requestValue = Queue.Dequeue(v =>
+                v.OperationType == EnvironmentOperationType.GatherRequest);
             var operationValue = new EnvironmentOperationValue();
             operationValue.Sender = RawRank;
             operationValue.OperationId = GetOperationId();
             operationValue.OperationType = EnvironmentOperationType.GatherResponse;
             operationValue.Set(new WrappedValue<T>(value));
-            operationValue.Recipients = recipients.Select(RankConverter<TRank>.Convert).ToList();
+            operationValue.Recipients = new[] { requestValue.Sender };
             Transport.Send(operationValue);
         }
 
         #endregion
 
-        public double GetTime()
+        #region Utilities
+
+        /// <summary>
+        /// Gets the local time of the thread.
+        /// </summary>
+        /// <returns>Local time of the thread from the start to current time.</returns>
+        public double Time
         {
-            return Stopwatch.Elapsed.TotalSeconds;
+            get { return Stopwatch.Elapsed.TotalSeconds; }
         }
+
+        #endregion
     }
 }

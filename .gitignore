@@ -5,3 +5,9 @@ _ReSharper*
 ~$*.docx
 *.user
 *.tmp
+*.sdf
+*.opensdf
+Debug
+Release
+*.ipch
+*.filters

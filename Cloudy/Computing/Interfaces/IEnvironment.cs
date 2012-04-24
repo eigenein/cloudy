@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Cloudy.Computing.Enums;
 using Cloudy.Computing.Reduction.Delegates;
 using Cloudy.Computing.Topologies.Interfaces;
@@ -124,11 +125,6 @@ namespace Cloudy.Computing.Interfaces
         /// <param name="sender">The rank of a node that should request the reduction operation.</param>
         void Reduce<T>(int tag, T value, Reductor reductor, TRank sender);
 
-        /// <summary>
-        /// Provide local time of the thread in the milliseconds.
-        /// </summary>
-        /// <returns>Local time of the thread from start to current time.</returns>
-        double GetTime();        
         #endregion
 
         #region MapReduce
@@ -158,9 +154,39 @@ namespace Cloudy.Computing.Interfaces
 
         #region Gather
 
-        IEnumerable<T> Gather<T>(IEnumerable<TRank> senders);
+        /// <summary>
+        /// Gathers together values from a group of processes.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="senders">Threads to gather value from.</param>
+        /// <returns>Combined values from senders.</returns>
+        Collection<T> Gather<T>(IEnumerable<TRank> senders);
 
-        void Gather<T>(T value, IEnumerable<TRank> recipients);
+        /// <summary>
+        /// Gathers together values from a group of processes with current.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="value">Current thread value.</param>
+        /// <param name="senders">Threads to gather value from.</param>
+        /// <returns>Combined values from senders and current thread.</returns>
+        Collection<T> Gather<T>(T value, IEnumerable<TRank> senders);
+
+        /// <summary>
+        /// Send a value for GatherRequest.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="value">Current thread value.</param>
+        void Gather<T>(T value);
+
+        #endregion
+
+        #region Utilities
+
+        /// <summary>
+        /// Gets the local time of the thread.
+        /// </summary>
+        /// <returns>Local time of the thread from the start to current time.</returns>
+        double Time { get; }
 
         #endregion
     }

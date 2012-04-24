@@ -64,27 +64,27 @@ namespace Cloudy.Examples.Static.Gather.Slave
 
         private static void Run(IEnvironment environment)
         {
-            IEnvironment<StarRank> e = (IEnvironment<StarRank>)environment;
+            var e = (IEnvironment<StarRank>)environment;
             Logger.Info("Running");
             int threadsCount = StarTopologyHelper.GetThreadsCount(environment);
             Logger.Info("Threads Count: {0}. Rank: {1}.", threadsCount, e.Rank);
             if (e.Rank.IsCentral)
             {
-                Console.WriteLine("Values:");
                 IEnumerable<int> result = e.Gather<int>(StarTopologyHelper.GetPeripherals(environment));
+                Console.WriteLine("Values:");
                 foreach (var i in result)
                 {
-                    Console.WriteLine("{0}, ", i);
+                    Console.Write("{0}\t", i);
                 }
+                Console.WriteLine();
             }
             else
             {
-                // e.Reduce(UserTags.Default, partOfPi, reductor);
-                e.Gather(1, StarTopologyHelper.GetPeripherals(environment));
+                e.Gather(new Random().Next());
             }
 
             Logger.Info("Gather has finished.");
-            Logger.Info("Elapsed time: {0}.", e.GetTime());
+            Logger.Info("Elapsed time: {0}.", e.Time);
         }
 
         #region Overrides of AbstractSlaveNode
