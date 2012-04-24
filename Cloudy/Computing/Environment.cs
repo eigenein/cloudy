@@ -117,7 +117,7 @@ namespace Cloudy.Computing
                 MemoryStorageObject rawValue;
                 if (masterRemoteMemoryCache.TryGetValue(@namespace, key, out rawValue))
                 {
-                    value = (TValue)rawValue.Value;
+                    value = (TValue) rawValue.Value;
                     return true;
                 }
                 lock (Transport.MasterConversationLock)
@@ -177,7 +177,7 @@ namespace Cloudy.Computing
         /// </summary>
         public void Send<T>(int tag, T value, TRank recipient)
         {
-            Send(tag, value, new[] { recipient });
+            Send(tag, value, new[] {recipient});
         }
 
         /// <summary>
@@ -311,7 +311,7 @@ namespace Cloudy.Computing
         /// <param name="value">The value to combine.</param>
         public void Reduce<T>(int tag, T value)
         {
-            EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
+            EnvironmentOperationValue operationValue = Queue.Dequeue(v => 
                 v.OperationType == EnvironmentOperationType.ReduceRequest &&
                 v.UserTag == tag);
             Reduce(value, null, operationValue);
@@ -494,7 +494,7 @@ namespace Cloudy.Computing
         /// <param name="tag">The user tag.</param>
         /// <param name="mapOperation">Map operation.</param>
         /// <param name="reduceOperation">Reduce operation.</param>
-        public void MapReduce<TValue, TResult>(int tag,
+        public void MapReduce<TValue, TResult>(int tag, 
             MapFunction<TValue, TResult> mapOperation,
             Reductor<TResult> reduceOperation)
         {
