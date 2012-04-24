@@ -55,6 +55,12 @@ namespace Cloudy.Examples.Static.Pi.Master
             get { return topology; }
         }
 
+        /// <summary>
+        /// Notifies that the job is stopped.
+        /// </summary>
+        /// <returns>
+        /// Whether a master should continue with a new job (closing otherwise).
+        /// </returns>
         protected override bool OnJobStopped(JobResult result)
         {
             return false;
