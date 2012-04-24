@@ -560,15 +560,15 @@ namespace Cloudy.Computing
             requestOperationValue.Sender = RawRank;
             Transport.Send(requestOperationValue);
 
-            var list = new Collection<T>();
+            var collection = new Collection<T>();
             foreach (var sender in senders)
             {
                 EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
                     v.OperationId == requestOperationValue.OperationId &&
                     v.OperationType == EnvironmentOperationType.GatherResponse);
-                list.Add(operationValue.Get<WrappedValue<T>>().Value);
+                collection.Add(operationValue.Get<WrappedValue<T>>().Value);
             }
-            return list;
+            return collection;
         }
 
         /// <summary>
