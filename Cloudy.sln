@@ -23,6 +23,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Examples.Static.Gath
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Examples.Static.Gather.Slave", "Cloudy.Examples.Static.Gather.Slave\Cloudy.Examples.Static.Gather.Slave.csproj", "{9826995D-F078-4234-81CC-24F4FC383B26}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Examples.Static.Scatter.Slave", "Cloudy.Examples.Static.Scatter.Slave\Cloudy.Examples.Static.Scatter.Slave.csproj", "{59C31162-70A4-46C2-90D8-9210D749D059}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Examples.Static.Scatter.Master", "Cloudy.Examples.Static.Scatter.Master\Cloudy.Examples.Static.Scatter.Master.csproj", "{208020BC-B8F1-41B2-A984-735EB15E47B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -65,22 +69,22 @@ Global
 		{88D4E095-FF39-424E-B537-67F06D0123AC}.Debug|x86.Build.0 = Debug|x86
 		{88D4E095-FF39-424E-B537-67F06D0123AC}.Release|x86.ActiveCfg = Release|x86
 		{88D4E095-FF39-424E-B537-67F06D0123AC}.Release|x86.Build.0 = Release|x86
-		{99EEC7D3-9B06-4A45-8F7F-F4BA1856DFD2}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{99EEC7D3-9B06-4A45-8F7F-F4BA1856DFD2}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{99EEC7D3-9B06-4A45-8F7F-F4BA1856DFD2}.Debug|x86.ActiveCfg = Debug|x86
 		{99EEC7D3-9B06-4A45-8F7F-F4BA1856DFD2}.Debug|x86.Build.0 = Debug|x86
-		{99EEC7D3-9B06-4A45-8F7F-F4BA1856DFD2}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{99EEC7D3-9B06-4A45-8F7F-F4BA1856DFD2}.Release|Mixed Platforms.Build.0 = Release|x86
 		{99EEC7D3-9B06-4A45-8F7F-F4BA1856DFD2}.Release|x86.ActiveCfg = Release|x86
 		{99EEC7D3-9B06-4A45-8F7F-F4BA1856DFD2}.Release|x86.Build.0 = Release|x86
-		{9826995D-F078-4234-81CC-24F4FC383B26}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{9826995D-F078-4234-81CC-24F4FC383B26}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{9826995D-F078-4234-81CC-24F4FC383B26}.Debug|x86.ActiveCfg = Debug|x86
 		{9826995D-F078-4234-81CC-24F4FC383B26}.Debug|x86.Build.0 = Debug|x86
-		{9826995D-F078-4234-81CC-24F4FC383B26}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{9826995D-F078-4234-81CC-24F4FC383B26}.Release|Mixed Platforms.Build.0 = Release|x86
 		{9826995D-F078-4234-81CC-24F4FC383B26}.Release|x86.ActiveCfg = Release|x86
 		{9826995D-F078-4234-81CC-24F4FC383B26}.Release|x86.Build.0 = Release|x86
+		{59C31162-70A4-46C2-90D8-9210D749D059}.Debug|x86.ActiveCfg = Debug|x86
+		{59C31162-70A4-46C2-90D8-9210D749D059}.Debug|x86.Build.0 = Debug|x86
+		{59C31162-70A4-46C2-90D8-9210D749D059}.Release|x86.ActiveCfg = Release|x86
+		{59C31162-70A4-46C2-90D8-9210D749D059}.Release|x86.Build.0 = Release|x86
+		{208020BC-B8F1-41B2-A984-735EB15E47B4}.Debug|x86.ActiveCfg = Debug|x86
+		{208020BC-B8F1-41B2-A984-735EB15E47B4}.Debug|x86.Build.0 = Debug|x86
+		{208020BC-B8F1-41B2-A984-735EB15E47B4}.Release|x86.ActiveCfg = Release|x86
+		{208020BC-B8F1-41B2-A984-735EB15E47B4}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

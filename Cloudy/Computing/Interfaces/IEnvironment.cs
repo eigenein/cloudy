@@ -180,6 +180,42 @@ namespace Cloudy.Computing.Interfaces
 
         #endregion
 
+        #region Scatter
+
+        /// <summary>
+        /// Receive value from Scatter operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <returns>Appropriate piece of the data from Scatter operation.</returns>
+        T Scatter<T>();
+
+        /// <summary>
+        /// Receive value from Scatter operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <returns>Appropriate piece of the data from Scatter operation.</returns>
+        T Scatter<T>(int tag);
+
+        /// <summary>
+        /// Sends values for the Scatter operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="values">Dictionary with ranks and corresponding values for each process in the group.</param>
+        /// <param name="recipients">Threads to scatter values to.</param>
+        void Scatter<T>(Dictionary<TRank, T> values, IEnumerable<TRank> recipients);
+
+        /// <summary>
+        /// Sends values for the Scatter operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="values">Dictionary with ranks and corresponding values for each process in the group.</param>
+        /// <param name="recipients">Threads to scatter values to.</param>
+        void Scatter<T>(int tag, Dictionary<TRank, T> values, IEnumerable<TRank> recipients);
+
+        #endregion
+
         #region Utilities
 
         /// <summary>

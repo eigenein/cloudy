@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Cloudy.Computing.Topologies.Enums;
 using Cloudy.Computing.Topologies.Interfaces;
 using Cloudy.Protobuf.Attributes;
@@ -45,7 +46,25 @@ namespace Cloudy.Computing.Topologies.Structures
 
         public override bool Equals(object obj)
         {
-            return Index.Equals(obj);
+            if (obj == null)
+            {
+                return false;
+            }
+            StarRank rank = obj as StarRank;
+            if (rank == null)
+            {
+                return false;
+            }
+            return Index.Equals(rank.Index);
+        }
+
+        public bool Equals(StarRank obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+            return Index.Equals(obj.Index);
         }
 
         public override int GetHashCode()

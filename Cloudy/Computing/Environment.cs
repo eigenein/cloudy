@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -613,6 +612,77 @@ namespace Cloudy.Computing
             operationValue.Set(new WrappedValue<T>(value));
             operationValue.Recipients = new[] { requestValue.Sender };
             Transport.Send(operationValue);
+        }
+
+        #endregion
+
+        #region Scatter
+
+        /// <summary>
+        /// Receive value from Scatter operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <returns>Appropriate piece of the data from Scatter operation.</returns>
+        public T Scatter<T>()
+        {
+            return Scatter<T>(UserTags.Default);
+        }
+
+        /// <summary>
+        /// Receive value from Scatter operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <returns>Appropriate piece of the data from Scatter operation.</returns>
+        public T Scatter<T>(int tag)
+        {
+            EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
+                    v.OperationType == EnvironmentOperationType.ScatterResponse &&
+                    v.UserTag == tag &&
+                    v.Recipients.ElementAt(0).SameAs(RawRank) );
+            return operationValue.Get<WrappedValue<T>>().Value;
+        }
+
+        /// <summary>
+        /// Sends values for the Scatter operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="values">Dictionary with ranks and corresponding values for each process in the group.</param>
+        /// <param name="recipients">Threads to scatter values to.</param>
+        public void Scatter<T>(Dictionary<TRank, T> values, IEnumerable<TRank> recipients)
+        {
+            Scatter(UserTags.Default, values, recipients);
+        }
+
+        /// <summary>
+        /// Sends values for the Scatter operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="values">Dictionary with ranks and corresponding values for each process in the group.</param>
+        /// <param name="recipients">Threads to scatter values to.</param>
+        public void Scatter<T>(int tag, Dictionary<TRank, T> values, IEnumerable<TRank> recipients)
+        {
+            // Prepare the request.
+            EnvironmentOperationValue requestOperationValue = new EnvironmentOperationValue();
+            List<byte[]> convertedRecipients = recipients.Select(RankConverter<TRank>.Convert).ToList();
+            requestOperationValue.Recipients = convertedRecipients;
+            if (requestOperationValue.Recipients.Count == 0)
+            {
+                return;
+            }
+            requestOperationValue.OperationId = GetOperationId();
+            requestOperationValue.OperationType = EnvironmentOperationType.ScatterResponse;
+            requestOperationValue.Sender = RawRank;
+            requestOperationValue.UserTag = tag;
+
+            foreach (byte[] sender in convertedRecipients)
+            {
+                requestOperationValue.Recipients = new List<byte[]>() { sender };
+                TRank recipientRank = requestOperationValue.Recipients.Select(RankConverter<TRank>.Convert).ToList()[0];
+                requestOperationValue.Set(new WrappedValue<T>(values[recipientRank]));
+                Transport.Send(requestOperationValue);
+            }
         }
 
         #endregion
