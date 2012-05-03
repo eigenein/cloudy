@@ -7,9 +7,11 @@ using Cloudy.Computing.Interfaces;
 using Cloudy.Computing.Nodes;
 using Cloudy.Computing.Topologies.Helpers;
 using Cloudy.Computing.Topologies.Structures;
+using Cloudy.Examples.Shared.Helpers;
+
 using NLog;
 
-namespace Cloudy.Examples.Static.Scatter.Slave
+namespace Cloudy.Examples.Static.AllGather.Slave
 {
     public class SlaveNode : AbstractSlaveNode<StarRank>
     {
@@ -62,18 +64,14 @@ namespace Cloudy.Examples.Static.Scatter.Slave
             Logger.Info("Running");
             int threadsCount = StarTopologyHelper.GetThreadsCount(environment);
             Logger.Info("Threads Count: {0}. Rank: {1}.", threadsCount, e.Rank);
-            if (e.Rank.IsCentral)
-            {
-                Dictionary<StarRank, int> data = StarTopologyHelper.GetPeripherals(environment).ToDictionary(peripheral => peripheral, peripheral => peripheral.Index);
-                e.Scatter<int>(data, StarTopologyHelper.GetPeripherals(environment));
-            }
-            else
-            {
-                int i = e.Scatter<int>();
-                Console.WriteLine("Value from scatter and rank: {0}, {1}", i, e.Rank.Index);
-            }
+            int r = RandomExtensions.Instance.Next();
+            Logger.Info("Providing the value {0}.", r);
+            IEnumerable<int> result = e.AllGather<int>(r,
+                StarTopologyHelper.GetAll(environment));
+            Logger.Info("AllGathered values: {0}", String.Join(", ",
+                result.Select(i => i.ToString()).ToArray()));
 
-            Logger.Info("Scatter has finished. Rank: {0}.", e.Rank);
+            Logger.Info("AllGather has finished. Rank: {0}.", e.Rank);
             Logger.Info("Elapsed time: {0}.", e.Time);
         }
 

@@ -180,6 +180,19 @@ namespace Cloudy.Computing.Interfaces
 
         #endregion
 
+        #region AllGather
+
+        /// <summary>
+        /// Gathers together values from a group of processes and send them a value.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="value">Current thread value.</param>
+        /// <param name="senders">Threads to send value to and to gather value from.</param>
+        /// <returns>Combined values from senders and current thread.</returns>
+        ICollection<T> AllGather<T>(T value, IEnumerable<TRank> senders);
+
+        #endregion
+
         #region Scatter
 
         /// <summary>

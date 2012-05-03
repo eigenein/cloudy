@@ -39,6 +39,10 @@ namespace Cloudy.Computing.Enums
 
         GatherResponse = 7,
 
-        ScatterResponse = 9
+        ScatterResponse = 9,
+        
+        AllGatherRequest = 10,
+
+        AllGatherResponse = 11
     }
 }

@@ -616,6 +616,64 @@ namespace Cloudy.Computing
 
         #endregion
 
+        #region AllGather
+
+        /// <summary>
+        /// Gathers together values from a group of processes and send them a value.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="value">Current thread value.</param>
+        /// <param name="senders">Threads to send value to and to gather value from.</param>
+        /// <returns>Combined values from senders and current thread.</returns>
+        public ICollection<T> AllGather<T>(T value, IEnumerable<TRank> senders)
+        {
+            // Prepare the request.
+            EnvironmentOperationValue requestOperationValue = new EnvironmentOperationValue();
+            senders = senders.Where(sender => !sender.Equals(Rank));
+            List<byte[]> convertedSenders = senders.Select(RankConverter<TRank>.Convert).ToList();
+            // We create a copy because it will be altered by Transport.Send.
+            List<byte[]> convertedRecipients = new List<byte[]>(convertedSenders);
+            requestOperationValue.Recipients = convertedRecipients;
+            if (requestOperationValue.Recipients.Count == 0)
+            {
+                return new List<T>();
+            }
+            requestOperationValue.OperationId = GetOperationId();
+            requestOperationValue.OperationType = EnvironmentOperationType.AllGatherRequest;
+            requestOperationValue.Sender = RawRank;
+            Transport.Send(requestOperationValue);
+
+            foreach (var sender in senders)
+            {
+                EnvironmentOperationValue requestValue = Queue.Dequeue(v =>
+                    v.OperationType == EnvironmentOperationType.AllGatherRequest);
+                EnvironmentOperationValue operationValue = new EnvironmentOperationValue();
+                operationValue.Sender = RawRank;
+                operationValue.OperationId = requestValue.OperationId;
+                operationValue.OperationType = EnvironmentOperationType.AllGatherResponse;
+                operationValue.Set(new WrappedValue<T>(value));
+                operationValue.Recipients = new[] { requestValue.Sender };
+                Transport.Send(operationValue);
+            }
+
+            List<T> gatheredValues = new List<T>();
+            foreach (byte[] sender in convertedSenders)
+            {
+                // Preventing access to modified closure.
+                byte[] localSender = sender;
+                EnvironmentOperationValue responseOperationValue = Queue.Dequeue(v =>
+                    v.OperationId == requestOperationValue.OperationId &&
+                    v.OperationType == EnvironmentOperationType.AllGatherResponse &&
+                    v.Sender.SameAs(localSender));
+                gatheredValues.Add(responseOperationValue.Get<WrappedValue<T>>().Value);
+            }
+            gatheredValues.Add(value);
+            return gatheredValues;
+        }
+
+        #endregion
+
+
         #region Scatter
 
         /// <summary>
@@ -638,8 +696,7 @@ namespace Cloudy.Computing
         {
             EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
                     v.OperationType == EnvironmentOperationType.ScatterResponse &&
-                    v.UserTag == tag &&
-                    v.Recipients.ElementAt(0).SameAs(RawRank) );
+                    v.UserTag == tag);
             return operationValue.Get<WrappedValue<T>>().Value;
         }
 
@@ -664,24 +721,24 @@ namespace Cloudy.Computing
         public void Scatter<T>(int tag, Dictionary<TRank, T> values, IEnumerable<TRank> recipients)
         {
             // Prepare the request.
-            EnvironmentOperationValue requestOperationValue = new EnvironmentOperationValue();
+            EnvironmentOperationValue responseOperationValue = new EnvironmentOperationValue();
             List<byte[]> convertedRecipients = recipients.Select(RankConverter<TRank>.Convert).ToList();
-            requestOperationValue.Recipients = convertedRecipients;
-            if (requestOperationValue.Recipients.Count == 0)
+            responseOperationValue.Recipients = convertedRecipients;
+            if (responseOperationValue.Recipients.Count == 0)
             {
                 return;
             }
-            requestOperationValue.OperationId = GetOperationId();
-            requestOperationValue.OperationType = EnvironmentOperationType.ScatterResponse;
-            requestOperationValue.Sender = RawRank;
-            requestOperationValue.UserTag = tag;
+            responseOperationValue.OperationId = GetOperationId();
+            responseOperationValue.OperationType = EnvironmentOperationType.ScatterResponse;
+            responseOperationValue.Sender = RawRank;
+            responseOperationValue.UserTag = tag;
 
             foreach (byte[] sender in convertedRecipients)
             {
-                requestOperationValue.Recipients = new List<byte[]>() { sender };
-                TRank recipientRank = requestOperationValue.Recipients.Select(RankConverter<TRank>.Convert).ToList()[0];
-                requestOperationValue.Set(new WrappedValue<T>(values[recipientRank]));
-                Transport.Send(requestOperationValue);
+                responseOperationValue.Recipients = new List<byte[]>() { sender };
+                TRank recipientRank = responseOperationValue.Recipients.Select(RankConverter<TRank>.Convert).ToList()[0];
+                responseOperationValue.Set(new WrappedValue<T>(values[recipientRank]));
+                Transport.Send(responseOperationValue);
             }
         }
 

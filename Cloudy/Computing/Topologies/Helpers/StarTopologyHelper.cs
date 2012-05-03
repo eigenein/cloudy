@@ -37,5 +37,13 @@ namespace Cloudy.Computing.Topologies.Helpers
                 yield return new StarRank(index);
             }
         }
+
+        public static IEnumerable<StarRank> GetAll(IEnvironment environment)
+        {
+            for (int index = 0; index < GetThreadsCount(environment); index++)
+            {
+                yield return new StarRank(index);
+            }
+        }
     }
 }
