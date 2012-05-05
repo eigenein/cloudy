@@ -553,6 +553,18 @@ namespace Cloudy.Computing
         /// <returns>Combined values from senders.</returns>
         public ICollection<T> Gather<T>(IEnumerable<TRank> senders)
         {
+            return Gather<T>(UserTags.Default, senders);
+        }
+
+        /// <summary>
+        /// Gathers together values from a group of processes.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="senders">Threads to gather value from.</param>
+        /// <returns>Combined values from senders.</returns>
+        public ICollection<T> Gather<T>(int tag, IEnumerable<TRank> senders)
+        {
             // Prepare the request.
             EnvironmentOperationValue requestOperationValue = new EnvironmentOperationValue();
             List<byte[]> convertedSenders = senders.Select(RankConverter<TRank>.Convert).ToList();
@@ -566,6 +578,7 @@ namespace Cloudy.Computing
             requestOperationValue.OperationId = GetOperationId();
             requestOperationValue.OperationType = EnvironmentOperationType.GatherRequest;
             requestOperationValue.Sender = RawRank;
+            requestOperationValue.UserTag = tag;
             Transport.Send(requestOperationValue);
 
             List<T> gatheredValues = new List<T>();
@@ -576,6 +589,7 @@ namespace Cloudy.Computing
                 EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
                     v.OperationId == requestOperationValue.OperationId &&
                     v.OperationType == EnvironmentOperationType.GatherResponse &&
+                    v.UserTag == tag &&
                     v.Sender.SameAs(localSender));
                 gatheredValues.Add(operationValue.Get<WrappedValue<T>>().Value);
             }
@@ -591,7 +605,20 @@ namespace Cloudy.Computing
         /// <returns>Combined values from senders and current thread.</returns>
         public ICollection<T> Gather<T>(T value, IEnumerable<TRank> senders)
         {
-            ICollection<T> gatheredValues = Gather<T>(senders);
+            return Gather<T>(UserTags.Default, value, senders);
+        }
+
+        /// <summary>
+        /// Gathers together values from a group of processes with current.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">Current thread value.</param>
+        /// <param name="senders">Threads to gather value from.</param>
+        /// <returns>Combined values from senders and current thread.</returns>
+        public ICollection<T> Gather<T>(int tag, T value, IEnumerable<TRank> senders)
+        {
+            ICollection<T> gatheredValues = Gather<T>(tag, senders);
             gatheredValues.Add(value);
             return gatheredValues;
         }
@@ -603,7 +630,19 @@ namespace Cloudy.Computing
         /// <param name="value">Current thread value.</param>
         public void Gather<T>(T value)
         {
+            Gather<T>(UserTags.Default, value);
+        }
+
+        /// <summary>
+        /// Sends a value for the Gather operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">Current thread value.</param>
+        public void Gather<T>(int tag, T value)
+        {
             EnvironmentOperationValue requestValue = Queue.Dequeue(v =>
+                v.UserTag == tag &&
                 v.OperationType == EnvironmentOperationType.GatherRequest);
             EnvironmentOperationValue operationValue = new EnvironmentOperationValue();
             operationValue.Sender = RawRank;
@@ -611,6 +650,7 @@ namespace Cloudy.Computing
             operationValue.OperationType = EnvironmentOperationType.GatherResponse;
             operationValue.Set(new WrappedValue<T>(value));
             operationValue.Recipients = new[] { requestValue.Sender };
+            operationValue.UserTag = tag;
             Transport.Send(operationValue);
         }
 

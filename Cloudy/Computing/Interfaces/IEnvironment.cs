@@ -163,6 +163,15 @@ namespace Cloudy.Computing.Interfaces
         ICollection<T> Gather<T>(IEnumerable<TRank> senders);
 
         /// <summary>
+        /// Gathers together values from a group of processes.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="senders">Threads to gather value from.</param>
+        /// <returns>Combined values from senders.</returns>
+        ICollection<T> Gather<T>(int tag, IEnumerable<TRank> senders);
+
+        /// <summary>
         /// Gathers together values from a group of processes with current.
         /// </summary>
         /// <typeparam name="T">The value type.</typeparam>
@@ -172,11 +181,29 @@ namespace Cloudy.Computing.Interfaces
         ICollection<T> Gather<T>(T value, IEnumerable<TRank> senders);
 
         /// <summary>
+        /// Gathers together values from a group of processes with current.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">Current thread value.</param>
+        /// <param name="senders">Threads to gather value from.</param>
+        /// <returns>Combined values from senders and current thread.</returns>
+        ICollection<T> Gather<T>(int tag, T value, IEnumerable<TRank> senders);
+
+        /// <summary>
         /// Send a value for GatherRequest.
         /// </summary>
         /// <typeparam name="T">The value type.</typeparam>
         /// <param name="value">Current thread value.</param>
         void Gather<T>(T value);
+
+        /// <summary>
+        /// Sends a value for the Gather operation.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">Current thread value.</param>
+        void Gather<T>(int tag, T value);
 
         #endregion
 
