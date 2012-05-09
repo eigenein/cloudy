@@ -453,6 +453,44 @@ namespace Cloudy.Computing
             Transport.Send(responseOperationValue);
         }
 
+        /// <summary>
+        /// Performs the reduction operation. It combines the values provided 
+        /// by each thread in the specified <paramref name="central"/>, using a specified <paramref name="reductor"/>, 
+        /// and returns the combined value.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">The value to combine.</param>
+        /// <param name="customReductor">The custom reductor.</param>
+        /// <param name="targets">Threads to gather value from.</param>
+        /// <param name="central">The end node of reduction.</param>
+        /// <returns>The combined value</returns>
+        public T AllReduce<T>(int tag, T value, Reductor customReductor, IEnumerable<TRank> targets, TRank central)
+        {
+            T result;
+            if (Rank.Equals(central))
+            {
+                result = Reduce<T>(tag, value, customReductor, targets);
+                            EnvironmentOperationValue sendValue = new EnvironmentOperationValue();
+                sendValue.UserTag = tag;
+                sendValue.OperationType = EnvironmentOperationType.AllReduce;
+                sendValue.Recipients =
+                    targets.Select(RankConverter<TRank>.Convert).Where(r => !r.Rank.Equals(Rank)).ToList();
+                sendValue.Sender = RawRank;
+                sendValue.Set(new WrappedValue<T>(result));
+
+                Transport.Send(sendValue);
+            }
+            else
+            {
+                Reduce<T>(tag, value, customReductor);
+                EnvironmentOperationValue operationValue = Queue.Dequeue(v =>
+                    v.OperationType == EnvironmentOperationType.AllReduce);
+                result =  operationValue.Get<WrappedValue<T>>().Value;
+            }
+            return result;
+        }
+
         #endregion
 
         #region MapReduce
@@ -712,7 +750,6 @@ namespace Cloudy.Computing
         }
 
         #endregion
-
 
         #region Scatter
 

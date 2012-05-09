@@ -45,5 +45,10 @@ namespace Cloudy.Computing.Topologies.Helpers
                 yield return new StarRank(index);
             }
         }
+
+        public static StarRank GetCentral()
+        {
+            return new StarRank(0);
+        }
     }
 }

@@ -125,6 +125,20 @@ namespace Cloudy.Computing.Interfaces
         /// <param name="sender">The rank of a node that should request the reduction operation.</param>
         void Reduce<T>(int tag, T value, Reductor reductor, TRank sender);
 
+        /// <summary>
+        /// Performs the reduction operation. It combines the values provided 
+        /// by each thread in the specified <paramref name="central"/>, using a specified <paramref name="reductor"/>, 
+        /// and returns the combined value.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="tag">The user tag.</param>
+        /// <param name="value">The value to combine.</param>
+        /// <param name="customReductor">The custom reductor.</param>
+        /// <param name="targets">Threads to gather value from.</param>
+        /// <param name="central">The end node of reduction.</param>
+        /// <returns>The combined value</returns>
+        T AllReduce<T>(int tag, T value, Reductor customReductor, IEnumerable<TRank> targets, TRank central);
+
         #endregion
 
         #region MapReduce

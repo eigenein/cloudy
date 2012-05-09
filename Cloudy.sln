@@ -31,6 +31,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Examples.Static.AllG
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Examples.Static.AllGather.Slave", "Cloudy.Examples.Static.AllGather.Slave\Cloudy.Examples.Static.AllGather.Slave.csproj", "{08D5DFA5-27C4-4BD2-ADA9-21CD160EC26E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Examples.Static.AllReduce.Master", "Cloudy.Examples.Static.AllReduce.Master\Cloudy.Examples.Static.AllReduce.Master.csproj", "{FFD3E538-5441-4AE0-B722-2BDB9958B3B2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudy.Examples.Static.AllReduce.Slave", "Cloudy.Examples.Static.AllReduce.Slave\Cloudy.Examples.Static.AllReduce.Slave.csproj", "{DBF47606-E878-43B0-91CB-1560F0C86948}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -97,6 +101,14 @@ Global
 		{08D5DFA5-27C4-4BD2-ADA9-21CD160EC26E}.Debug|x86.Build.0 = Debug|x86
 		{08D5DFA5-27C4-4BD2-ADA9-21CD160EC26E}.Release|x86.ActiveCfg = Release|x86
 		{08D5DFA5-27C4-4BD2-ADA9-21CD160EC26E}.Release|x86.Build.0 = Release|x86
+		{FFD3E538-5441-4AE0-B722-2BDB9958B3B2}.Debug|x86.ActiveCfg = Debug|x86
+		{FFD3E538-5441-4AE0-B722-2BDB9958B3B2}.Debug|x86.Build.0 = Debug|x86
+		{FFD3E538-5441-4AE0-B722-2BDB9958B3B2}.Release|x86.ActiveCfg = Release|x86
+		{FFD3E538-5441-4AE0-B722-2BDB9958B3B2}.Release|x86.Build.0 = Release|x86
+		{DBF47606-E878-43B0-91CB-1560F0C86948}.Debug|x86.ActiveCfg = Debug|x86
+		{DBF47606-E878-43B0-91CB-1560F0C86948}.Debug|x86.Build.0 = Debug|x86
+		{DBF47606-E878-43B0-91CB-1560F0C86948}.Release|x86.ActiveCfg = Release|x86
+		{DBF47606-E878-43B0-91CB-1560F0C86948}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

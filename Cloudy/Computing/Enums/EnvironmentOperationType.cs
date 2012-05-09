@@ -43,6 +43,11 @@ namespace Cloudy.Computing.Enums
         
         AllGatherRequest = 10,
 
-        AllGatherResponse = 11
+        AllGatherResponse = 11,
+
+        /// <summary>
+        /// An AllReduce result distribution from central thread to targets.
+        /// </summary>
+        AllReduce = 12
     }
 }
