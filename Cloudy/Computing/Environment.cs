@@ -797,23 +797,21 @@ namespace Cloudy.Computing
         /// <param name="recipients">Threads to scatter values to.</param>
         public void Scatter<T>(int tag, Dictionary<TRank, T> values, IEnumerable<TRank> recipients)
         {
-            // Prepare the request.
-            EnvironmentOperationValue responseOperationValue = new EnvironmentOperationValue();
-            List<byte[]> convertedRecipients = recipients.Select(RankConverter<TRank>.Convert).ToList();
-            responseOperationValue.Recipients = convertedRecipients;
-            if (responseOperationValue.Recipients.Count == 0)
+            if (recipients.Count() == 0)
             {
                 return;
             }
+            // Prepare the request.
+            EnvironmentOperationValue responseOperationValue = new EnvironmentOperationValue();
             responseOperationValue.OperationId = GetOperationId();
             responseOperationValue.OperationType = EnvironmentOperationType.ScatterResponse;
             responseOperationValue.Sender = RawRank;
             responseOperationValue.UserTag = tag;
 
-            foreach (byte[] sender in convertedRecipients)
+            foreach (TRank sender in recipients)
             {
-                responseOperationValue.Recipients = new List<byte[]>() { sender };
-                TRank recipientRank = responseOperationValue.Recipients.Select(RankConverter<TRank>.Convert).ToList()[0];
+                responseOperationValue.Recipients = new List<byte[]>() { RankConverter<TRank>.Convert(sender) };
+                TRank recipientRank = sender;
                 responseOperationValue.Set(new WrappedValue<T>(values[recipientRank]));
                 Transport.Send(responseOperationValue);
             }
