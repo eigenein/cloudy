@@ -13,3 +13,4 @@ Release
 *.filters
 packages
 *.ncrunchsolution
+*.cache
