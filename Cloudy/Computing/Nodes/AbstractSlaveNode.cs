@@ -487,7 +487,7 @@ namespace Cloudy.Computing.Nodes
         /// <summary>
         /// Performs the UDP hole punching.
         /// </summary>
-        /// <returns>Whether the method call was succedded.</returns>
+        /// <returns>Whether the method call was succeeded.</returns>
         private bool CreateWormhole(byte[] destination,
             IPEndPoint targetEndPoint, out IPEndPoint succeededEndPoint)
         {

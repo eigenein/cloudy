@@ -455,7 +455,7 @@ namespace Cloudy.Computing
 
         /// <summary>
         /// Performs the reduction operation. It combines the values provided 
-        /// by each thread in the specified <paramref name="central"/>, using a specified <paramref name="reductor"/>, 
+        /// by each thread in the specified <paramref name="central"/>, using a specified <paramref name="customReductor"/>, 
         /// and returns the combined value.
         /// </summary>
         /// <typeparam name="T">The value type.</typeparam>
@@ -797,10 +797,11 @@ namespace Cloudy.Computing
         /// <param name="recipients">Threads to scatter values to.</param>
         public void Scatter<T>(int tag, Dictionary<TRank, T> values, IEnumerable<TRank> recipients)
         {
-            if (recipients.Count() == 0)
+            if (!recipients.Any())
             {
                 return;
             }
+
             // Prepare the request.
             EnvironmentOperationValue responseOperationValue = new EnvironmentOperationValue();
             responseOperationValue.OperationId = GetOperationId();

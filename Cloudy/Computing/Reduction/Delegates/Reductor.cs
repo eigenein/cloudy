@@ -1,6 +1,4 @@
-﻿using System;
-
-using Cloudy.Computing.Interfaces;
+﻿using Cloudy.Computing.Interfaces;
 
 namespace Cloudy.Computing.Reduction.Delegates
 {
