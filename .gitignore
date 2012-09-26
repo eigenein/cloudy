@@ -11,3 +11,5 @@ Debug
 Release
 *.ipch
 *.filters
+packages
+*.ncrunchsolution
